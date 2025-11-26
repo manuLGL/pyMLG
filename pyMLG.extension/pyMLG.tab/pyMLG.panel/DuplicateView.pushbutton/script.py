@@ -1,124 +1,99 @@
 # -*- coding: utf-8 -*-
+import clr
+
+clr.AddReference('RevitAPI')
+clr.AddReference('RevitAPIUI')
 from Autodesk.Revit.DB import *
 from Autodesk.Revit.UI import *
+from Autodesk.Revit.UI.Selection import *
 
+# Aktuelles Dokument
 uidoc = __revit__.ActiveUIDocument
 doc = uidoc.Document
 
+# TaskDialog zur Info
+result = TaskDialog.Show(
+    "Views kopieren",
+    "Wähle im Project Browser mehrere Views aus (Strg + Klick),\n" +
+    "dann klicke OK um sie zu kopieren.",
+    TaskDialogCommonButtons.Ok | TaskDialogCommonButtons.Cancel
+)
 
-#_________________________________________________________________________
-#_________________________________________________________________________
-# Nombre de la plantilla que quieres aplicar
-template_name = "WIP_Wall_Control"
+if result == TaskDialogResult.Ok:
+    # Hole alle im Project Browser ausgewählten Views
+    selected_ids = uidoc.Selection.GetElementIds()
 
-# Buscar la plantilla
-templates = FilteredElementCollector(doc).OfClass(View).ToElements()
-template = None
-for t in templates:
-    if t.IsTemplate and t.Name == template_name:
-        template = t
-        break
+    if selected_ids.Count == 0:
+        TaskDialog.Show("Fehler", "Keine Views ausgewählt!\n\nBitte Views im Project Browser markieren.")
+    else:
+        # Filtere nur Views aus der Auswahl
+        selected_views = []
+        for elem_id in selected_ids:
+            elem = doc.GetElement(elem_id)
+            if isinstance(elem, View):
+                # Prüfe ob duplizierbar
+                if elem.CanViewBeDuplicated(ViewDuplicateOption.Duplicate):
+                    selected_views.append(elem)
 
-if not template:
-    raise Exception("No se encontró la plantilla con el nombre especificado.")
+        if len(selected_views) == 0:
+            TaskDialog.Show(
+                "Fehler",
+                "Keine duplizierbaren Views ausgewählt!\n\n" +
+                "Hinweis: Schedules, Sheets und Legends können nicht kopiert werden."
+            )
+        else:
+            # Transaction starten
+            t = Transaction(doc, "Views kopieren")
+            t.Start()
 
-# Vista seleccionada (ejemplo: primera vista seleccionada)
-selected_ids = uidoc.Selection.GetElementIds()
-if not selected_ids:
-    raise Exception("Selecciona una vista primero.")
+            try:
+                created_views = []
+                failed_views = []
 
-view = doc.GetElement(selected_ids[0])
-if not isinstance(view, View):
-    raise Exception("El elemento seleccionado no es una vista.")
+                # Alle existierenden View-Namen sammeln
+                all_view_names = [v.Name for v in FilteredElementCollector(doc).OfClass(View).ToElements()]
 
-#_________________________________________________________________________
-#_________________________________________________________________________
+                for view in selected_views:
+                    try:
+                        # View duplizieren
+                        new_view_id = view.Duplicate(ViewDuplicateOption.Duplicate)
+                        new_view = doc.GetElement(new_view_id)
 
-# Funktion für eindeutige Blattnummer
-def get_unique_sheet_number(prefix, start):
-    existing_numbers = {s.SheetNumber for s in FilteredElementCollector(doc).OfClass(ViewSheet)}
-    num = start
-    while "{}-{:03d}".format(prefix, num) in existing_numbers:
-        num += 1
-    return "{}-{:03d}".format(prefix, num)
+                        # Namen generieren mit automatischer Nummerierung
+                        base_name = view.Name
+                        counter = 1
+                        new_name = "{} - Kopie {}".format(base_name, counter)
 
-#_________________________________________________________________________
-#_________________________________________________________________________
+                        while new_name in all_view_names:
+                            counter += 1
+                            new_name = "{} - Kopie {}".format(base_name, counter)
 
-# Alle Plankopf-Typen sammeln
-titleblock_types = FilteredElementCollector(doc)\
-    .OfCategory(BuiltInCategory.OST_TitleBlocks)\
-    .WhereElementIsElementType()\
-    .ToElements()
+                        # Namen setzen
+                        new_view.Name = new_name
+                        created_views.append(new_name)
+                        all_view_names.append(new_name)
 
-if not titleblock_types:
-    TaskDialog.Show("Fehler", "Keine Planvorlage (Titleblock) im Projekt gefunden.")
-    raise SystemExit
+                    except Exception as ex:
+                        failed_views.append(view.Name)
 
-# Plankopf mit Name "A0" suchen
+                # Transaction abschließen
+                t.Commit()
 
-titleblock_type = None
-for tb in titleblock_types:
-    tb_name = tb.get_Parameter(BuiltInParameter.SYMBOL_FAMILY_AND_TYPE_NAMES_PARAM).AsString()
-    if tb_name:
-        parts = [p.strip() for p in tb_name.split(":")]
-        if len(parts) == 2 and parts[0] == "B+K Plankopf BA A3" and parts[1] == "B+K Plankopf BA A3":
-            titleblock_type = tb
-            break
+                # Erfolgsmeldung
+                message = ""
 
-if not titleblock_type:
-    TaskDialog.Show("Fehler", "Kein Titleblock mit diesem Namen gefunden.")
-    raise SystemExit
+                if len(created_views) > 0:
+                    message += "✓ {} View(s) erfolgreich kopiert:\n\n".format(len(created_views))
+                    for name in created_views:
+                        message += "  • {}\n".format(name)
 
-# Aktuelle Auswahl filtern
-selected_ids = uidoc.Selection.GetElementIds()
-views = []
-for id in selected_ids:
-    el = doc.GetElement(id)
-    if isinstance(el, View) and not el.IsTemplate and el.CanBePrinted:
-        views.append(el)
+                if len(failed_views) > 0:
+                    message += "\n✗ {} View(s) konnten nicht kopiert werden:\n\n".format(len(failed_views))
+                    for name in failed_views:
+                        message += "  • {}\n".format(name)
 
-if not views:
-    TaskDialog.Show("Fehler", "Bitte wähle gültige Ansichten aus.")
-    raise SystemExit
+                TaskDialog.Show("Ergebnis", message)
 
-
-#_________________________________________________________________________________________
-#AUSFÜHRUNG TRANSACTION
-#_________________________________________________________________________________________
-
-t = Transaction(doc, "Create Sheet View")
-t.Start()
-
-for i, view in enumerate(views):
-    try:
-        # Aplicar la plantilla
-        view.ViewTemplateId = template.Id
-# ________________________________________________________________________________________
-#________________________________________________________________________________________
-        new_sheet = ViewSheet.Create(doc, titleblock_type.Id)
-        new_sheet.Name = view.Name
-        new_sheet.SheetNumber = get_unique_sheet_number("AP", i + 1)
-
-        x_cm = -57.0
-        y_cm = 40.0
-
-        # Umrechnung in Fuß
-        x_ft = x_cm / 30.48
-        y_ft = y_cm / 30.48
-
-        # Punkt erstellen
-        point = XYZ(x_ft, y_ft, 0)
-
-        # Ansicht platzieren
-        vp = Viewport.Create(doc, new_sheet.Id, view.Id, point)
-        if vp is None:
-            print("Viewport konnte nicht erstellt werden für:", view.Name)
-
-        print("Plan erstellt für Ansicht:", view.Name)
-    except Exception as e:
-        print("Fehler bei {}: {}".format(view.Name, e))
-
-t.Commit()
-
-TaskDialog.Show("Olé", "You created {} sheets.".format(len(views)))
+            except Exception as e:
+                t.RollBack()
+                TaskDialog.Show("Fehler", "Fehler beim Kopieren:\n{}".format(str(e)))
