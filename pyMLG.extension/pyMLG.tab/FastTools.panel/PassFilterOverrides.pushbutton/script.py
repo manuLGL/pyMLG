@@ -130,8 +130,8 @@ template_dict = {
 # Quell-Vorlage
 source_name = forms.SelectFromList.show(
     sorted(template_dict.keys()),
-    title="Quell-Ansichtsvorlage",
-    button_name="Weiter",
+    title="Origin Template",
+    button_name="Continue",
     multiselect=False
 )
 
@@ -145,8 +145,8 @@ target_options = [name for name in template_dict.keys() if name != source_name]
 
 target_names = forms.SelectFromList.show(
     sorted(target_options),
-    title="Ziel-Ansichtsvorlage(n)",
-    button_name="Übertragen",
+    title="Goal Template",
+    button_name="Pass",
     multiselect=True
 )
 
@@ -157,7 +157,7 @@ target_templates = [template_dict[name] for name in target_names]
 
 # Bestätigung
 if not forms.alert(
-        "Filter-Overrides von '{}' nach {} Vorlage(n) übertragen?".format(
+        "Passed Filter-Overrides from '{}' to {} templates?".format(
             source_name,
             len(target_templates)
         ),
