@@ -1,0 +1,7 @@
+# Von der pyRevit-CPython-Engine erzeugte Bytecode-Ordner
+__pycache__/
+*.pyc
+
+# Lokale Entwicklungsumgebung
+.venv/
+.idea/
