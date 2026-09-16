@@ -1,0 +1,10 @@
+{
+  "//": "Pylance/Pyright für pyRevit: lib/ legt pyRevit zur Laufzeit in den Suchpfad; Autodesk.*, System.*, clr und pyrevit existieren nur in Revit.",
+  "include": ["pyMLG.extension", "tools"],
+  "exclude": ["**/__pycache__", ".venv"],
+  "extraPaths": ["pyMLG.extension/lib"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "off",
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none"
+}
