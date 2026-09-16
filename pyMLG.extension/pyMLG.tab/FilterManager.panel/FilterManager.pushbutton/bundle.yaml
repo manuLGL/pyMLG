@@ -1,0 +1,13 @@
+title: "Filter\nManager"
+author: pyMLG
+tooltip: >-
+  Anzeigefilter verwalten wie im Dialog "Sichtbarkeit/Grafiken > Filter" -
+  mit Suchfeld.
+
+  Suche nach Filtername oder zusätzlich nach Parametern und Regelwerten
+  (z.B. "Typname" oder "WD"). Filter erstellen, duplizieren, umbenennen,
+  löschen; Kategorien und UND/ODER-Regeln bearbeiten; Filter auf die aktive
+  Ansicht oder auf mehrere Ansichten/Vorlagen anwenden bzw. entfernen.
+
+  Wie im Original: OK übernimmt alle Änderungen (ein Rückgängig-Schritt),
+  Abbrechen verwirft sie. Benötigt die CPython3-Engine.
