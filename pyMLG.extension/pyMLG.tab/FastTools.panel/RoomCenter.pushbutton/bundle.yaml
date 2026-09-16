@@ -1,0 +1,16 @@
+title: "Raumpunkt\nzentrieren"
+author: pyMLG
+tooltip: >-
+  Verschiebt den Rauminhaltspunkt auf den Flächenschwerpunkt des Raumumrisses
+  (Bögen und Aussparungen werden berücksichtigt).
+
+  Umfang: alle Räume, ausgewählte Räume oder Räume der aktiven Ansicht.
+  Der Punkt wird mit IsPointInRoom() geprüft. Liegt der Schwerpunkt außerhalb
+  (z. B. U-Form), wird der nächstgelegene Punkt auf der Mittelachse eines
+  Teilstücks verwendet und in der Auswertung markiert.
+
+  Raumbeschriftungen können wahlweise in allen Grundrissen oder nur in der
+  aktiven Ansicht mit zentriert werden (ohne Führungslinie).
+
+  Der Probelauf zeigt das Ergebnis, ohne das Modell zu verändern.
+  Benötigt die CPython3-Engine.
