@@ -1,0 +1,12 @@
+title: "Schedules\nnach Excel"
+author: pyMLG
+tooltip: >-
+  Exportiert ausgewählte Bauteillisten nach Excel (.xlsx).
+
+  Je Bauteilliste entsteht ein Tabellenblatt. Spalte A enthält die UniqueId
+  der Elemente als stabile Kennung für den Rückimport und ist ausgeblendet.
+  Graue Zellen sind schreibgeschützt oder berechnet und werden beim Import
+  ignoriert, orange Zellen sind Typparameter.
+
+  Unterstützt werden aufgeschlüsselte Bauteillisten ("Jede Instanz aufführen").
+  Benötigt die CPython3-Engine und openpyxl.

@@ -1,0 +1,12 @@
+title: "Excel\nzurück lesen"
+author: pyMLG
+tooltip: >-
+  Liest eine zuvor exportierte und in Excel bearbeitete Datei zurück
+  in das Modell.
+
+  Die Zuordnung erfolgt über die UniqueId in Spalte A. Schreibgeschützte und
+  berechnete Spalten werden ignoriert, gelöschte Elemente übersprungen.
+  Vor dem Schreiben wird angezeigt, was geändert wird; alle Änderungen
+  lassen sich mit einem einzigen Rückgängig-Schritt zurücknehmen.
+
+  Benötigt die CPython3-Engine und openpyxl.
