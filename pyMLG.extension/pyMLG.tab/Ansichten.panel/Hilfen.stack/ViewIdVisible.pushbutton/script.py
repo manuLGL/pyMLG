@@ -6,6 +6,14 @@ from Autodesk.Revit.UI import *
 from pyrevit import revit, forms
 
 
+def id_wert(element_id):
+    """Zahlenwert einer ElementId (Revit 2024+: .Value, IntegerValue entfällt ab 2026)."""
+    try:
+        return int(element_id.Value)
+    except AttributeError:
+        return int(element_id.IntegerValue)
+
+
 uidoc = __revit__.ActiveUIDocument
 doc = uidoc.Document
 
@@ -20,9 +28,9 @@ try:
 
         if param and not param.IsReadOnly:
             if param.StorageType == StorageType.String:
-                param.Set(str(view.Id.IntegerValue))
+                param.Set(str(id_wert(view.Id)))
             elif param.StorageType == StorageType.Integer:
-                param.Set(view.Id.IntegerValue)
+                param.Set(id_wert(view.Id))
             elif param.StorageType == StorageType.ElementId:
                 param.Set(view.Id)
 

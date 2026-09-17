@@ -7,6 +7,14 @@ __author__ = 'Manuel'
 
 from pyrevit import revit, DB, forms, script
 
+
+def id_wert(element_id):
+    """Zahlenwert einer ElementId (Revit 2024+: .Value, IntegerValue entfällt ab 2026)."""
+    try:
+        return int(element_id.Value)
+    except AttributeError:
+        return int(element_id.IntegerValue)
+
 doc = revit.doc
 uidoc = revit.uidoc
 
@@ -28,7 +36,7 @@ wall_types_dict = {}
 for wall in all_walls:
     try:
         wall_type_id = wall.GetTypeId()
-        type_id_int = wall_type_id.IntegerValue
+        type_id_int = id_wert(wall_type_id)
 
         if type_id_int not in wall_types_dict:
             wall_type = doc.GetElement(wall_type_id)
@@ -92,7 +100,7 @@ with revit.Transaction('Crear Secciones por Tipo de Muro'):
         try:
             wall_type_name = data['type_name']
             representative_wall = data['walls'][0]
-            wall_id = representative_wall.Id.IntegerValue
+            wall_id = id_wert(representative_wall.Id)
 
             print('\n' + '-' * 70)
             print('Procesando: {}'.format(wall_type_name))
@@ -206,7 +214,7 @@ with revit.Transaction('Aislar Muros'):
         try:
             section = section_data['section']
             wall = section_data['wall']
-            wall_id = wall.Id.IntegerValue
+            wall_id = id_wert(wall.Id)
 
             # Obtener elementos en vista
             collector = DB.FilteredElementCollector(doc, section.Id)
@@ -215,7 +223,7 @@ with revit.Transaction('Aislar Muros'):
             # Ocultar todo excepto el muro
             to_hide = []
             for elem_id in all_ids:
-                if elem_id.IntegerValue != wall_id:
+                if id_wert(elem_id) != wall_id:
                     to_hide.append(elem_id)
 
             if to_hide:
