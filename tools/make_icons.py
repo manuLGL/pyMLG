@@ -357,6 +357,17 @@ def filter_more(b):
         rect(b, x + 22, y + 5, min(x + 60, 92), y + 11, LINIE)
 
 
+def level_auto_set(b):
+    """Ebenenlinien, ein Block bleibt stehen, der Ebenenpfeil springt."""
+    for y in (22, 74):
+        rect(b, 4, y, 92, y + 4, LINIE)
+        polygon(b, [(4, y - 6), (16, y - 6), (10, y)], BLAU)
+    rect(b, 30, 30, 66, 70, DUNKEL)                   # Element bleibt
+    rect(b, 34, 34, 62, 66, WEISS)
+    rect(b, 34, 58, 62, 66, GELB)
+    pfeil(b, (82, 70), (82, 30), 7, 13, GRUEN)        # Ebene wechselt
+
+
 def room_center(b):
     """L-foermiger Raum, Punkt wandert von der Ecke in die Mitte."""
     rect(b, 8, 8, 52, 88, DUNKEL)
@@ -403,6 +414,7 @@ SYMBOLE = {
     "Worksets.panel/WorksetCreator.pushbutton": workset_creator,
     "Geometrie.panel/JoinMultiple.pushbutton": join_multiple,
     "Auswahl.panel/FilterMore.pushbutton": filter_more,
+    "Geometrie.panel/LevelAutoSet.pushbutton": level_auto_set,
 }
 
 

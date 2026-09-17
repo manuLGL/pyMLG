@@ -1,0 +1,15 @@
+title: "Level\nAutoSet"
+author: pyMLG
+tooltip: >-
+  Ausgewählte Elemente auf andere Ebenen setzen, ohne sie zu verschieben -
+  die Versätze werden so umgerechnet, dass die Höhe gleich bleibt.
+
+  Basis und Oberkante getrennt: nächstgelegene Ebene, nächste darüber,
+  nächste darunter oder unverändert. Ebenen lassen sich markieren und
+  filtern (Name/Regex, Gebäudegeschoss, Tragwerk).
+
+  Unterstützt Wände, Stützen, Treppen, Dächer, Träger, Geschossdecken,
+  Decken und ebenenbasierte Familien. Geschossdecken hängen mit der
+  Oberkante an der Ebene und folgen deshalb der Einstellung "Oben" (steht
+  sie auf Ignorieren, gilt "Unten"). Eingefügte Elemente (Türen, Fenster)
+  folgen ihrem Wirt. Ein Rückgängig-Schritt. Benötigt die CPython3-Engine.
