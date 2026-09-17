@@ -1,0 +1,13 @@
+title: "Join\nMultiple"
+author: pyMLG
+tooltip: >-
+  Viele Elemente auf einmal verbinden ("Geometrie verbinden") - die
+  Schnittreihenfolge folgt einer Priorität je Kategorie: höhere Zahl
+  schneidet niedrigere.
+
+  Bereich: ausgewählte Elemente, aktuelle Ansicht oder ganzes Modell.
+  Optionen: nur sich schneidende Elemente, auch innerhalb einer Kategorie,
+  bestehende Verbindungen nach Priorität umkehren, Priorität aus einem
+  Parameter. "Verbindung lösen" hebt die Verbindungen im Bereich auf.
+
+  Ein Rückgängig-Schritt je Ausführung. Benötigt die CPython3-Engine.
