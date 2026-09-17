@@ -4,6 +4,7 @@ __doc__ = "Exportiert die ViewId in den Parameter ViewId und macht die Id somit 
 from Autodesk.Revit.DB import *
 from Autodesk.Revit.UI import *
 from pyrevit import revit, forms
+from mlg_sprache import t
 
 
 def id_wert(element_id):
@@ -19,8 +20,8 @@ doc = uidoc.Document
 
 views = FilteredElementCollector(doc).OfClass(View).WhereElementIsNotElementType()
 
-t = Transaction(doc, 'Set ViewId Parameter')
-t.Start()
+transaktion = Transaction(doc, t('Set ViewId Parameter', u"Set ViewId parameter", u"Definir parámetro ViewId"))
+transaktion.Start()
 
 try:
     for view in views:
@@ -35,7 +36,7 @@ try:
                 param.Set(view.Id)
 
 except Exception as e:
-    print("Fehler:", e)
+    print(t(u"Fehler:", u"Error:", u"Error:"), e)
 
-t.Commit()
+transaktion.Commit()
 

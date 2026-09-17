@@ -38,8 +38,9 @@ from System.Windows.Controls import (  # noqa: E402
 )
 from System.Windows.Interop import WindowInteropHelper  # noqa: E402
 from System.Windows.Markup import XamlReader  # noqa: E402
+from mlg_sprache import t, uebersetze_xaml  # noqa: E402
 
-TITEL = u"Filter-Manager"
+TITEL = t(u"Filter-Manager", u"Filter Manager", u"Gestor de filtros")
 
 XMLNS = (u'xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" '
          u'xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"')
@@ -103,7 +104,7 @@ def zeige_fehler(besitzer, fehler, fachlich=(), titel=TITEL):
     pfad = schreibe_fehlerprotokoll(traceback.format_exc())
     meldung(besitzer, u"%s%s" % (
         fehlertext(fehler),
-        u"\n\nTechnische Details: %s" % pfad if pfad else u""),
+        t(u"\n\nTechnische Details: %s", u"\n\nTechnical details: %s", u"\n\nDetalles técnicos: %s") % pfad if pfad else u""),
         titel=titel, warnung=True)
 
 
@@ -150,6 +151,12 @@ def _escape(text):
 # Texteingabe
 # ---------------------------------------------------------------------------
 
+_XAML_EINGABE_TEXTE = {
+    "t0": (u"Abbrechen",
+           u"Cancel",
+           u"Cancelar"),
+}
+
 _XAML_EINGABE = u"""
 <Window %s Title="{titel}" Width="460" SizeToContent="Height"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
@@ -163,7 +170,7 @@ _XAML_EINGABE = u"""
                 Margin="0,14,0,0">
       <Button x:Name="ok" Content="OK" Width="90" Margin="0,0,8,0"
               IsDefault="True"/>
-      <Button Content="Abbrechen" Width="90" IsCancel="True"/>
+      <Button Content="{{t0}}" Width="90" IsCancel="True"/>
     </StackPanel>
   </StackPanel>
 </Window>""" % XMLNS
@@ -173,7 +180,9 @@ def frage_text(besitzer, titel, hinweis, vorgabe=u"", pruefen=None):
     """Einzeilige Eingabe. pruefen(text) liefert den bereinigten Text oder
     wirft eine Ausnahme, deren Text im Dialog angezeigt wird.
     Rückgabe: Text oder None bei Abbruch."""
-    fenster = lade_xaml(_XAML_EINGABE.replace(u"{titel}", _escape(titel)))
+    fenster = lade_xaml(uebersetze_xaml(
+        _XAML_EINGABE.replace(u"{titel}", _escape(titel)),
+        _XAML_EINGABE_TEXTE))
     setze_besitzer(fenster, besitzer=besitzer)
     fenster.FindName("hinweis").Text = hinweis
     eingabe = fenster.FindName("eingabe")
@@ -207,6 +216,21 @@ def frage_text(besitzer, titel, hinweis, vorgabe=u"", pruefen=None):
 # Auswahlliste mit Suche
 # ---------------------------------------------------------------------------
 
+_XAML_AUSWAHL_TEXTE = {
+    "t0": (u"Suchen:",
+           u"Search:",
+           u"Buscar:"),
+    "t1": (u"Alle markieren",
+           u"Check all",
+           u"Marcar todo"),
+    "t2": (u"Keine markieren",
+           u"Uncheck all",
+           u"Desmarcar todo"),
+    "t3": (u"Abbrechen",
+           u"Cancel",
+           u"Cancelar"),
+}
+
 _XAML_AUSWAHL = u"""
 <Window %s Title="{titel}" Width="560" Height="620"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
@@ -221,7 +245,7 @@ _XAML_AUSWAHL = u"""
     </Grid.RowDefinitions>
     <TextBlock x:Name="hinweis" TextWrapping="Wrap" Margin="0,0,0,8"/>
     <DockPanel Grid.Row="1" Margin="0,0,0,6">
-      <TextBlock Text="Suchen:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+      <TextBlock Text="{{t0}}" VerticalAlignment="Center" Margin="0,0,6,0"/>
       <TextBox x:Name="suche" Padding="3"/>
     </DockPanel>
     <ListBox x:Name="liste" Grid.Row="2"/>
@@ -234,13 +258,13 @@ _XAML_AUSWAHL = u"""
     <DockPanel Grid.Row="4" Margin="0,12,0,0">
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
         <Button x:Name="ok" Content="OK" Width="90" Margin="0,0,8,0"/>
-        <Button Content="Abbrechen" Width="90" IsCancel="True"/>
+        <Button Content="{{t3}}" Width="90" IsCancel="True"/>
       </StackPanel>
       <StackPanel x:Name="markieren" DockPanel.Dock="Left"
                   Orientation="Horizontal">
-        <Button x:Name="alle" Content="Alle markieren" Padding="8,2"
+        <Button x:Name="alle" Content="{{t1}}" Padding="8,2"
                 Margin="0,0,6,0"/>
-        <Button x:Name="keine" Content="Keine markieren" Padding="8,2"/>
+        <Button x:Name="keine" Content="{{t2}}" Padding="8,2"/>
       </StackPanel>
       <TextBlock x:Name="zaehler" VerticalAlignment="Center" Margin="10,0"
                  Foreground="#666" TextTrimming="CharacterEllipsis"/>
@@ -258,7 +282,9 @@ def waehle(besitzer, titel, hinweis, eintraege, mehrfach=False,
     Rückgabe:  Wert bzw. Liste der Werte (mehrfach) - mit optionen als
                (Auswahl, Optionsindex); None bei Abbruch.
     """
-    fenster = lade_xaml(_XAML_AUSWAHL.replace(u"{titel}", _escape(titel)))
+    fenster = lade_xaml(uebersetze_xaml(
+        _XAML_AUSWAHL.replace(u"{titel}", _escape(titel)),
+        _XAML_AUSWAHL_TEXTE))
     setze_besitzer(fenster, besitzer=besitzer)
     fenster.FindName("hinweis").Text = hinweis
     suche = fenster.FindName("suche")
@@ -289,10 +315,10 @@ def waehle(besitzer, titel, hinweis, eintraege, mehrfach=False,
                        if e.Visibility == Visibility.Visible)
         if mehrfach:
             markiert = sum(1 for _t, e, _w in elemente if e.IsChecked)
-            zaehler.Text = u"%d markiert, %d von %d angezeigt" % (
+            zaehler.Text = t(u"%d markiert, %d von %d angezeigt", u"%d checked, %d of %d shown", u"%d marcados, %d de %d mostrados") % (
                 markiert, sichtbar, len(elemente))
         else:
-            zaehler.Text = u"%d von %d" % (sichtbar, len(elemente))
+            zaehler.Text = t(u"%d von %d", u"%d of %d", u"%d de %d") % (sichtbar, len(elemente))
 
     def bei_suche(sender, args):
         woerter = suche.Text.lower().split()
@@ -324,14 +350,14 @@ def waehle(besitzer, titel, hinweis, eintraege, mehrfach=False,
         if mehrfach:
             wert = [w for _t, e, w in elemente if e.IsChecked]
             if not wert:
-                meldung(fenster, u"Bitte mindestens einen Eintrag markieren.",
+                meldung(fenster, t(u"Bitte mindestens einen Eintrag markieren.", u"Please check at least one entry.", u"Marque al menos una entrada."),
                         titel=titel)
                 return
         else:
             item = liste.SelectedItem
             treffer = [w for _t, e, w in elemente if e is item or e == item]
             if not treffer:
-                meldung(fenster, u"Bitte einen Eintrag auswählen.",
+                meldung(fenster, t(u"Bitte einen Eintrag auswählen.", u"Please select an entry.", u"Seleccione una entrada."),
                         titel=titel)
                 return
             wert = treffer[0]

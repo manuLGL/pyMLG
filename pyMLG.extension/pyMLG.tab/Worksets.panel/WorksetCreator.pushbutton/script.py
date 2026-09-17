@@ -22,7 +22,9 @@ while not _EXT.endswith(".extension") and os.path.dirname(_EXT) != _EXT:
 if os.path.join(_EXT, "lib") not in sys.path:
     sys.path.append(os.path.join(_EXT, "lib"))
 
-TITEL = u"Workset-Creator"
+from mlg_sprache import t  # noqa: E402
+
+TITEL = t(u"Workset-Creator", u"Workset Creator", u"Creador de subproyectos")
 
 
 def main():
@@ -31,13 +33,13 @@ def main():
     uidoc = getattr(__revit__, "ActiveUIDocument", None)
     doc = uidoc.Document if uidoc is not None else None
     if doc is None or doc.IsFamilyDocument:
-        ui.meldung(u"Worksets gibt es nur in Projektdateien.",
-                   titel=TITEL, hauptzeile=u"Kein Projekt geöffnet",
+        ui.meldung(t(u"Worksets gibt es nur in Projektdateien.", u"Worksets only exist in project files.", u"Los subproyectos solo existen en archivos de proyecto."),
+                   titel=TITEL, hauptzeile=t(u"Kein Projekt geöffnet", u"No project open", u"No hay ningún proyecto abierto"),
                    warnung=True)
         return
     if doc.IsReadOnly:
-        ui.meldung(u"Das Dokument ist schreibgeschützt.", titel=TITEL,
-                   hauptzeile=u"Worksets können nicht erstellt werden",
+        ui.meldung(t(u"Das Dokument ist schreibgeschützt.", u"The document is read-only.", u"El documento es de solo lectura."), titel=TITEL,
+                   hauptzeile=t(u"Worksets können nicht erstellt werden", u"Worksets cannot be created", u"No se pueden crear subproyectos"),
                    warnung=True)
         return
 
@@ -58,9 +60,9 @@ def _zeige_fehler(spur):
     try:
         from schedule_sync import ui
         letzte_zeile = (spur.strip().splitlines() or [u""])[-1]
-        ui.meldung(letzte_zeile + (u"\n\nProtokoll: %s" % protokoll
+        ui.meldung(letzte_zeile + (t(u"\n\nProtokoll: %s", u"\n\nLog: %s", u"\n\nRegistro: %s") % protokoll
                                    if protokoll else u""),
-                   titel=TITEL, hauptzeile=u"Workset-Creator ist fehlgeschlagen",
+                   titel=TITEL, hauptzeile=t(u"Workset-Creator ist fehlgeschlagen", u"Workset Creator failed", u"El creador de subproyectos ha fallado"),
                    warnung=True)
     except Exception:
         pass

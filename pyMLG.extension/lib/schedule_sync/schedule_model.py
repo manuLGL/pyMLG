@@ -36,6 +36,7 @@ from schedule_sync.revit_helpers import (
     parameter_map,
     typ_von,
 )
+from mlg_sprache import t
 
 # Spaltenaufbau der Excel-Blätter (1-basiert wie in openpyxl)
 SPALTE_UNIQUEID = 1      # A - versteckt, stabile Kennung für den Rückimport
@@ -63,7 +64,7 @@ SCHREIBBAR = (STATUS_OK, STATUS_TYP)
 ANSICHT_ABSCHNITTE = ("Header", "Body", "Summary", "Footer")
 ABSCHNITT_KOPF = "Header"
 
-HINWEIS_ANSICHT = u"Die Darstellung wie in Revit steht im Blatt 'Ansicht'."
+HINWEIS_ANSICHT = t(u"Die Darstellung wie in Revit steht im Blatt 'Ansicht'.", u"The layout as in Revit is in the sheet 'View'.", u"La presentación como en Revit está en la hoja 'Vista'.")
 
 
 def _hat(objekt, name, standard=None):
@@ -116,47 +117,47 @@ def pruefe_schedule(schedule):
     try:
         definition = schedule.Definition
     except Exception as fehler:
-        return False, u"Definition nicht lesbar (%s)" % fehler, hinweise
+        return False, t(u"Definition nicht lesbar (%s)", u"Definition not readable (%s)", u"Definición no legible (%s)") % fehler, hinweise
 
     if definition is None:
-        return False, u"Bauteilliste hat keine Definition", hinweise
+        return False, t(u"Bauteilliste hat keine Definition", u"Schedule has no definition", u"La tabla no tiene definición"), hinweise
 
     if not _hat(definition, "IsItemized", True):
         hinweise.append(
-            u"Revit fasst in dieser Liste gleiche Elemente zu einer Zeile "
+            t(u"Revit fasst in dieser Liste gleiche Elemente zu einer Zeile "
             u"zusammen. Das Datenblatt enthält trotzdem eine Zeile je Element "
-            u"- nur so lässt sich jede Änderung eindeutig zurückschreiben. "
+            u"- nur so lässt sich jede Änderung eindeutig zurückschreiben. ", u"Revit groups identical elements into one row in this schedule. The data sheet still contains one row per element - only then can every change be written back unambiguously. ", u"Revit agrupa en esta tabla elementos iguales en una fila. La hoja de datos contiene igualmente una fila por elemento: solo así se puede reescribir cada cambio sin ambigüedad. ")
             + HINWEIS_ANSICHT)
 
     if _hat(definition, "IsMaterialTakeoff", False):
         hinweise.append(
-            u"Materialauszug: Revit zeigt eine Zeile je Element und Material. "
+            t(u"Materialauszug: Revit zeigt eine Zeile je Element und Material. "
             u"Im Datenblatt steht eine Zeile je Element, Materialspalten sind "
-            u"dort grau. " + HINWEIS_ANSICHT)
+            u"dort grau. ", u"Material takeoff: Revit shows one row per element and material. The data sheet has one row per element; material columns are grey there. ", u"Cómputo de materiales: Revit muestra una fila por elemento y material. La hoja de datos tiene una fila por elemento; las columnas de material aparecen en gris. ") + HINWEIS_ANSICHT)
 
     if _hat(definition, "IncludeLinkedFiles", False):
         hinweise.append(
-            u"Elemente aus verknüpften Modellen stehen nur im Blatt 'Ansicht' "
-            u"- sie lassen sich nicht zurückschreiben.")
+            t(u"Elemente aus verknüpften Modellen stehen nur im Blatt 'Ansicht' "
+            u"- sie lassen sich nicht zurückschreiben.", u"Elements from linked models are only in the sheet 'View' - they cannot be written back.", u"Los elementos de modelos vinculados solo están en la hoja 'Vista': no se pueden reescribir."))
 
     if _hat(definition, "IsKeySchedule", False):
         hinweise.append(
-            u"Schlüsselliste: Bearbeitet werden die Schlüssel selbst, nicht die "
-            u"Bauteile, denen sie zugewiesen sind.")
+            t(u"Schlüsselliste: Bearbeitet werden die Schlüssel selbst, nicht die "
+            u"Bauteile, denen sie zugewiesen sind.", u"Key schedule: the keys themselves are edited, not the elements they are assigned to.", u"Tabla de claves: se editan las claves, no los elementos a los que están asignadas."))
 
     try:
         for index in range(definition.GetSortGroupFieldCount()):
             sortierfeld = definition.GetSortGroupField(index)
             if sortierfeld.ShowHeader or sortierfeld.ShowFooter:
                 hinweise.append(
-                    u"Gruppenköpfe und Zwischensummen stehen im Blatt "
-                    u"'Ansicht'. Das Datenblatt ist genauso sortiert.")
+                    t(u"Gruppenköpfe und Zwischensummen stehen im Blatt "
+                    u"'Ansicht'. Das Datenblatt ist genauso sortiert.", u"Group headers and subtotals are in the sheet 'View'. The data sheet is sorted the same way.", u"Los encabezados de grupo y subtotales están en la hoja 'Vista'. La hoja de datos está ordenada igual."))
                 break
     except Exception:
         pass
 
     if _hat(definition, "ShowGrandTotal", False):
-        hinweise.append(u"Die Gesamtsumme steht im Blatt 'Ansicht'.")
+        hinweise.append(t(u"Die Gesamtsumme steht im Blatt 'Ansicht'.", u"The grand total is in the sheet 'View'.", u"El total general está en la hoja 'Vista'."))
 
     return True, None, hinweise
 
@@ -261,7 +262,7 @@ def lese_felder(doc, schedule):
         if _hat(feld, "IsHidden", False):
             continue
 
-        name = _spaltentitel(feld) or u"Feld %d" % spalte
+        name = _spaltentitel(feld) or t(u"Feld %d", u"Field %d", u"Campo %d") % spalte
 
         # Excel-Kopfzeilen müssen eindeutig sein, Schedule-Felder sind es nicht zwingend
         if name in vergebene_namen:
@@ -358,7 +359,7 @@ def lese_zeilen(doc, schedule, felder, sortierung=None):
         elemente = list(FilteredElementCollector(doc, schedule.Id))
     except Exception as fehler:
         raise RuntimeError(
-            u"Elemente der Bauteilliste '%s' nicht lesbar: %s" % (schedule.Name, fehler))
+            t(u"Elemente der Bauteilliste '%s' nicht lesbar: %s", u"Elements of schedule '%s' not readable: %s", u"Elementos de la tabla '%s' no legibles: %s") % (schedule.Name, fehler))
 
     zeilen = []
     uebersprungen = 0

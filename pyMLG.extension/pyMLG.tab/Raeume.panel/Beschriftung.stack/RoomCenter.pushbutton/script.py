@@ -53,11 +53,13 @@ while not _EXT.endswith(".extension") and os.path.dirname(_EXT) != _EXT:
 if os.path.join(_EXT, "lib") not in sys.path:
     sys.path.append(os.path.join(_EXT, "lib"))
 
+from mlg_sprache import t  # noqa: E402
+
 from pyrevit import script
 
 output = script.get_output()
 
-TITEL = u"Raumpunkt zentrieren"
+TITEL = t(u"Raumpunkt zentrieren", u"Center Room Point", u"Centrar punto de habitación")
 
 # Ersatzstrategie, siehe Moduldokumentation oben
 ERSATZ_INNENPUNKT = "INNENPUNKT"
@@ -71,11 +73,11 @@ FUSS_IN_M = 0.3048
 # Kleinere Verschiebungen (1 mm) gelten als "bereits zentriert"
 MIN_VERSCHIEBUNG = 0.001 / FUSS_IN_M
 
-GRUND_NICHT_PLATZIERT = u"Nicht platziert (kein Standortpunkt)"
-GRUND_NICHT_UMSCHLOSSEN = u"Nicht umschlossen oder redundant (Fläche 0)"
-GRUND_KEIN_UMRISS = u"Kein Umriss"
-GRUND_AUSSERHALB = u"Zentrum liegt außerhalb, manuell prüfen"
-GRUND_FEHLER = u"Fehler beim Verschieben"
+GRUND_NICHT_PLATZIERT = t(u"Nicht platziert (kein Standortpunkt)", u"Not placed (no location point)", u"No colocada (sin punto de ubicación)")
+GRUND_NICHT_UMSCHLOSSEN = t(u"Nicht umschlossen oder redundant (Fläche 0)", u"Not enclosed or redundant (area 0)", u"No delimitada o redundante (área 0)")
+GRUND_KEIN_UMRISS = t(u"Kein Umriss", u"No outline", u"Sin contorno")
+GRUND_AUSSERHALB = t(u"Zentrum liegt außerhalb, manuell prüfen", u"Centre lies outside, check manually", u"El centro queda fuera, compruébelo manualmente")
+GRUND_FEHLER = t(u"Fehler beim Verschieben", u"Error while moving", u"Error al mover")
 
 STATUS_VERSCHIEBEN = "verschieben"
 STATUS_ZENTRIERT = "zentriert"
@@ -107,12 +109,12 @@ def main():
     uidoc = getattr(__revit__, "ActiveUIDocument", None)
     doc = uidoc.Document if uidoc is not None else None
     if doc is None:
-        ui.meldung(u"Es ist kein Projekt geöffnet.", titel=TITEL,
-                   hauptzeile=u"Kein aktives Dokument", warnung=True)
+        ui.meldung(t(u"Es ist kein Projekt geöffnet.", u"No project is open.", u"No hay ningún proyecto abierto."), titel=TITEL,
+                   hauptzeile=t(u"Kein aktives Dokument", u"No active document", u"No hay documento activo"), warnung=True)
         return
     if doc.IsFamilyDocument:
-        ui.meldung(u"Räume gibt es nur in Projektdateien.", titel=TITEL,
-                   hauptzeile=u"Familiendokument wird nicht unterstützt",
+        ui.meldung(t(u"Räume gibt es nur in Projektdateien.", u"Rooms only exist in project files.", u"Las habitaciones solo existen en archivos de proyecto."), titel=TITEL,
+                   hauptzeile=t(u"Familiendokument wird nicht unterstützt", u"Family document not supported", u"No se admiten documentos de familia"),
                    warnung=True)
         return
 
@@ -134,7 +136,7 @@ def main():
     def raumname(raum):
         parameter = raum.get_Parameter(BuiltInParameter.ROOM_NAME)
         name = parameter.AsString() if parameter is not None else None
-        return name or u"(ohne Name)"
+        return name or t(u"(ohne Name)", u"(no name)", u"(sin nombre)")
 
     def nur_raeume(elemente):
         return [e for e in elemente if isinstance(e, Room)]
@@ -244,13 +246,13 @@ def main():
         e["schwerpunkt_im_raum"] = im_raum(raum, sp["cx"], sp["cy"], hoehen)
         if e["schwerpunkt_im_raum"]:
             ziel = (sp["cx"], sp["cy"])
-            e["strategie"] = u"Schwerpunkt"
+            e["strategie"] = t(u"Schwerpunkt", u"Centroid", u"Centroide")
         elif ERSATZSTRATEGIE == ERSATZ_INNENPUNKT:
             kandidaten = geometrie.ersatzpunkte(schleifen, sp["cx"], sp["cy"])
             for x, y in kandidaten[:MAX_ERSATZ_PRUEFUNGEN]:
                 if im_raum(raum, x, y, hoehen):
                     ziel = (x, y)
-                    e["strategie"] = u"Ersatzpunkt"
+                    e["strategie"] = t(u"Ersatzpunkt", u"Fallback point", u"Punto alternativo")
                     break
         # ERSATZ_BEIBEHALTEN oder kein gültiger Ersatzpunkt gefunden
         if ziel is None:
@@ -296,22 +298,22 @@ def main():
     auswahl = raeume_in_auswahl()
 
     optionen = [
-        (u"Alle Räume im Projekt", u"%d Räume" % len(alle)),
-        (u"Nur ausgewählte Räume", u"%d Räume ausgewählt" % len(auswahl)),
-        (u"Nur Räume in aktiver Ansicht",
-         u"%d Räume in \"%s\"" % (len(ansicht), doc.ActiveView.Name)
+        (t(u"Alle Räume im Projekt", u"All rooms in the project", u"Todas las habitaciones del proyecto"), t(u"%d Räume", u"%d rooms", u"%d habitaciones") % len(alle)),
+        (t(u"Nur ausgewählte Räume", u"Selected rooms only", u"Solo habitaciones seleccionadas"), t(u"%d Räume ausgewählt", u"%d rooms selected", u"%d habitaciones seleccionadas") % len(auswahl)),
+        (t(u"Nur Räume in aktiver Ansicht", u"Only rooms in active view", u"Solo habitaciones de la vista activa"),
+         t(u"%d Räume in \"%s\"", u"%d rooms in \"%s\"", u"%d habitaciones en \"%s\"") % (len(ansicht), doc.ActiveView.Name)
          if ansicht is not None
-         else u"Die aktive Ansicht kann keine Räume enthalten"),
+         else t(u"Die aktive Ansicht kann keine Räume enthalten", u"The active view cannot contain rooms", u"La vista activa no puede contener habitaciones")),
     ]
     umfang = ui.waehle_option(optionen, titel=TITEL,
-                              hauptzeile=u"Welche Räume sollen bearbeitet "
-                                         u"werden?")
+                              hauptzeile=t(u"Welche Räume sollen bearbeitet "
+                                         u"werden?", u"Which rooms should be processed?", u"¿Qué habitaciones se deben procesar?"))
     if umfang is None:
         return
     raeume = [alle, auswahl, ansicht or []][umfang]
     if not raeume:
-        ui.meldung(u"Im gewählten Umfang wurden keine Räume gefunden.",
-                   titel=TITEL, hauptzeile=u"Keine Räume", warnung=True)
+        ui.meldung(t(u"Im gewählten Umfang wurden keine Räume gefunden.", u"No rooms were found in the chosen scope.", u"No se encontraron habitaciones en el ámbito elegido."),
+                   titel=TITEL, hauptzeile=t(u"Keine Räume", u"No rooms", u"No hay habitaciones"), warnung=True)
         return
 
     # -----------------------------------------------------------------------
@@ -319,19 +321,19 @@ def main():
     # -----------------------------------------------------------------------
     aktive_ist_grundriss = isinstance(doc.ActiveView, ViewPlan)
     beschriftung = ui.waehle_option(
-        [(u"In allen Grundrissen zentrieren",
-          u"Raumbeschriftungen in allen Grundriss- und Deckenplänen auf den "
-          u"neuen Raumpunkt setzen."),
-         (u"Nur in der aktiven Ansicht zentrieren",
-          u"Nur Beschriftungen in \"%s\"." % doc.ActiveView.Name
+        [(t(u"In allen Grundrissen zentrieren", u"Centre in all floor plans", u"Centrar en todas las plantas"),
+          t(u"Raumbeschriftungen in allen Grundriss- und Deckenplänen auf den "
+          u"neuen Raumpunkt setzen.", u"Move room tags in all floor and ceiling plans to the new room point.", u"Mover las etiquetas de habitación de todas las plantas y planos de techo al nuevo punto.")),
+         (t(u"Nur in der aktiven Ansicht zentrieren", u"Centre in the active view only", u"Centrar solo en la vista activa"),
+          t(u"Nur Beschriftungen in \"%s\".", u"Only tags in \"%s\".", u"Solo las etiquetas de \"%s\".") % doc.ActiveView.Name
           if aktive_ist_grundriss
-          else u"Die aktive Ansicht ist kein Grundriss - es würde keine "
-               u"Beschriftung geändert."),
-         (u"Beschriftungen nicht verändern",
-          u"Nur der Rauminhaltspunkt wird verschoben.")],
+          else t(u"Die aktive Ansicht ist kein Grundriss - es würde keine "
+               u"Beschriftung geändert.", u"The active view is not a plan - no tag would be changed.", u"La vista activa no es una planta: no se cambiaría ninguna etiqueta.")),
+         (t(u"Beschriftungen nicht verändern", u"Do not change tags", u"No cambiar las etiquetas"),
+          t(u"Nur der Rauminhaltspunkt wird verschoben.", u"Only the room point is moved.", u"Solo se mueve el punto de la habitación."))],
         titel=TITEL,
-        hauptzeile=u"Sollen die Raumbeschriftungen mit zentriert werden?",
-        text=u"Beschriftungen mit Führungslinie bleiben immer unverändert.")
+        hauptzeile=t(u"Sollen die Raumbeschriftungen mit zentriert werden?", u"Should the room tags be centred as well?", u"¿Centrar también las etiquetas de habitación?"),
+        text=t(u"Beschriftungen mit Führungslinie bleiben immer unverändert.", u"Tags with a leader always stay unchanged.", u"Las etiquetas con directriz nunca se modifican."))
     if beschriftung is None:
         return
 
@@ -339,28 +341,28 @@ def main():
     # 3. Probelauf oder Verschieben
     # -----------------------------------------------------------------------
     modus = ui.waehle_option(
-        [(u"Probelauf - nur prüfen",
-          u"Berechnet Schwerpunkt und IsPointInRoom() und zeigt das Ergebnis. "
-          u"Das Modell wird nicht verändert."),
-         (u"Rauminhaltspunkte verschieben",
-          u"Verschiebt %d Räume in einer Transaktion (rückgängig mit "
-          u"Strg+Z)." % len(raeume))],
+        [(t(u"Probelauf - nur prüfen", u"Dry run - check only", u"Prueba - solo comprobar"),
+          t(u"Berechnet Schwerpunkt und IsPointInRoom() und zeigt das Ergebnis. "
+          u"Das Modell wird nicht verändert.", u"Calculates the centroid and IsPointInRoom() and shows the result. The model is not changed.", u"Calcula el centroide e IsPointInRoom() y muestra el resultado. El modelo no se modifica.")),
+         (t(u"Rauminhaltspunkte verschieben", u"Move room points", u"Mover puntos de habitación"),
+          t(u"Verschiebt %d Räume in einer Transaktion (rückgängig mit "
+          u"Strg+Z).", u"Moves %d rooms in one transaction (undo with Ctrl+Z).", u"Mueve %d habitaciones en una transacción (deshacer con Ctrl+Z).") % len(raeume))],
         titel=TITEL,
-        hauptzeile=u"%d Räume - wie soll vorgegangen werden?" % len(raeume),
-        text=u"Empfehlung: zuerst einige Testräume (rechteckig, L-förmig, "
-             u"mit Aussparung) auswählen und einen Probelauf starten.")
+        hauptzeile=t(u"%d Räume - wie soll vorgegangen werden?", u"%d rooms - how to proceed?", u"%d habitaciones: ¿cómo continuar?") % len(raeume),
+        text=t(u"Empfehlung: zuerst einige Testräume (rechteckig, L-förmig, "
+             u"mit Aussparung) auswählen und einen Probelauf starten.", u"Recommendation: first select a few test rooms (rectangular, L-shaped, with a cut-out) and run a dry run.", u"Recomendación: seleccione primero algunas habitaciones de prueba (rectangular, en L, con hueco) y ejecute una prueba."))
     if modus is None:
         return
     probelauf = modus == 0
 
     if not probelauf and doc.IsReadOnly:
-        ui.meldung(u"Das Dokument ist schreibgeschützt.", titel=TITEL,
-                   hauptzeile=u"Verschieben nicht möglich", warnung=True)
+        ui.meldung(t(u"Das Dokument ist schreibgeschützt.", u"The document is read-only.", u"El documento es de solo lectura."), titel=TITEL,
+                   hauptzeile=t(u"Verschieben nicht möglich", u"Moving not possible", u"No se puede mover"), warnung=True)
         return
     if not probelauf and umfang == 0:
-        if not ui.frage(u"Es werden alle %d Räume des Projekts bearbeitet."
+        if not ui.frage(t(u"Es werden alle %d Räume des Projekts bearbeitet.", u"All %d rooms of the project will be processed.", u"Se procesarán las %d habitaciones del proyecto.")
                         % len(raeume), titel=TITEL,
-                        hauptzeile=u"Wirklich alle Räume verschieben?",
+                        hauptzeile=t(u"Wirklich alle Räume verschieben?", u"Really move all rooms?", u"¿Mover realmente todas las habitaciones?"),
                         warnung=True):
             return
 
@@ -378,7 +380,7 @@ def main():
                     "raum": raum, "id": raum.Id, "name": raumname(raum),
                     "nummer": raum.Number or u"",
                     "status": STATUS_UEBERSPRUNGEN,
-                    "grund": u"Fehler bei der Berechnung: %s" % fehler,
+                    "grund": t(u"Fehler bei der Berechnung: %s", u"Calculation error: %s", u"Error de cálculo: %s") % fehler,
                     "strategie": u"-", "schwerpunkt_im_raum": None,
                     "schleifen": 0, "loecher": 0, "punkte": 0,
                     "verschiebung": None, "ziel": None,
@@ -422,11 +424,11 @@ def main():
     tags_verschoben = []
     tags_fehler = []
     if probelauf:
-        tags_verschoben = [(e, t) for e, t in tag_kandidaten
-                           if tag_verschiebung(e, t).GetLength()
+        tags_verschoben = [(e, tag) for e, tag in tag_kandidaten
+                           if tag_verschiebung(e, tag).GetLength()
                            >= MIN_VERSCHIEBUNG]
     elif zu_verschieben or tag_kandidaten:
-        transaktion = Transaction(doc, u"Rauminhaltspunkte zentrieren")
+        transaktion = Transaction(doc, t(u"Rauminhaltspunkte zentrieren", u"Center room points", u"Centrar puntos de habitación"))
         transaktion.Start()
         try:
             for e in zu_verschieben:
@@ -478,37 +480,38 @@ def main():
         return u"%.3f" % (v.GetLength() * FUSS_IN_M) if v is not None else u"-"
 
     def ja_nein(wert):
-        return u"-" if wert is None else (u"Ja" if wert else u"Nein")
+        return u"-" if wert is None else (
+            t(u"Ja", u"Yes", u"Sí") if wert else t(u"Nein", u"No", u"No"))
 
     uebersprungen = [e for e in ergebnisse
                      if e["status"] == STATUS_UEBERSPRUNGEN]
     zentriert = [e for e in ergebnisse if e["status"] == STATUS_ZENTRIERT]
-    ersatz = [e for e in ergebnisse if e["strategie"] == u"Ersatzpunkt"
+    ersatz = [e for e in ergebnisse if e["strategie"] == t(u"Ersatzpunkt", u"Fallback point", u"Punto alternativo")
               and e["status"] != STATUS_UEBERSPRUNGEN]
 
-    output.print_md(u"# %s - %s" % (TITEL, u"Probelauf (nichts verändert)"
-                                    if probelauf else u"Ergebnis"))
+    output.print_md(u"# %s - %s" % (TITEL, t(u"Probelauf (nichts verändert)", u"Dry run (nothing changed)", u"Prueba (sin cambios)")
+                                    if probelauf else t(u"Ergebnis", u"Result", u"Resultado")))
     if probelauf:
-        output.print_md(u"- Würden verschoben: **%d**" % len(zu_verschieben))
+        output.print_md(t(u"- Würden verschoben: **%d**", u"- Would be moved: **%d**", u"- Se moverían: **%d**") % len(zu_verschieben))
     else:
-        output.print_md(u"- Verschoben: **%d**" % len(verschoben))
-    output.print_md(u"- Bereits zentriert (< 1 mm): **%d**" % len(zentriert))
-    output.print_md(u"- Übersprungen: **%d**" % len(uebersprungen))
-    output.print_md(u"- davon mit Ersatzpunkt statt Schwerpunkt: **%d**"
+        output.print_md(t(u"- Verschoben: **%d**", u"- Moved: **%d**", u"- Movidas: **%d**") % len(verschoben))
+    output.print_md(t(u"- Bereits zentriert (< 1 mm): **%d**", u"- Already centred (< 1 mm): **%d**", u"- Ya centradas (< 1 mm): **%d**") % len(zentriert))
+    output.print_md(t(u"- Übersprungen: **%d**", u"- Skipped: **%d**", u"- Omitidas: **%d**") % len(uebersprungen))
+    output.print_md(t(u"- davon mit Ersatzpunkt statt Schwerpunkt: **%d**", u"- of which with fallback point instead of centroid: **%d**", u"- de ellas con punto alternativo en lugar del centroide: **%d**")
                     % len(ersatz))
-    output.print_md(u"- Ersatzstrategie: `%s`" % ERSATZSTRATEGIE)
+    output.print_md(t(u"- Ersatzstrategie: `%s`", u"- Fallback strategy: `%s`", u"- Estrategia alternativa: `%s`") % ERSATZSTRATEGIE)
     if beschriftung != BESCHRIFTUNG_KEINE:
-        output.print_md(u"- Beschriftungen %s: **%d** (%s)"
-                        % (u"würden zentriert" if probelauf
-                           else u"zentriert", len(tags_verschoben),
-                           u"alle Grundrisse"
+        output.print_md(t(u"- Beschriftungen %s: **%d** (%s)", u"- Tags %s: **%d** (%s)", u"- Etiquetas %s: **%d** (%s)")
+                        % (t(u"würden zentriert", u"would be centred", u"se centrarían") if probelauf
+                           else t(u"zentriert", u"centred", u"centradas"), len(tags_verschoben),
+                           t(u"alle Grundrisse", u"all plans", u"todas las plantas")
                            if beschriftung == BESCHRIFTUNG_ALLE
-                           else u"nur aktive Ansicht"))
-        output.print_md(u"- Beschriftungen mit Führungslinie (unverändert): "
-                        u"**%d**" % len(tag_mit_fuehrung))
+                           else t(u"nur aktive Ansicht", u"active view only", u"solo vista activa")))
+        output.print_md(t(u"- Beschriftungen mit Führungslinie (unverändert): "
+                        u"**%d**", u"- Tags with leader (unchanged): **%d**", u"- Etiquetas con directriz (sin cambios): **%d**") % len(tag_mit_fuehrung))
         if tag_kein_grundriss:
-            output.print_md(u"- Beschriftungen außerhalb von Grundrissen "
-                            u"(unverändert): **%d**" % len(tag_kein_grundriss))
+            output.print_md(t(u"- Beschriftungen außerhalb von Grundrissen "
+                            u"(unverändert): **%d**", u"- Tags outside plans (unchanged): **%d**", u"- Etiquetas fuera de plantas (sin cambios): **%d**") % len(tag_kein_grundriss))
 
     if probelauf:
         output.print_table(
@@ -518,20 +521,20 @@ def main():
                          e["strategie"], meter(e),
                          e["grund"] or e["status"]]
                         for e in ergebnisse],
-            title=u"Prüfung je Raum",
-            columns=[u"Id", u"Nummer", u"Name", u"Schleifen / Löcher",
-                     u"Punkte", u"Schwerpunkt in Raum", u"Zielpunkt",
-                     u"Verschiebung [m]", u"Status"],
+            title=t(u"Prüfung je Raum", u"Check per room", u"Comprobación por habitación"),
+            columns=[u"Id", t(u"Nummer", u"Number", u"Número"), t(u"Name", u"Name", u"Nombre"), t(u"Schleifen / Löcher", u"Loops / holes", u"Bucles / huecos"),
+                     t(u"Punkte", u"Points", u"Puntos"), t(u"Schwerpunkt in Raum", u"Centroid in room", u"Centroide en habitación"), t(u"Zielpunkt", u"Target point", u"Punto destino"),
+                     t(u"Verschiebung [m]", u"Offset [m]", u"Desplazamiento [m]"), t(u"Status", u"Status", u"Estado")],
         )
 
     if ersatz:
-        output.print_md(u"## Ersatzpunkt verwendet - Lage bitte prüfen")
+        output.print_md(t(u"## Ersatzpunkt verwendet - Lage bitte prüfen", u"## Fallback point used - please check location", u"## Se usó un punto alternativo: compruebe la ubicación"))
         for e in ersatz:
             output.print_md(u"- %s %s (%s m) - %s"
                             % (e["nummer"], e["name"], meter(e), link(e["id"])))
 
     if uebersprungen:
-        output.print_md(u"## Übersprungen")
+        output.print_md(t(u"## Übersprungen", u"## Skipped", u"## Omitidas"))
         nach_grund = {}
         for e in uebersprungen:
             nach_grund.setdefault(e["grund"], []).append(e)
@@ -542,15 +545,15 @@ def main():
                                 % (e["nummer"], e["name"], link(e["id"])))
 
     if tags_fehler:
-        output.print_md(u"## Beschriftungen nicht verschoben (Fehler)")
+        output.print_md(t(u"## Beschriftungen nicht verschoben (Fehler)", u"## Tags not moved (error)", u"## Etiquetas no movidas (error)"))
         for e, tag, fehler in tags_fehler:
-            output.print_md(u"- %s %s - Beschriftung %s: %s"
+            output.print_md(t(u"- %s %s - Beschriftung %s: %s", u"- %s %s - tag %s: %s", u"- %s %s - etiqueta %s: %s")
                             % (e["nummer"], e["name"], link(tag.Id), fehler))
 
     if tag_mit_fuehrung:
-        output.print_md(u"## Beschriftungen mit Führungslinie - unverändert")
+        output.print_md(t(u"## Beschriftungen mit Führungslinie - unverändert", u"## Tags with leader - unchanged", u"## Etiquetas con directriz - sin cambios"))
         for e, tag in tag_mit_fuehrung:
-            output.print_md(u"- %s %s - Beschriftung %s"
+            output.print_md(t(u"- %s %s - Beschriftung %s", u"- %s %s - tag %s", u"- %s %s - etiqueta %s")
                             % (e["nummer"], e["name"], link(tag.Id)))
 
 
@@ -568,15 +571,15 @@ def _zeige_fehler(spur, titel):
         output.print_md(u"# " + titel)
         print(spur)
         if protokoll:
-            print(u"Protokoll: " + protokoll)
+            print(t(u"Protokoll: ", u"Log: ", u"Registro: ") + protokoll)
     except Exception:
         pass
 
     try:
         from schedule_sync import ui as _ui
         letzte_zeile = (spur.strip().splitlines() or [u""])[-1]
-        _ui.meldung(letzte_zeile + u"\n\nEinzelheiten im pyRevit-"
-                                   u"Ausgabefenster.",
+        _ui.meldung(letzte_zeile + t(u"\n\nEinzelheiten im pyRevit-"
+                                   u"Ausgabefenster.", u"\n\nDetails in the pyRevit output window.", u"\n\nDetalles en la ventana de salida de pyRevit."),
                     titel=TITEL, hauptzeile=titel, warnung=True)
     except Exception:
         pass
@@ -586,4 +589,4 @@ try:
     main()
 except Exception:
     _zeige_fehler(traceback.format_exc(),
-                  u"Raumpunkt zentrieren ist fehlgeschlagen")
+                  t(u"Raumpunkt zentrieren ist fehlgeschlagen", u"Center Room Point failed", u"Centrar punto de habitación ha fallado"))

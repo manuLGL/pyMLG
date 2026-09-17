@@ -1,12 +1,24 @@
-title: "Workset\nCreator"
+title:
+  de_de: "Workset\nCreator"
+  en_us: "Workset\nCreator"
+  es_es: "Crear\nsubproyectos"
 author: pyMLG
-tooltip: >-
-  Worksets (Bearbeitungsbereiche) sammeln und in einem Schritt erstellen.
+tooltip:
+  de_de: >-
+    Worksets sammeln und in einem Schritt erstellen.
 
-  Namen übernehmen aus einem geöffneten Projekt, direkt aus einer .rvt-Datei
-  (ohne sie zu öffnen), aus der Zwischenablage (z.B. Excel-Spalte) oder per
-  Eingabe. Vorhandene Worksets in die Zwischenablage kopieren.
+    Namen aus einem geöffneten Projekt, direkt aus einer .rvt-Datei (ohne sie zu öffnen), aus der Zwischenablage oder per Eingabe. Existiert ein Name schon: nicht erstellen oder mit Nummer umbenennen.
 
-  Existiert ein Name schon: nicht erstellen oder mit Nummer umbenennen.
-  Beide Listen mit Filter (Suchwörter oder Regex). Benötigt die
-  CPython3-Engine.
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Collect worksets and create them in one step.
+
+    Names from an open project, directly from an .rvt file (without opening it), from the clipboard or typed in. If a name exists: skip it or rename it with a number.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Reúne subproyectos y créalos en un solo paso.
+
+    Nombres de un proyecto abierto, directamente de un archivo .rvt (sin abrirlo), del portapapeles o escritos. Si un nombre ya existe: omitirlo o renombrarlo con un número.
+
+    Requiere el motor CPython3.

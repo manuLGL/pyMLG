@@ -49,6 +49,7 @@ from System.Collections.Generic import HashSet, List
 
 from filter_manager import regelbaum as rb
 from filter_manager.aufloesung import id_liste, id_wert, ist_ja_nein
+from mlg_sprache import t
 
 # In Filternamen verboten (ParameterFilterElement.Create, API 2026)
 VERBOTENE_ZEICHEN = u"{}[]|;<>?`~"
@@ -58,20 +59,20 @@ EPSILON = 1e-6
 
 # Operator-Schlüssel -> Anzeigetext (Reihenfolge wie im nativen Dialog)
 OPERATOR_TEXTE = [
-    ("gleich", u"ist gleich"),
-    ("ungleich", u"ist ungleich"),
-    ("groesser", u"ist größer als"),
-    ("groesser_gleich", u"ist größer als oder gleich"),
-    ("kleiner", u"ist kleiner als"),
-    ("kleiner_gleich", u"ist kleiner als oder gleich"),
-    ("enthaelt", u"enthält"),
-    ("enthaelt_nicht", u"enthält nicht"),
-    ("beginnt", u"beginnt mit"),
-    ("beginnt_nicht", u"beginnt nicht mit"),
-    ("endet", u"endet mit"),
-    ("endet_nicht", u"endet nicht mit"),
-    ("hat_wert", u"hat einen Wert"),
-    ("hat_keinen_wert", u"hat keinen Wert"),
+    ("gleich", t(u"ist gleich", u"equals", u"igual a")),
+    ("ungleich", t(u"ist ungleich", u"does not equal", u"no es igual a")),
+    ("groesser", t(u"ist größer als", u"is greater than", u"es mayor que")),
+    ("groesser_gleich", t(u"ist größer als oder gleich", u"is greater than or equal to", u"es mayor o igual que")),
+    ("kleiner", t(u"ist kleiner als", u"is less than", u"es menor que")),
+    ("kleiner_gleich", t(u"ist kleiner als oder gleich", u"is less than or equal to", u"es menor o igual que")),
+    ("enthaelt", t(u"enthält", u"contains", u"contiene")),
+    ("enthaelt_nicht", t(u"enthält nicht", u"does not contain", u"no contiene")),
+    ("beginnt", t(u"beginnt mit", u"begins with", u"empieza por")),
+    ("beginnt_nicht", t(u"beginnt nicht mit", u"does not begin with", u"no empieza por")),
+    ("endet", t(u"endet mit", u"ends with", u"termina por")),
+    ("endet_nicht", t(u"endet nicht mit", u"does not end with", u"no termina por")),
+    ("hat_wert", t(u"hat einen Wert", u"has a value", u"tiene un valor")),
+    ("hat_keinen_wert", t(u"hat keinen Wert", u"has no value", u"no tiene valor")),
 ]
 OPERATOR_TEXT = dict(OPERATOR_TEXTE)
 OHNE_WERT = ("hat_wert", "hat_keinen_wert")
@@ -255,7 +256,7 @@ def satz_aus_baum(baum, aufloeser):
 
 def _regel_beschreibung(regel, aufloeser):
     name = aufloeser.parametername(regel.parameter) if regel.parameter \
-        else u"(kein Parameter)"
+        else t(u"(kein Parameter)", u"(no parameter)", u"(sin parámetro)")
     return u"%s %s %s" % (name, OPERATOR_TEXT.get(regel.operator, u"?"),
                           regel.wert or u"")
 
@@ -280,12 +281,12 @@ def double_wert(regel, aufloeser):
 def baue_regel(regel, aufloeser):
     """Regel -> FilterRule. Wirft FilterFehler mit verständlicher Meldung."""
     if regel.parameter is None:
-        raise FilterFehler(u"Eine Regel hat keinen Parameter.")
+        raise FilterFehler(t(u"Eine Regel hat keinen Parameter.", u"A rule has no parameter.", u"Una regla no tiene parámetro."))
     info = aufloeser.info_mit_spec(regel.parameter)
     beschreibung = _regel_beschreibung(regel, aufloeser)
     if regel.operator not in operatoren_fuer(info):
-        raise FilterFehler(u"Der Operator \"%s\" ist für den Parameter "
-                           u"\"%s\" nicht zulässig."
+        raise FilterFehler(t(u"Der Operator \"%s\" ist für den Parameter "
+                           u"\"%s\" nicht zulässig.", u"The operator \"%s\" is not allowed for the parameter \"%s\".", u"El operador \"%s\" no está permitido para el parámetro \"%s\".")
                            % (OPERATOR_TEXT.get(regel.operator), info.name))
     methode = getattr(ParameterFilterRuleFactory, FABRIK[regel.operator])
     param_id = ElementId(regel.parameter)
@@ -301,24 +302,26 @@ def baue_regel(regel, aufloeser):
             return methode(param_id, wert, epsilon)
         if art == StorageType.Integer:
             if ist_ja_nein(info.spec):
-                wert = {u"ja": 1, u"nein": 0}.get(text.lower())
+                wert = {u"ja": 1, u"nein": 0, u"1": 1, u"0": 0,
+                        t(u"ja", u"yes", u"sí"): 1,
+                        t(u"nein", u"no", u"no"): 0}.get(text.lower())
                 if wert is None:
-                    raise ValueError(u"Bitte \"Ja\" oder \"Nein\" wählen.")
+                    raise ValueError(t(u"Bitte \"Ja\" oder \"Nein\" wählen.", u"Please choose \"Yes\" or \"No\".", u"Elija \"Sí\" o \"No\"."))
             elif not text:
-                raise ValueError(u"Bitte einen Wert eingeben bzw. wählen.")
+                raise ValueError(t(u"Bitte einen Wert eingeben bzw. wählen.", u"Please enter or choose a value.", u"Introduzca o elija un valor."))
             else:
                 wert = int(text)
             return methode(param_id, wert)
         if art == StorageType.ElementId:
             if regel.wert_id is None:
-                raise ValueError(u"Bitte einen Wert aus der Liste wählen.")
+                raise ValueError(t(u"Bitte einen Wert aus der Liste wählen.", u"Please choose a value from the list.", u"Elija un valor de la lista."))
             return methode(param_id, ElementId(regel.wert_id))
         # String (oder unbekannt): Leerer Text ist in Revit zulässig
         return methode(param_id, regel.wert or u"")
     except ValueError as fehler:
-        raise FilterFehler(u"Regel \"%s\": %s" % (beschreibung, fehler))
+        raise FilterFehler(t(u"Regel \"%s\": %s", u"Rule \"%s\": %s", u"Regla \"%s\": %s") % (beschreibung, fehler))
     except Exception as fehler:
-        raise FilterFehler(u"Regel \"%s\" konnte nicht erstellt werden: %s"
+        raise FilterFehler(t(u"Regel \"%s\" konnte nicht erstellt werden: %s", u"Rule \"%s\" could not be created: %s", u"No se pudo crear la regla \"%s\": %s")
                            % (beschreibung, fehlertext(fehler)))
 
 
@@ -442,18 +445,18 @@ def pruefe_name(doc, name, alter_name=None):
     """Gibt den bereinigten Namen zurück oder wirft FilterFehler."""
     name = (name or u"").strip()
     if not name:
-        raise FilterFehler(u"Der Name darf nicht leer sein.")
+        raise FilterFehler(t(u"Der Name darf nicht leer sein.", u"The name must not be empty.", u"El nombre no puede estar vacío."))
     verboten = sorted(set(z for z in name if z in VERBOTENE_ZEICHEN))
     if verboten:
         raise FilterFehler(
-            u"Der Name enthält unzulässige Zeichen: %s\n\nIn Filternamen "
-            u"nicht erlaubt: %s" % (u" ".join(verboten),
+            t(u"Der Name enthält unzulässige Zeichen: %s\n\nIn Filternamen "
+            u"nicht erlaubt: %s", u"The name contains invalid characters: %s\n\nNot allowed in filter names: %s", u"El nombre contiene caracteres no válidos: %s\n\nNo permitidos en nombres de filtro: %s") % (u" ".join(verboten),
                                     u" ".join(VERBOTENE_ZEICHEN)))
     if name == alter_name:
         return name
     if not FilterElement.IsNameUnique(doc, name):
-        raise FilterFehler(u"Es gibt bereits einen Filter mit dem Namen "
-                           u"\"%s\"." % name)
+        raise FilterFehler(t(u"Es gibt bereits einen Filter mit dem Namen "
+                           u"\"%s\".", u"A filter named \"%s\" already exists.", u"Ya existe un filtro llamado \"%s\".") % name)
     return name
 
 
@@ -493,13 +496,13 @@ def speichere_regeln(doc, filter_element, kategorie_werte, satz, aufloeser):
             menge.Add(ElementId(wert))
         if not ParameterFilterElement.ElementFilterIsAcceptableForParameterFilterElement(  # noqa: E501
                 doc, menge, element_filter):
-            raise FilterFehler(u"Revit akzeptiert diese Regeln für die "
-                               u"gewählten Kategorien nicht.")
+            raise FilterFehler(t(u"Revit akzeptiert diese Regeln für die "
+                               u"gewählten Kategorien nicht.", u"Revit does not accept these rules for the selected categories.", u"Revit no acepta estas reglas para las categorías seleccionadas."))
         if not ParameterFilterElement.AllRuleParametersApplicable(
                 doc, id_liste(kategorie_werte), element_filter):
             raise FilterFehler(
-                u"Mindestens ein Parameter ist nicht für alle gewählten "
-                u"Kategorien verfügbar: %s" % u", ".join(ungueltige_regeln(
+                t(u"Mindestens ein Parameter ist nicht für alle gewählten "
+                u"Kategorien verfügbar: %s", u"At least one parameter is not available for all selected categories: %s", u"Al menos un parámetro no está disponible para todas las categorías seleccionadas: %s") % u", ".join(ungueltige_regeln(
                     doc, kategorie_werte, satz, aufloeser)))
     filter_element.SetCategories(id_liste(kategorie_werte))
     if element_filter is None:

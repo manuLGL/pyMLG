@@ -27,6 +27,7 @@ from Autodesk.Revit.DB import (
 from System.Collections.Generic import List
 
 from phasen.zuordnung import Eintrag, zuordnen
+from mlg_sprache import t
 
 # Ebenen gelten als gleich hoch, wenn sie weniger als ca. 0,3 mm abweichen.
 HOEHEN_TOLERANZ = 1e-3
@@ -286,10 +287,10 @@ def ebenen_anpassen(doc, kopie, original, delta, alle_ebenen):
                 ziel.Set(ElementId.InvalidElementId)
                 geaendert = True
             else:
-                hinweise.append(u"keine Ebene {:.3f} m über '{}'".format(
+                hinweise.append(t(u"keine Ebene {:.3f} m über '{}'", u"no level {:.3f} m above '{}'", u"ningún nivel {:.3f} m por encima de '{}'").format(
                     delta * 0.3048, alte.Name))
         except Exception as fehler:
-            hinweise.append(u"Ebene nicht änderbar ({})".format(fehler))
+            hinweise.append(t(u"Ebene nicht änderbar ({})", u"level cannot be changed ({})", u"no se puede cambiar el nivel ({})").format(fehler))
 
     if geaendert:
         for bip in VERSAETZE:

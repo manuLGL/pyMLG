@@ -1,0 +1,12 @@
+title:
+  de_de: "Worksets an"
+  en_us: "Worksets On"
+  es_es: "Subproyectos visibles"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Blendet alle Worksets in der aktiven Ansicht ein.
+  en_us: >-
+    Shows all worksets in the active view.
+  es_es: >-
+    Muestra todos los subproyectos en la vista activa.

@@ -38,6 +38,7 @@ from System.Windows.Media import Color, SolidColorBrush  # noqa: E402
 from filter_manager import dialoge as dlg  # noqa: E402
 from filter_more import baum as bm  # noqa: E402
 from filter_more import revit as rv  # noqa: E402
+from mlg_sprache import t, uebersetze_xaml  # noqa: E402
 
 TITEL = u"FilterMore"
 
@@ -57,9 +58,9 @@ FEHLERPROTOKOLL = os.path.join(dlg.protokollordner(), "FilterMore_Fehler.log")
 EINSTELLUNGEN = os.path.join(dlg.protokollordner(), "FilterMore.json")
 
 BEREICH_TEXT = {
-    rv.AUSWAHL: u"in der aktuellen Auswahl",
-    rv.ANSICHT: u"in der aktuellen Ansicht",
-    rv.MODELL: u"im ganzen Modell",
+    rv.AUSWAHL: t(u"in der aktuellen Auswahl", u"in the current selection", u"en la selección actual"),
+    rv.ANSICHT: t(u"in der aktuellen Ansicht", u"in the active view", u"en la vista activa"),
+    rv.MODELL: t(u"im ganzen Modell", u"in the whole model", u"en todo el modelo"),
 }
 
 # Name des Kontrollkästchens -> Erweiterungs-Schlüssel
@@ -78,6 +79,153 @@ ERWEITERUNGEN = (
 
 OPTIONEN = ("nur_3d", "wo_ansicht", "wie_neu", "ohne_gruppe",
             "ohne_baugruppe") + tuple(n for n, _k in ERWEITERUNGEN)
+
+XAML_TEXTE = {
+    "t0": (u"Aufklappen",
+           u"Expand",
+           u"Expandir"),
+    "t1": (u"Bis zur Typ-Ebene aufklappen",
+           u"Expand down to type level",
+           u"Expandir hasta el nivel de tipo"),
+    "t2": (u"Zuklappen",
+           u"Collapse",
+           u"Contraer"),
+    "t3": (u"Alle markieren",
+           u"Check all",
+           u"Marcar todo"),
+    "t4": (u"Keine",
+           u"None",
+           u"Ninguno"),
+    "t5": (u"Umkehren",
+           u"Invert",
+           u"Invertir"),
+    "t6": (u"Markierung umkehren",
+           u"Invert check marks",
+           u"Invertir marcas"),
+    "t7": (u"Elemente",
+           u"Elements",
+           u"Elementos"),
+    "t8": (u"Aktuelle Auswahl",
+           u"Current selection",
+           u"Selección actual"),
+    "t9": (u"Elemente in aktueller Ansicht",
+           u"Elements in active view",
+           u"Elementos en la vista activa"),
+    "t10": (u"Alle Modellelemente",
+           u"All model elements",
+           u"Todos los elementos del modelo"),
+    "t11": (u"Nur 3D-modellierte Elemente",
+           u"Only 3D modeled elements",
+           u"Solo elementos modelados en 3D"),
+    "t12": (u"Ohne Beschriftungen und ansichtsspezifische Elemente",
+           u"Without annotations and view-specific elements",
+           u"Sin anotaciones ni elementos específicos de vista"),
+    "t13": (u"Markierte erweitern",
+           u"Expand checked",
+           u"Ampliar marcados"),
+    "t14": (u"Was",
+           u"What",
+           u"Qué"),
+    "t15": (u"Gleiche Kategorie",
+           u"Same category",
+           u"Misma categoría"),
+    "t16": (u"Gleiche Familie",
+           u"Same family",
+           u"Misma familia"),
+    "t17": (u"Gleicher Typ",
+           u"Same type",
+           u"Mismo tipo"),
+    "t18": (u"Gleiches Workset",
+           u"Same workset",
+           u"Mismo subproyecto"),
+    "t19": (u"Host der Elemente",
+           u"Host of elements",
+           u"Anfitrión de los elementos"),
+    "t20": (u"z.B. die Wand einer Tür",
+           u"e.g. the wall of a door",
+           u"p. ej. el muro de una puerta"),
+    "t21": (u"Gehostete Elemente",
+           u"Hosted elements",
+           u"Elementos alojados"),
+    "t22": (u"z.B. Türen und Fenster einer Wand",
+           u"e.g. doors and windows of a wall",
+           u"p. ej. puertas y ventanas de un muro"),
+    "t23": (u"Verschachtelte Elemente",
+           u"Nested elements",
+           u"Elementos anidados"),
+    "t24": (u"Gemeinsam genutzte Unterkomponenten von Familien",
+           u"Shared subcomponents of families",
+           u"Subcomponentes compartidos de familias"),
+    "t25": (u"Verbundene Elemente",
+           u"Joined elements",
+           u"Elementos unidos"),
+    "t26": (u"Über 'Geometrie verbinden'",
+           u"Via 'Join Geometry'",
+           u"Mediante 'Unir geometría'"),
+    "t27": (u"Übergeordnete Komponente",
+           u"Super component",
+           u"Componente principal"),
+    "t28": (u"Abhängige Elemente",
+           u"Dependent elements",
+           u"Elementos dependientes"),
+    "t29": (u"Wo",
+           u"Where",
+           u"Dónde"),
+    "t30": (u"Ganzes Modell",
+           u"Whole model",
+           u"Todo el modelo"),
+    "t31": (u"Aktuelle Ansicht",
+           u"Active view",
+           u"Vista activa"),
+    "t32": (u"Wie",
+           u"How",
+           u"Cómo"),
+    "t33": (u"Zur Liste hinzufügen",
+           u"Add to current",
+           u"Añadir a la lista"),
+    "t34": (u"Neue Liste erstellen",
+           u"Create new list",
+           u"Crear lista nueva"),
+    "t35": (u"Nur die gefundenen Elemente anzeigen",
+           u"Show only the elements found",
+           u"Mostrar solo los elementos encontrados"),
+    "t36": (u"Nicht übernehmen, wenn",
+           u"Unselect element if",
+           u"Descartar elemento si"),
+    "t37": (u"Teil einer Gruppe",
+           u"Belongs to a group",
+           u"Pertenece a un grupo"),
+    "t38": (u"Teil einer Baugruppe",
+           u"Belongs to an assembly",
+           u"Pertenece a un montaje"),
+    "t39": (u"Auswahl erweitern",
+           u"Expand selection",
+           u"Ampliar selección"),
+    "t40": (u"Anzeigefilter auf markierte anwenden",
+           u"Apply view filter to checked",
+           u"Aplicar filtro de vista a los marcados"),
+    "t41": (u"Nur behalten",
+           u"Keep only",
+           u"Conservar solo"),
+    "t42": (u"Markierung nur bei Elementen lassen, die der Filter erfasst",
+           u"Keep only elements matched by the filter checked",
+           u"Dejar marcados solo los elementos que cumple el filtro"),
+    "t43": (u"Entfernen",
+           u"Remove",
+           u"Quitar"),
+    "t44": (u"Markierung bei Elementen entfernen, die der Filter erfasst",
+           u"Uncheck elements matched by the filter",
+           u"Desmarcar los elementos que cumple el filtro"),
+    "t45": (u"Auswahl übernehmen",
+           u"Apply selection",
+           u"Aplicar selección"),
+    "t46": (u"Markierte Elemente in Revit auswählen und schließen",
+           u"Select the checked elements in Revit and close",
+           u"Seleccionar en Revit los elementos marcados y cerrar"),
+    "t47": (u"Schließen",
+           u"Close",
+           u"Cerrar"),
+}
 
 XAML = u"""
 <Window %s Title="FilterMore (pyMLG)" Width="1120" Height="860"
@@ -114,13 +262,13 @@ XAML = u"""
     <!-- Baum -->
     <DockPanel>
       <WrapPanel DockPanel.Dock="Top">
-        <Button x:Name="aufklappen" Content="Aufklappen" Style="{StaticResource klein}"
-                ToolTip="Bis zur Typ-Ebene aufklappen"/>
-        <Button x:Name="zuklappen" Content="Zuklappen" Style="{StaticResource klein}"/>
-        <Button x:Name="alle" Content="Alle markieren" Style="{StaticResource klein}"/>
-        <Button x:Name="keine" Content="Keine" Style="{StaticResource klein}"/>
-        <Button x:Name="umkehren" Content="Umkehren" Style="{StaticResource klein}"
-                ToolTip="Markierung umkehren"/>
+        <Button x:Name="aufklappen" Content="{{t0}}" Style="{StaticResource klein}"
+                ToolTip="{{t1}}"/>
+        <Button x:Name="zuklappen" Content="{{t2}}" Style="{StaticResource klein}"/>
+        <Button x:Name="alle" Content="{{t3}}" Style="{StaticResource klein}"/>
+        <Button x:Name="keine" Content="{{t4}}" Style="{StaticResource klein}"/>
+        <Button x:Name="umkehren" Content="{{t5}}" Style="{StaticResource klein}"
+                ToolTip="{{t6}}"/>
       </WrapPanel>
       <TreeView x:Name="baum" Padding="2,4"/>
     </DockPanel>
@@ -128,67 +276,67 @@ XAML = u"""
     <!-- Optionen -->
     <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
       <StackPanel>
-        <GroupBox Header="Elemente">
+        <GroupBox Header="{{t7}}">
           <StackPanel>
-            <RadioButton x:Name="bereich_auswahl" Content="Aktuelle Auswahl"/>
+            <RadioButton x:Name="bereich_auswahl" Content="{{t8}}"/>
             <RadioButton x:Name="bereich_ansicht"
-                         Content="Elemente in aktueller Ansicht"/>
-            <RadioButton x:Name="bereich_modell" Content="Alle Modellelemente"/>
-            <CheckBox x:Name="nur_3d" Content="Nur 3D-modellierte Elemente"
-                      ToolTip="Ohne Beschriftungen und ansichtsspezifische Elemente"/>
+                         Content="{{t9}}"/>
+            <RadioButton x:Name="bereich_modell" Content="{{t10}}"/>
+            <CheckBox x:Name="nur_3d" Content="{{t11}}"
+                      ToolTip="{{t12}}"/>
           </StackPanel>
         </GroupBox>
 
-        <GroupBox Header="Markierte erweitern">
+        <GroupBox Header="{{t13}}">
           <StackPanel>
-            <TextBlock Text="Was" FontWeight="SemiBold" Margin="0,0,0,2"/>
-            <CheckBox x:Name="was_kategorie" Content="Gleiche Kategorie"/>
-            <CheckBox x:Name="was_familie" Content="Gleiche Familie"/>
-            <CheckBox x:Name="was_typ" Content="Gleicher Typ"/>
-            <CheckBox x:Name="was_workset" Content="Gleiches Workset"/>
-            <CheckBox x:Name="was_host" Content="Host der Elemente"
-                      ToolTip="z.B. die Wand einer Tür"/>
-            <CheckBox x:Name="was_gehostete" Content="Gehostete Elemente"
-                      ToolTip="z.B. Türen und Fenster einer Wand"/>
+            <TextBlock Text="{{t14}}" FontWeight="SemiBold" Margin="0,0,0,2"/>
+            <CheckBox x:Name="was_kategorie" Content="{{t15}}"/>
+            <CheckBox x:Name="was_familie" Content="{{t16}}"/>
+            <CheckBox x:Name="was_typ" Content="{{t17}}"/>
+            <CheckBox x:Name="was_workset" Content="{{t18}}"/>
+            <CheckBox x:Name="was_host" Content="{{t19}}"
+                      ToolTip="{{t20}}"/>
+            <CheckBox x:Name="was_gehostete" Content="{{t21}}"
+                      ToolTip="{{t22}}"/>
             <CheckBox x:Name="was_verschachtelte"
-                      Content="Verschachtelte Elemente"
-                      ToolTip="Gemeinsam genutzte Unterkomponenten von Familien"/>
-            <CheckBox x:Name="was_verbundene" Content="Verbundene Elemente"
-                      ToolTip="Über 'Geometrie verbinden'"/>
+                      Content="{{t23}}"
+                      ToolTip="{{t24}}"/>
+            <CheckBox x:Name="was_verbundene" Content="{{t25}}"
+                      ToolTip="{{t26}}"/>
             <CheckBox x:Name="was_uebergeordnete"
-                      Content="Übergeordnete Komponente"/>
-            <CheckBox x:Name="was_abhaengige" Content="Abhängige Elemente"/>
+                      Content="{{t27}}"/>
+            <CheckBox x:Name="was_abhaengige" Content="{{t28}}"/>
 
-            <TextBlock Text="Wo" FontWeight="SemiBold" Margin="0,8,0,2"/>
-            <RadioButton x:Name="wo_modell" Content="Ganzes Modell"/>
-            <RadioButton x:Name="wo_ansicht" Content="Aktuelle Ansicht"/>
+            <TextBlock Text="{{t29}}" FontWeight="SemiBold" Margin="0,8,0,2"/>
+            <RadioButton x:Name="wo_modell" Content="{{t30}}"/>
+            <RadioButton x:Name="wo_ansicht" Content="{{t31}}"/>
 
-            <TextBlock Text="Wie" FontWeight="SemiBold" Margin="0,8,0,2"/>
-            <RadioButton x:Name="wie_hinzu" Content="Zur Liste hinzufügen"/>
-            <RadioButton x:Name="wie_neu" Content="Neue Liste erstellen"
-                         ToolTip="Nur die gefundenen Elemente anzeigen"/>
+            <TextBlock Text="{{t32}}" FontWeight="SemiBold" Margin="0,8,0,2"/>
+            <RadioButton x:Name="wie_hinzu" Content="{{t33}}"/>
+            <RadioButton x:Name="wie_neu" Content="{{t34}}"
+                         ToolTip="{{t35}}"/>
 
-            <TextBlock Text="Nicht übernehmen, wenn" FontWeight="SemiBold"
+            <TextBlock Text="{{t36}}" FontWeight="SemiBold"
                        Margin="0,8,0,2"/>
-            <CheckBox x:Name="ohne_gruppe" Content="Teil einer Gruppe"/>
-            <CheckBox x:Name="ohne_baugruppe" Content="Teil einer Baugruppe"/>
+            <CheckBox x:Name="ohne_gruppe" Content="{{t37}}"/>
+            <CheckBox x:Name="ohne_baugruppe" Content="{{t38}}"/>
 
-            <Button x:Name="erweitern" Content="Auswahl erweitern"
+            <Button x:Name="erweitern" Content="{{t39}}"
                     Padding="8,5" Margin="0,8,0,2"/>
           </StackPanel>
         </GroupBox>
 
-        <GroupBox Header="Anzeigefilter auf markierte anwenden">
+        <GroupBox Header="{{t40}}">
           <StackPanel>
             <ComboBox x:Name="filterliste" Margin="0,0,0,6"
                       IsTextSearchEnabled="True"/>
             <UniformGrid Columns="2">
-              <Button x:Name="nur_behalten" Content="Nur behalten"
+              <Button x:Name="nur_behalten" Content="{{t41}}"
                       Padding="6,4" Margin="0,0,3,0"
-                      ToolTip="Markierung nur bei Elementen lassen, die der Filter erfasst"/>
-              <Button x:Name="entfernen" Content="Entfernen" Padding="6,4"
+                      ToolTip="{{t42}}"/>
+              <Button x:Name="entfernen" Content="{{t43}}" Padding="6,4"
                       Margin="3,0,0,0"
-                      ToolTip="Markierung bei Elementen entfernen, die der Filter erfasst"/>
+                      ToolTip="{{t44}}"/>
             </UniformGrid>
           </StackPanel>
         </GroupBox>
@@ -197,15 +345,15 @@ XAML = u"""
                    Margin="0,6,0,0"/>
         <TextBlock x:Name="anzahl_text" Foreground="#555" TextWrapping="Wrap"
                    Margin="0,0,0,8"/>
-        <Button x:Name="uebernehmen" Content="Auswahl übernehmen"
+        <Button x:Name="uebernehmen" Content="{{t45}}"
                 FontWeight="Bold" Padding="8,9"
-                ToolTip="Markierte Elemente in Revit auswählen und schließen"/>
+                ToolTip="{{t46}}"/>
       </StackPanel>
     </ScrollViewer>
 
     <!-- Fußzeile -->
     <DockPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,10,0,0">
-      <Button x:Name="schliessen" Content="Schließen" Width="100"
+      <Button x:Name="schliessen" Content="{{t47}}" Width="100"
               DockPanel.Dock="Right" IsCancel="True"/>
       <TextBlock x:Name="status" VerticalAlignment="Center" Foreground="#555"
                  TextTrimming="CharacterEllipsis"/>
@@ -242,7 +390,7 @@ def sicher(besitzer_liefern, funktion):
             try:
                 meldung(besitzer_liefern(), u"%s%s" % (
                     dlg.fehlertext(fehler),
-                    u"\n\nTechnische Details: %s" % pfad if pfad else u""),
+                    t(u"\n\nTechnische Details: %s", u"\n\nTechnical details: %s", u"\n\nDetalles técnicos: %s") % pfad if pfad else u""),
                     warnung=True)
             except Exception:
                 pass
@@ -282,7 +430,7 @@ class FilterMoreFenster(object):
         self.eigene_liste = False   # nach "Auswahl erweitern"
         self.filter = []            # [(Name, ParameterFilterElement)]
 
-        f = self.fenster = dlg.lade_xaml(XAML)
+        f = self.fenster = dlg.lade_xaml(uebersetze_xaml(XAML, XAML_TEXTE))
         try:
             dlg.setze_besitzer(f, handle=uiapp.MainWindowHandle)
         except Exception:
@@ -304,7 +452,7 @@ class FilterMoreFenster(object):
             self.bereich_auswahl.IsChecked = True
         else:
             self.bereich_auswahl.IsEnabled = False
-            self.bereich_auswahl.Content = u"Aktuelle Auswahl (keine)"
+            self.bereich_auswahl.Content = t(u"Aktuelle Auswahl (keine)", u"Current selection (none)", u"Selección actual (ninguna)")
             if einst.get("bereich") == rv.MODELL:
                 self.bereich_modell.IsChecked = True
             else:
@@ -362,7 +510,7 @@ class FilterMoreFenster(object):
         self.markiert = set(self.elemente)
         self.eigene_liste = False
         self.baue_baum()
-        self.status.Text = u"%d Elemente geladen." % len(self.elemente)
+        self.status.Text = t(u"%d Elemente geladen.", u"%d elements loaded.", u"%d elementos cargados.") % len(self.elemente)
 
     def baue_baum(self):
         self.wurzel = rv.baue_baum(self.doc, self.elemente.values())
@@ -440,9 +588,9 @@ class FilterMoreFenster(object):
         for knoten in self.ui_knoten:
             self._zeige_zustand(knoten)
         self.anzahl.Text = u"%d" % len(self.markiert)
-        herkunft = (u"in der erweiterten Liste" if self.eigene_liste
+        herkunft = (t(u"in der erweiterten Liste", u"in the expanded list", u"en la lista ampliada") if self.eigene_liste
                     else BEREICH_TEXT[self.bereich()])
-        self.anzahl_text.Text = u"von %d Elementen markiert - %s" % (
+        self.anzahl_text.Text = t(u"von %d Elementen markiert - %s", u"of %d elements checked - %s", u"de %d elementos marcados - %s") % (
             len(self.elemente), herkunft)
 
     def setze_markierung(self, ids):
@@ -472,12 +620,12 @@ class FilterMoreFenster(object):
     def erweitere(self):
         was = set(k for n, k in ERWEITERUNGEN if getattr(self, n).IsChecked)
         if not was:
-            meldung(self.fenster, u"Bitte unter 'Was' mindestens eine "
-                    u"Erweiterung ankreuzen.")
+            meldung(self.fenster, t(u"Bitte unter 'Was' mindestens eine "
+                    u"Erweiterung ankreuzen.", u"Please tick at least one option under 'What'.", u"Marque al menos una opción en 'Qué'."))
             return
         quellen = [self.elemente[i] for i in self.markiert]
         if not quellen:
-            meldung(self.fenster, u"Es ist kein Element markiert.")
+            meldung(self.fenster, t(u"Es ist kein Element markiert.", u"No element is checked.", u"No hay ningún elemento marcado."))
             return
         gefunden = rv.erweitere(
             self.doc, self.uidoc, quellen, was,
@@ -488,18 +636,18 @@ class FilterMoreFenster(object):
         neue = dict((rv.id_wert(e.Id), e) for e in gefunden)
         if not neue:
             # Eine leere "neue Liste" würde alles verwerfen
-            self.status.Text = u"Keine weiteren Elemente gefunden."
-            meldung(self.fenster, u"Keine weiteren Elemente gefunden.")
+            self.status.Text = t(u"Keine weiteren Elemente gefunden.", u"No further elements found.", u"No se encontraron más elementos.")
+            meldung(self.fenster, t(u"Keine weiteren Elemente gefunden.", u"No further elements found.", u"No se encontraron más elementos."))
             return
         if self.wie_neu.IsChecked:
             self.elemente = neue
             self.markiert = set(neue)
-            text = u"Neue Liste mit %d gefundenen Elementen." % len(neue)
+            text = t(u"Neue Liste mit %d gefundenen Elementen.", u"New list with %d elements found.", u"Lista nueva con %d elementos encontrados.") % len(neue)
         else:
             hinzu = set(neue) - set(self.elemente)
             self.elemente.update(neue)
             self.markiert.update(neue)
-            text = u"%d Elemente gefunden, %d neu in der Liste." % (
+            text = t(u"%d Elemente gefunden, %d neu in der Liste.", u"%d elements found, %d new in the list.", u"%d elementos encontrados, %d nuevos en la lista.") % (
                 len(neue), len(hinzu))
         self.eigene_liste = True
         self.baue_baum()
@@ -519,7 +667,7 @@ class FilterMoreFenster(object):
     def wende_filter_an(self, behalten):
         index = self.filterliste.SelectedIndex
         if not 0 <= index < len(self.filter):
-            meldung(self.fenster, u"Bitte einen Anzeigefilter wählen.")
+            meldung(self.fenster, t(u"Bitte einen Anzeigefilter wählen.", u"Please choose a view filter.", u"Elija un filtro de vista."))
             return
         name, filter_element = self.filter[index]
         markierte = [self.elemente[i] for i in self.markiert]
@@ -530,14 +678,14 @@ class FilterMoreFenster(object):
         else:
             self.markiert -= treffer
         self.aktualisiere()
-        self.status.Text = u"Filter '%s': %d von %d markierten erfasst, " \
-                           u"noch %d markiert." % (name, len(treffer), vorher,
+        self.status.Text = t(u"Filter '%s': %d von %d markierten erfasst, " \
+                           u"noch %d markiert.", u"Filter '%s': %d of %d checked elements matched, %d still checked.", u"Filtro '%s': %d de %d marcados coinciden, quedan %d marcados.") % (name, len(treffer), vorher,
                                                    len(self.markiert))
 
     # --- Übernehmen -------------------------------------------------------
     def uebernehme(self):
         if not self.markiert:
-            meldung(self.fenster, u"Es ist kein Element markiert.")
+            meldung(self.fenster, t(u"Es ist kein Element markiert.", u"No element is checked.", u"No hay ningún elemento marcado."))
             return
         rv.waehle_aus(self.uidoc, [self.elemente[i] for i in self.markiert])
         self.fenster.Close()

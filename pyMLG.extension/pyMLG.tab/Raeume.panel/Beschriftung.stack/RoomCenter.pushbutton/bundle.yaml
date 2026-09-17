@@ -1,16 +1,24 @@
-title: "Raumpunkt zentrieren"
+title:
+  de_de: "Raumpunkt zentrieren"
+  en_us: "Center Room Point"
+  es_es: "Centrar punto de habitación"
 author: pyMLG
-tooltip: >-
-  Verschiebt den Rauminhaltspunkt auf den Flächenschwerpunkt des Raumumrisses
-  (Bögen und Aussparungen werden berücksichtigt).
+tooltip:
+  de_de: >-
+    Verschiebt den Rauminhaltspunkt auf den Flächenschwerpunkt des Raumumrisses (Bögen und Aussparungen werden berücksichtigt). Liegt der Schwerpunkt außerhalb (z. B. U-Form), wird der nächste Punkt auf der Mittelachse verwendet.
 
-  Umfang: alle Räume, ausgewählte Räume oder Räume der aktiven Ansicht.
-  Der Punkt wird mit IsPointInRoom() geprüft. Liegt der Schwerpunkt außerhalb
-  (z. B. U-Form), wird der nächstgelegene Punkt auf der Mittelachse eines
-  Teilstücks verwendet und in der Auswertung markiert.
+    Raumbeschriftungen können mit zentriert werden. Der Probelauf zeigt das Ergebnis, ohne das Modell zu ändern.
 
-  Raumbeschriftungen können wahlweise in allen Grundrissen oder nur in der
-  aktiven Ansicht mit zentriert werden (ohne Führungslinie).
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Moves the room location point to the centroid of the room outline (arcs and openings are considered). If the centroid lies outside (e.g. U shape), the nearest point on the centre line is used.
 
-  Der Probelauf zeigt das Ergebnis, ohne das Modell zu verändern.
-  Benötigt die CPython3-Engine.
+    Room tags can be centred as well. The dry run shows the result without changing the model.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Mueve el punto de ubicación de la habitación al centroide de su contorno (se tienen en cuenta arcos y huecos). Si el centroide queda fuera (p. ej. forma de U), se usa el punto más cercano del eje central.
+
+    También se pueden centrar las etiquetas de habitación. La prueba muestra el resultado sin modificar el modelo.
+
+    Requiere el motor CPython3.

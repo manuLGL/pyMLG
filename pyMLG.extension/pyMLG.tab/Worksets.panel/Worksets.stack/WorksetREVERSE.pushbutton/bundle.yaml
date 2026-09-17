@@ -1,0 +1,12 @@
+title:
+  de_de: "Nur dieses Workset"
+  en_us: "Isolate Workset"
+  es_es: "Aislar subproyecto"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Zeigt in der aktiven Ansicht nur das Workset des ausgewählten Elements an.
+  en_us: >-
+    Shows only the workset of the selected element in the active view.
+  es_es: >-
+    Muestra en la vista activa solo el subproyecto del elemento seleccionado.

@@ -6,6 +6,7 @@ __title__ = 'WallLegend'
 __author__ = 'Manuel'
 
 from pyrevit import revit, DB, forms, script
+from mlg_sprache import t
 
 
 def id_wert(element_id):
@@ -26,9 +27,9 @@ all_walls_collector = DB.FilteredElementCollector(doc) \
 all_walls = list(all_walls_collector)
 
 if not all_walls:
-    forms.alert('No hay muros en el proyecto', exitscript=True)
+    forms.alert(t(u"Keine Wände im Projekt", u"No walls in the project", u"No hay muros en el proyecto"), exitscript=True)
 
-print('\nTotal de muros en proyecto: {}'.format(len(all_walls)))
+print(t(u"\nWände im Projekt: {}", u"\nWalls in project: {}", u"\nTotal de muros en proyecto: {}").format(len(all_walls)))
 
 # Agrupar muros por tipo
 wall_types_dict = {}
@@ -60,20 +61,20 @@ for wall in all_walls:
         continue
 
 if not wall_types_dict:
-    forms.alert('No se pudieron procesar los tipos de muro', exitscript=True)
+    forms.alert(t(u"Die Wandtypen konnten nicht verarbeitet werden", u"The wall types could not be processed", u"No se pudieron procesar los tipos de muro"), exitscript=True)
 
 # Mostrar tipos encontrados
 print('\n' + '=' * 70)
-print('TIPOS DE MURO ENCONTRADOS:')
+print(t(u"GEFUNDENE WANDTYPEN:", u"WALL TYPES FOUND:", u"TIPOS DE MURO ENCONTRADOS:"))
 print('=' * 70)
 
 for type_id, data in wall_types_dict.items():
     print('\n- {}'.format(data['type_name']))
-    print('  Cantidad: {} muros'.format(len(data['walls'])))
+    print(t(u"  Anzahl: {} Wände", u"  Count: {} walls", u"  Cantidad: {} muros").format(len(data['walls'])))
 
 # Confirmar
-msg = 'Se encontraron {} tipos de muro diferentes.\n\n'.format(len(wall_types_dict))
-msg += 'Se creara UNA seccion por cada tipo.\n\nContinuar?'
+msg = t(u"{} verschiedene Wandtypen gefunden.\n\n", u"{} different wall types found.\n\n", u"Se encontraron {} tipos de muro diferentes.\n\n").format(len(wall_types_dict))
+msg += t(u"Es wird EIN Schnitt je Typ erstellt.\n\nFortfahren?", u"ONE section per type will be created.\n\nContinue?", u"Se creará UNA sección por cada tipo.\n\n¿Continuar?")
 
 if not forms.alert(msg, yes=True, no=True):
     script.exit()
@@ -88,14 +89,14 @@ for vft in collector:
         break
 
 if not section_type_id:
-    forms.alert('No se encontro tipo de vista de seccion', exitscript=True)
+    forms.alert(t(u"Kein Schnitt-Ansichtstyp gefunden", u"No section view type found", u"No se encontró tipo de vista de sección"), exitscript=True)
 
 # Procesar cada tipo de muro
 output = script.get_output()
 created_sections = []
 errors = []
 
-with revit.Transaction('Crear Secciones por Tipo de Muro'):
+with revit.Transaction(t(u"Schnitte je Wandtyp erstellen", u"Create sections per wall type", u"Crear secciones por tipo de muro")):
     for type_id, data in wall_types_dict.items():
         try:
             wall_type_name = data['type_name']
@@ -103,8 +104,8 @@ with revit.Transaction('Crear Secciones por Tipo de Muro'):
             wall_id = id_wert(representative_wall.Id)
 
             print('\n' + '-' * 70)
-            print('Procesando: {}'.format(wall_type_name))
-            print('Muro ID: {}'.format(wall_id))
+            print(t(u"Verarbeite: {}", u"Processing: {}", u"Procesando: {}").format(wall_type_name))
+            print(t(u"Wand-Id: {}", u"Wall id: {}", u"Muro ID: {}").format(wall_id))
 
             # Datos del muro
             loc = representative_wall.Location
@@ -192,8 +193,8 @@ with revit.Transaction('Crear Secciones por Tipo de Muro'):
 
             section.Name = section_name
 
-            print('Seccion creada: {}'.format(section.Name))
-            print('Ancho: {:.0f} mm'.format(width * 304.8))
+            print(t(u"Schnitt erstellt: {}", u"Section created: {}", u"Sección creada: {}").format(section.Name))
+            print(t(u"Breite: {:.0f} mm", u"Width: {:.0f} mm", u"Ancho: {:.0f} mm").format(width * 304.8))
 
             created_sections.append({
                 'section': section,
@@ -204,12 +205,12 @@ with revit.Transaction('Crear Secciones por Tipo de Muro'):
             })
 
         except Exception as e:
-            error_msg = 'Error con tipo "{}": {}'.format(data.get('type_name', 'Desconocido'), str(e))
+            error_msg = t(u"Fehler bei Typ \"{}\": {}", u"Error with type \"{}\": {}", u"Error con tipo \"{}\": {}").format(data.get('type_name', t(u"Unbekannt", u"Unknown", u"Desconocido")), str(e))
             errors.append(error_msg)
-            print('ERROR: {}'.format(error_msg))
+            print(t(u"FEHLER: {}", u"ERROR: {}", u"ERROR: {}").format(error_msg))
 
 # Aislar muros
-with revit.Transaction('Aislar Muros'):
+with revit.Transaction(t(u"Wände isolieren", u"Isolate walls", u"Aislar muros")):
     for section_data in created_sections:
         try:
             section = section_data['section']
@@ -242,7 +243,7 @@ with revit.Transaction('Aislar Muros'):
                         width_mm = layer.Width * 304.8
 
                         mat_id = layer.MaterialId
-                        mat_name = "Sin material"
+                        mat_name = t(u"Ohne Material", u"No material", u"Sin material")
 
                         if mat_id != DB.ElementId.InvalidElementId:
                             mat = doc.GetElement(mat_id)
@@ -255,22 +256,22 @@ with revit.Transaction('Aislar Muros'):
             pass
 
 # Resultado
-output.print_md('# Resultado')
+output.print_md(t(u"# Ergebnis", u"# Result", u"# Resultado"))
 output.print_md('---')
-output.print_md('**Tipos procesados:** {}'.format(len(wall_types_dict)))
-output.print_md('**Secciones creadas:** {}'.format(len(created_sections)))
+output.print_md(t(u"**Verarbeitete Typen:** {}", u"**Types processed:** {}", u"**Tipos procesados:** {}").format(len(wall_types_dict)))
+output.print_md(t(u"**Erstellte Schnitte:** {}", u"**Sections created:** {}", u"**Secciones creadas:** {}").format(len(created_sections)))
 
 if errors:
-    output.print_md('\n## Errores: {}'.format(len(errors)))
+    output.print_md(t(u"\n## Fehler: {}", u"\n## Errors: {}", u"\n## Errores: {}").format(len(errors)))
 
 if created_sections:
-    output.print_md('\n## Secciones')
+    output.print_md(t(u"\n## Schnitte", u"\n## Sections", u"\n## Secciones"))
 
     for idx, sd in enumerate(created_sections, 1):
         output.print_md('\n**{}. {}**'.format(idx, sd['section'].Name))
-        output.print_md('- Tipo: {}'.format(sd['type_name']))
-        output.print_md('- Muros de este tipo: {}'.format(sd['count']))
+        output.print_md(t(u"- Typ: {}", u"- Type: {}", u"- Tipo: {}").format(sd['type_name']))
+        output.print_md(t(u"- Wände dieses Typs: {}", u"- Walls of this type: {}", u"- Muros de este tipo: {}").format(sd['count']))
 
 print('\n' + '=' * 70)
-print('COMPLETADO')
+print(t(u"FERTIG", u"DONE", u"COMPLETADO"))
 print('=' * 70)

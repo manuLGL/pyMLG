@@ -1,4 +1,7 @@
-title: Worksets
+title:
+  de_de: "Worksets"
+  en_us: "Worksets"
+  es_es: "Subproyectos"
 layout:
   - WorksetCreator
   - Worksets

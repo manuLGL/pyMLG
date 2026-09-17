@@ -1,3 +1,6 @@
-title: Auswahl
+title:
+  de_de: "Auswahl"
+  en_us: "Selection"
+  es_es: "Selección"
 layout:
   - FilterMore

@@ -51,11 +51,13 @@ from Autodesk.Revit.DB import (
 )
 from System.Collections.Generic import List
 
-QUELLE_EINGEBAUT = u"eingebaut"
-QUELLE_GEMEINSAM = u"gemeinsam genutzt"
-QUELLE_PROJEKT = u"Projektparameter"
-QUELLE_GLOBAL = u"globaler Parameter"
-QUELLE_UNBEKANNT = u"unbekannt"
+from mlg_sprache import t
+
+QUELLE_EINGEBAUT = t(u"eingebaut", u"built-in", u"integrado")
+QUELLE_GEMEINSAM = t(u"gemeinsam genutzt", u"shared", u"compartido")
+QUELLE_PROJEKT = t(u"Projektparameter", u"project parameter", u"parámetro de proyecto")
+QUELLE_GLOBAL = t(u"globaler Parameter", u"global parameter", u"parámetro global")
+QUELLE_UNBEKANNT = t(u"unbekannt", u"unknown", u"desconocido")
 
 # Höchstens so viele Elemente je Kategorienmenge nach der Einheit fragen
 MAX_ELEMENTE_SPEC = 200
@@ -206,7 +208,7 @@ class RevitAufloeser(object):
             treffer = self._tabelle_eingebaut().get(wert)
             if treffer is None:
                 return ParameterInfo(
-                    wert, u"<BuiltInParameter %s nicht aufgelöst>" % wert,
+                    wert, t(u"<BuiltInParameter %s nicht aufgelöst>", u"<BuiltInParameter %s not resolved>", u"<BuiltInParameter %s no resuelto>") % wert,
                     QUELLE_UNBEKANNT)
             name, forge_id = treffer
             try:
@@ -219,7 +221,7 @@ class RevitAufloeser(object):
         element = self.doc.GetElement(ElementId(wert))
         if element is None:
             return ParameterInfo(
-                wert, u"<Parameter-Id %s nicht gefunden>" % wert,
+                wert, t(u"<Parameter-Id %s nicht gefunden>", u"<parameter id %s not found>", u"<id de parámetro %s no encontrado>") % wert,
                 QUELLE_UNBEKANNT)
         typ = element.GetType().Name
         quelle = {"GlobalParameter": QUELLE_GLOBAL,
@@ -280,7 +282,7 @@ class RevitAufloeser(object):
                 name = kategorie.Name if kategorie is not None else None
             except Exception:
                 name = None
-            self._kategorien[wert] = name or u"<Kategorie %s>" % wert
+            self._kategorien[wert] = name or t(u"<Kategorie %s>", u"<category %s>", u"<categoría %s>") % wert
         return self._kategorien[wert]
 
     def kategorienamen(self, kategorie_ids):
@@ -290,7 +292,7 @@ class RevitAufloeser(object):
     def elementname(self, element_id):
         wert = id_wert(element_id)
         if wert is None or wert == -1:
-            return u"(keine)"
+            return t(u"(keine)", u"(none)", u"(ninguno)")
         element = self.doc.GetElement(ElementId(wert))
         if element is None:
             return u"<Id %s>" % wert
@@ -328,7 +330,7 @@ class RevitAufloeser(object):
     def workset_name(self, wert):
         name = self.worksets().get(int(wert))
         return name if name is not None else \
-            u"<Bearbeitungsbereich %d nicht vorhanden>" % int(wert)
+            t(u"<Bearbeitungsbereich %d nicht vorhanden>", u"<workset %d does not exist>", u"<subproyecto %d no existe>") % int(wert)
 
     # -- Werte --------------------------------------------------------------
 
@@ -358,7 +360,7 @@ class RevitAufloeser(object):
         except Exception:
             pass
         text = u"%g" % wert
-        return text if zum_bearbeiten else text + u" (intern)"
+        return text if zum_bearbeiten else text + t(u" (intern)", u" (internal)", u" (interno)")
 
     def _zahl_genau(self, units, spec, wert, zum_bearbeiten):
         """Mit steigender Nachkommastellenzahl formatieren, bis der Text den
@@ -390,7 +392,7 @@ class RevitAufloeser(object):
         """Eingabe in Projekteinheiten -> interner Wert. ValueError bei Fehler."""
         text = (text or u"").strip()
         if not text:
-            raise ValueError(u"Es wurde kein Wert eingegeben.")
+            raise ValueError(t(u"Es wurde kein Wert eingegeben.", u"No value was entered.", u"No se introdujo ningún valor."))
         spec = self.info_mit_spec(param_id).spec
         if spec is not None:
             try:
@@ -401,7 +403,7 @@ class RevitAufloeser(object):
                         ok, wert = ergebnis[0], ergebnis[1]
                         if ok:
                             return float(wert)
-                        raise ValueError(u"'%s' ist kein gültiger Wert."
+                        raise ValueError(t(u"'%s' ist kein gültiger Wert.", u"'%s' is not a valid value.", u"'%s' no es un valor válido.")
                                          % text)
             except ValueError:
                 raise
@@ -410,12 +412,12 @@ class RevitAufloeser(object):
         try:
             return float(text.replace(u",", u"."))
         except ValueError:
-            raise ValueError(u"'%s' ist keine Zahl." % text)
+            raise ValueError(t(u"'%s' ist keine Zahl.", u"'%s' is not a number.", u"'%s' no es un número.") % text)
 
     def ganzzahl(self, param_id, wert):
         info = self.info_mit_spec(param_id)
         if info.bearbeitungsbereich:
             return self.workset_name(wert)
         if ist_ja_nein(info.spec):
-            return u"Ja" if wert else u"Nein"
+            return t(u"Ja", u"Yes", u"Sí") if wert else t(u"Nein", u"No", u"No")
         return u"%d" % wert

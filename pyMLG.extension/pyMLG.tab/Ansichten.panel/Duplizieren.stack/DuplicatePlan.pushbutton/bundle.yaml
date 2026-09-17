@@ -1,0 +1,12 @@
+title:
+  de_de: "Pläne\nduplizieren"
+  en_us: "Duplicate\nSheets"
+  es_es: "Duplicar\nplanos"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Dupliziert die ausgewählten Pläne mit ihrem Plankopf und vergibt freie Plannummern.
+  en_us: >-
+    Duplicates the selected sheets with their title block and assigns free sheet numbers.
+  es_es: >-
+    Duplica los planos seleccionados con su cajetín y asigna números de plano libres.

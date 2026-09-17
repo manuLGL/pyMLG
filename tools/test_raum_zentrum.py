@@ -10,6 +10,9 @@ import math
 import os
 import sys
 
+# Texte werden auf Deutsch verglichen
+os.environ["PYMLG_SPRACHE"] = "de"
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 "..", "pyMLG.extension", "lib"))
 

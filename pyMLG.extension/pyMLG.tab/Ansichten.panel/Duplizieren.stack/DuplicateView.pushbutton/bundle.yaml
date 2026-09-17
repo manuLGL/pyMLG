@@ -1,0 +1,12 @@
+title:
+  de_de: "Ansichten\nduplizieren"
+  en_us: "Duplicate\nViews"
+  es_es: "Duplicar\nvistas"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Dupliziert die im Projektbrowser ausgewählten Ansichten und benennt die Kopien fortlaufend.
+  en_us: >-
+    Duplicates the views selected in the Project Browser and numbers the copies consecutively.
+  es_es: >-
+    Duplica las vistas seleccionadas en el navegador de proyectos y numera las copias de forma consecutiva.

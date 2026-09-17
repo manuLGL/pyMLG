@@ -2,6 +2,7 @@
 
 from Autodesk.Revit.DB import WorksetVisibility, Transaction, FilteredWorksetCollector, WorksetKind
 from pyrevit import revit
+from mlg_sprache import t
 
 __title__ = "WorksetsON"
 
@@ -14,13 +15,13 @@ if doc.IsWorkshared:
     # Alle User-Worksets sammeln
     worksets = FilteredWorksetCollector(doc).OfKind(WorksetKind.UserWorkset).ToWorksets()
 
-    t = Transaction(doc, "Alle Worksets einblenden")
-    t.Start()
+    transaktion = Transaction(doc, t("Alle Worksets einblenden", u"Show all worksets", u"Mostrar todos los subproyectos"))
+    transaktion.Start()
 
     try:
         for workset in worksets:
             active_view.SetWorksetVisibility(workset.Id, WorksetVisibility.Visible)
 
-        t.Commit()
+        transaktion.Commit()
     except:
-        t.RollBack()
+        transaktion.RollBack()

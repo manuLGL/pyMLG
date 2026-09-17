@@ -15,8 +15,9 @@ from Autodesk.Revit.DB import Transaction, XYZ
 from pyrevit import forms, revit
 
 from phasen import revit_kopie as rk
+from mlg_sprache import t
 
-TITEL = u"Paste Aligned View (mit Phasen)"
+TITEL = t(u"Paste Aligned View (mit Phasen)", u"Paste Aligned View (with phases)", u"Pegar alineado (con fases)")
 
 
 def gruppieren(doc, ids, ziel_ebene):
@@ -42,31 +43,31 @@ def main():
     doc, uidoc = revit.doc, revit.uidoc
     ids, uebersprungen = rk.modell_elemente(doc, uidoc.Selection.GetElementIds())
     if not ids:
-        forms.alert(u"Keine Modellelemente ausgewählt.\n\nElemente auswählen, "
+        forms.alert(t(u"Keine Modellelemente ausgewählt.\n\nElemente auswählen, "
                     u"in den Grundriss der Zielebene wechseln und das Werkzeug "
-                    u"starten.", title=TITEL)
+                    u"starten.", u"No model elements selected.\n\nSelect elements, switch to the floor plan of the target level and start the tool.", u"No hay elementos de modelo seleccionados.\n\nSeleccione elementos, cambie a la planta del nivel de destino e inicie la herramienta."), title=TITEL)
         return
 
     ziel_ebene = getattr(doc.ActiveView, "GenLevel", None)
     if ziel_ebene is None:
-        forms.alert(u"Die aktive Ansicht hat keine Ebene. Bitte einen Grundriss "
-                    u"der Zielebene öffnen.", title=TITEL)
+        forms.alert(t(u"Die aktive Ansicht hat keine Ebene. Bitte einen Grundriss "
+                    u"der Zielebene öffnen.", u"The active view has no level. Please open a floor plan of the target level.", u"La vista activa no tiene nivel. Abra una planta del nivel de destino."), title=TITEL)
         return
 
     gruppen = gruppieren(doc, ids, ziel_ebene)
     if not gruppen:
-        forms.alert(u"Für die Auswahl ließ sich keine Ebene ermitteln.", title=TITEL)
+        forms.alert(t(u"Für die Auswahl ließ sich keine Ebene ermitteln.", u"No level could be determined for the selection.", u"No se pudo determinar un nivel para la selección."), title=TITEL)
         return
     if all(abs(d) < rk.HOEHEN_TOLERANZ for d in gruppen):
-        forms.alert(u"Die Elemente liegen bereits auf '{}'.".format(ziel_ebene.Name),
+        forms.alert(t(u"Die Elemente liegen bereits auf '{}'.", u"The elements are already on '{}'.", u"Los elementos ya están en '{}'.").format(ziel_ebene.Name),
                     title=TITEL)
         return
 
     alle_ebenen = rk.ebenen(doc)
     alle_neuen, hinweise, ohne_original = [], [], 0
 
-    t = Transaction(doc, TITEL)
-    t.Start()
+    transaktion = Transaction(doc, TITEL)
+    transaktion.Start()
     try:
         for delta, gruppe in gruppen.items():
             neue_ids, paare, ohne = rk.kopieren(doc, gruppe, XYZ(0, 0, delta))
@@ -79,23 +80,23 @@ def main():
             rk.hoehen_korrigieren(doc, paare, delta)
             for kopie, original in paare:
                 rk.phasen_uebertragen(kopie, original)
-        t.Commit()
+        transaktion.Commit()
     except Exception as fehler:
-        if t.HasStarted() and not t.HasEnded():
-            t.RollBack()
-        forms.alert(u"Einfügen fehlgeschlagen, nichts wurde geändert.",
+        if transaktion.HasStarted() and not transaktion.HasEnded():
+            transaktion.RollBack()
+        forms.alert(t(u"Einfügen fehlgeschlagen, nichts wurde geändert.", u"Paste failed, nothing was changed.", u"Error al pegar, no se cambió nada."),
                     sub_msg=u"{}".format(fehler), title=TITEL)
         return
 
     rk.auswahl_setzen(uidoc, alle_neuen)
     if ohne_original:
-        hinweise.insert(0, u"{} Kopie(n) konnte kein Original zugeordnet werden - "
-                           u"deren Phasen bitte prüfen.".format(ohne_original))
+        hinweise.insert(0, t(u"{} Kopie(n) konnte kein Original zugeordnet werden - "
+                           u"deren Phasen bitte prüfen.", u"{} copy/copies could not be matched to an original - please check their phases.", u"{} copia(s) no se pudieron asociar a un original: compruebe sus fases.").format(ohne_original))
     if uebersprungen:
-        hinweise.insert(0, u"{} ansichtsspezifische(s) Element(e) wurden nicht "
-                           u"kopiert.".format(uebersprungen))
+        hinweise.insert(0, t(u"{} ansichtsspezifische(s) Element(e) wurden nicht "
+                           u"kopiert.", u"{} view-specific element(s) were not copied.", u"{} elemento(s) específicos de vista no se copiaron.").format(uebersprungen))
     if hinweise:
-        forms.alert(u"{} Element(e) auf '{}' eingefügt.".format(
+        forms.alert(t(u"{} Element(e) auf '{}' eingefügt.", u"{} element(s) pasted on '{}'.", u"{} elemento(s) pegados en '{}'.").format(
                         len(alle_neuen), ziel_ebene.Name),
                     sub_msg=u"\n".join(hinweise[:15]), title=TITEL)
 

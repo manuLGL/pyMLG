@@ -1,12 +1,24 @@
-title: "Filter\nMore"
+title:
+  de_de: "Filter\nMore"
+  en_us: "Filter\nMore"
+  es_es: "Filtrar\nmás"
 author: pyMLG
-tooltip: >-
-  Auswahl bis auf Familie, Typ und einzelnes Element filtern - wie der
-  Revit-Filter, aber eine Ebene tiefer.
+tooltip:
+  de_de: >-
+    Auswahl bis auf Familie, Typ und einzelnes Element filtern - wie der Revit-Filter, aber eine Ebene tiefer.
 
-  Baum Kategorie > Familie > Typ > Element aus der aktuellen Auswahl, der
-  Ansicht oder dem ganzen Modell. Markierte Elemente erweitern (gleiche
-  Kategorie/Familie/Typ/Workset, Host, gehostete, verschachtelte,
-  verbundene, übergeordnete, abhängige Elemente) oder mit einem
-  Anzeigefilter eingrenzen. "Auswahl übernehmen" wählt die markierten
-  Elemente in Revit aus. Benötigt die CPython3-Engine.
+    Baum Kategorie > Familie > Typ > Element aus der Auswahl, der Ansicht oder dem Modell. Markierte erweitern (gleiche Kategorie/Familie/Typ/Workset, Host, gehostete, verschachtelte, verbundene, übergeordnete, abhängige Elemente) oder mit einem Anzeigefilter eingrenzen.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Filter a selection down to family, type and individual element - like the Revit filter, one level deeper.
+
+    Tree category > family > type > element from the selection, the view or the model. Expand checked elements (same category/family/type/workset, host, hosted, nested, joined, super component, dependent elements) or narrow them down with a view filter.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Filtra una selección hasta familia, tipo y elemento individual, como el filtro de Revit pero un nivel más profundo.
+
+    Árbol categoría > familia > tipo > elemento de la selección, la vista o el modelo. Amplía los marcados (misma categoría/familia/tipo/subproyecto, anfitrión, alojados, anidados, unidos, componente principal, dependientes) o acótalos con un filtro de vista.
+
+    Requiere el motor CPython3.

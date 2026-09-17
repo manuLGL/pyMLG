@@ -1,0 +1,12 @@
+title:
+  de_de: "Kopieren mit Phasen"
+  en_us: "Copy With Phases"
+  es_es: "Copiar con fases"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Kopiert Elemente von einem Basispunkt zu einem Zielpunkt und behält "Phase erstellt" und "Phase abgebrochen" der Originale bei.
+  en_us: >-
+    Copies elements from a base point to a target point and keeps "Phase Created" and "Phase Demolished" of the originals.
+  es_es: >-
+    Copia elementos de un punto base a un punto de destino y conserva "Fase de creación" y "Fase de derribo" de los originales.

@@ -17,13 +17,15 @@ Alles ist reiner Code ohne XAML und läuft deshalb unter beiden Engines.
 
 import clr
 
+from mlg_sprache import t
+
 from Autodesk.Revit.UI import (
     TaskDialog,
     TaskDialogCommonButtons,
     TaskDialogResult,
 )
 
-EXCEL_FILTER = u"Excel-Arbeitsmappe (*.xlsx)|*.xlsx|Alle Dateien (*.*)|*.*"
+EXCEL_FILTER = t(u"Excel-Arbeitsmappe (*.xlsx)|*.xlsx|Alle Dateien (*.*)|*.*", u"Excel workbook (*.xlsx)|*.xlsx|All files (*.*)|*.*", u"Libro de Excel (*.xlsx)|*.xlsx|Todos los archivos (*.*)|*.*")
 
 # TaskDialog.MainContent bei sehr langen Texten kürzen - lange Listen gehören
 # ins Ausgabefenster, nicht in einen modalen Dialog.
@@ -51,8 +53,8 @@ def _lade_winforms():
 
 def _kuerze(text):
     if text and len(text) > MAX_TEXTLAENGE:
-        return text[:MAX_TEXTLAENGE] + u"\n\n[...] Vollständige Angaben im " \
-                                       u"pyRevit-Ausgabefenster."
+        return text[:MAX_TEXTLAENGE] + t(u"\n\n[...] Vollständige Angaben im " \
+                                       u"pyRevit-Ausgabefenster.", u"\n\n[...] Full details in the pyRevit output window.", u"\n\n[...] Detalles completos en la ventana de salida de pyRevit.")
     return text
 
 
@@ -134,7 +136,7 @@ def waehle_option(optionen, titel=u"pyMLG", hauptzeile=None, text=None):
 # Mehrfachauswahl
 # ---------------------------------------------------------------------------
 
-def baue_auswahlfenster(eintraege, titel=u"Auswahl", hinweis=None,
+def baue_auswahlfenster(eintraege, titel=t(u"Auswahl", u"Selection", u"Selección"), hinweis=None,
                         schaltflaeche=u"OK"):
     """Baut das Auswahlfenster, ohne es anzuzeigen.
 
@@ -145,8 +147,8 @@ def baue_auswahlfenster(eintraege, titel=u"Auswahl", hinweis=None,
     module = _lade_winforms()
     if module is None:
         raise RuntimeError(
-            u"Die Auswahlliste konnte nicht geöffnet werden: "
-            u"System.Windows.Forms ist in dieser Umgebung nicht verfügbar.")
+            t(u"Die Auswahlliste konnte nicht geöffnet werden: "
+            u"System.Windows.Forms ist in dieser Umgebung nicht verfügbar.", u"The selection list could not be opened: System.Windows.Forms is not available in this environment.", u"No se pudo abrir la lista de selección: System.Windows.Forms no está disponible en este entorno."))
     Forms, Drawing = module
 
     eintraege = list(eintraege)
@@ -167,7 +169,7 @@ def baue_auswahlfenster(eintraege, titel=u"Auswahl", hinweis=None,
                   | Forms.AnchorStyles.Right)
 
     beschriftung = Forms.Label()
-    beschriftung.Text = hinweis or u"Einträge auswählen:"
+    beschriftung.Text = hinweis or t(u"Einträge auswählen:", u"Select entries:", u"Seleccione entradas:")
     beschriftung.Bounds = Drawing.Rectangle(12, 10, 496, 34)
     beschriftung.Anchor = anker_oben
     fenster.Controls.Add(beschriftung)
@@ -221,14 +223,14 @@ def baue_auswahlfenster(eintraege, titel=u"Auswahl", hinweis=None,
     anker_unten_rechts = Forms.AnchorStyles.Bottom | Forms.AnchorStyles.Right
 
     knopf_alle = Forms.Button()
-    knopf_alle.Text = u"Alle"
+    knopf_alle.Text = t(u"Alle", u"All", u"Todo")
     knopf_alle.Bounds = Drawing.Rectangle(12, 554, 80, 30)
     knopf_alle.Anchor = anker_unten_links
     knopf_alle.Click += lambda sender, args: setze_alle(True)
     fenster.Controls.Add(knopf_alle)
 
     knopf_keine = Forms.Button()
-    knopf_keine.Text = u"Keine"
+    knopf_keine.Text = t(u"Keine", u"None", u"Ninguno")
     knopf_keine.Bounds = Drawing.Rectangle(98, 554, 80, 30)
     knopf_keine.Anchor = anker_unten_links
     knopf_keine.Click += lambda sender, args: setze_alle(False)
@@ -242,7 +244,7 @@ def baue_auswahlfenster(eintraege, titel=u"Auswahl", hinweis=None,
     fenster.Controls.Add(knopf_ok)
 
     knopf_abbruch = Forms.Button()
-    knopf_abbruch.Text = u"Abbrechen"
+    knopf_abbruch.Text = t(u"Abbrechen", u"Cancel", u"Cancelar")
     knopf_abbruch.Bounds = Drawing.Rectangle(428, 554, 80, 30)
     knopf_abbruch.Anchor = anker_unten_rechts
     knopf_abbruch.DialogResult = Forms.DialogResult.Cancel
@@ -269,7 +271,7 @@ def baue_auswahlfenster(eintraege, titel=u"Auswahl", hinweis=None,
     return fenster, hole_auswahl, steuerelemente
 
 
-def waehle_mehrfach(eintraege, titel=u"Auswahl", hinweis=None,
+def waehle_mehrfach(eintraege, titel=t(u"Auswahl", u"Selection", u"Selección"), hinweis=None,
                     schaltflaeche=u"OK"):
     """Mehrfachauswahl aus einer Liste von Texten.
 
@@ -341,12 +343,12 @@ def _dateidialog(speichern, vorgabename, startordner, titel):
 
 
 def datei_speichern(vorgabename=u"", startordner=u"",
-                    titel=u"Excel-Datei speichern"):
+                    titel=t(u"Excel-Datei speichern", u"Save Excel file", u"Guardar archivo de Excel")):
     """Speichern-Dialog. Rückgabe: Pfad oder None."""
     return _dateidialog(True, vorgabename, startordner, titel)
 
 
-def datei_oeffnen(startordner=u"", titel=u"Excel-Datei auswählen"):
+def datei_oeffnen(startordner=u"", titel=t(u"Excel-Datei auswählen", u"Select Excel file", u"Seleccionar archivo de Excel")):
     """Öffnen-Dialog. Rückgabe: Pfad oder None."""
     return _dateidialog(False, u"", startordner, titel)
 

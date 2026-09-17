@@ -5,6 +5,7 @@ clr.AddReference('RevitAPI')
 clr.AddReference('RevitAPIUI')
 from Autodesk.Revit.DB import *
 from Autodesk.Revit.UI import *
+from mlg_sprache import t
 
 # Aktuelles Dokument
 uidoc = __revit__.ActiveUIDocument
@@ -36,8 +37,8 @@ try:
         sys.exit()
 
     # Transaction starten (mit Fehlerbehandlung)
-    t = Transaction(doc, "Sheets kopieren")
-    t.Start()
+    transaktion = Transaction(doc, t("Sheets kopieren", u"Copy sheets", u"Copiar planos"))
+    transaktion.Start()
 
     try:
         # Titleblock-Typen holen
@@ -48,8 +49,8 @@ try:
 
         if len(titleblock_types) == 0:
             # Keine Titleblocks im Projekt
-            t.RollBack()
-            TaskDialog.Show("Fehler", "Keine Titleblock-Typen im Projekt gefunden!")
+            transaktion.RollBack()
+            TaskDialog.Show(t("Fehler", u"Error", u"Error"), t("Keine Titleblock-Typen im Projekt gefunden!", u"No title block types found in the project!", u"¡No se encontraron tipos de cajetín en el proyecto!"))
             import sys
 
             sys.exit()
@@ -86,11 +87,11 @@ try:
                 base_num = sheet.SheetNumber
                 counter = 1
                 max_attempts = 1000  # Sicherheit gegen Endlosschleife
-                new_num = "{} - Kopie {}".format(base_num, counter)
+                new_num = t("{} - Kopie {}", u"{} - Copy {}", u"{} - Copia {}").format(base_num, counter)
 
                 while new_num in all_numbers and counter < max_attempts:
                     counter += 1
-                    new_num = "{} - Kopie {}".format(base_num, counter)
+                    new_num = t("{} - Kopie {}", u"{} - Copy {}", u"{} - Copia {}").format(base_num, counter)
 
                 # Wenn 1000 Kopien erreicht -> Eindeutige ID anhängen
                 if counter >= max_attempts:
@@ -100,7 +101,7 @@ try:
 
                 # Sheet-Nummer und Name setzen
                 new_sheet.SheetNumber = new_num
-                new_sheet.Name = "{} - Kopie {}".format(sheet.Name, counter)
+                new_sheet.Name = t("{} - Kopie {}", u"{} - Copy {}", u"{} - Copia {}").format(sheet.Name, counter)
                 all_numbers.add(new_num)
 
                 success_count += 1
@@ -117,19 +118,19 @@ try:
 
         # Transaction abschließen
         if success_count > 0:
-            t.Commit()
+            transaktion.Commit()
             # Optional: Stille Erfolgsmeldung (auskommentiert für "still mode")
             # TaskDialog.Show("Erfolg", "{} Sheet(s) kopiert".format(success_count))
         else:
             # Nichts erfolgreich -> Rollback
-            t.RollBack()
-            TaskDialog.Show("Fehler", "Keine Sheets konnten kopiert werden.")
+            transaktion.RollBack()
+            TaskDialog.Show(t("Fehler", u"Error", u"Error"), t("Keine Sheets konnten kopiert werden.", u"No sheets could be copied.", u"No se pudo copiar ningún plano."))
 
     except Exception as e:
         # Transaction fehlgeschlagen -> Rollback
-        t.RollBack()
-        TaskDialog.Show("Fehler", "Fehler beim Kopieren:\n{}".format(str(e)))
+        transaktion.RollBack()
+        TaskDialog.Show(t("Fehler", u"Error", u"Error"), t("Fehler beim Kopieren:\n{}", u"Error while copying:\n{}", u"Error al copiar:\n{}").format(str(e)))
 
 except Exception as e:
     # Kritischer Fehler außerhalb der Transaction
-    TaskDialog.Show("Kritischer Fehler", "Unerwarteter Fehler:\n{}".format(str(e)))
+    TaskDialog.Show(t("Kritischer Fehler", u"Critical error", u"Error crítico"), t("Unerwarteter Fehler:\n{}", u"Unexpected error:\n{}", u"Error inesperado:\n{}").format(str(e)))

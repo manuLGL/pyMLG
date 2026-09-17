@@ -1,4 +1,7 @@
-title: Ansichten
+title:
+  de_de: "Ansichten"
+  en_us: "Views"
+  es_es: "Vistas"
 layout:
   - ViewNameManager
   - Duplizieren

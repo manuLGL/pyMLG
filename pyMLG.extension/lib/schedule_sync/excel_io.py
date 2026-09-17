@@ -31,14 +31,17 @@ from schedule_sync.schedule_model import (
     STATUS_GESPERRT,
     STATUS_TYP,
 )
+from mlg_sprache import t
 
 META_BLATT = u"_pyMLG_Meta"
 META_VERSION = 1
 KOPF_UNIQUEID = u"UniqueId"
 KOPF_ELEMENTID = u"ElementId"
-KOPF_KATEGORIE = u"Kategorie"
-# Blätter mit der Tabelle wie in Revit - nur zum Lesen, der Import überspringt sie
-ANSICHT_PRAEFIX = u"Ansicht - "
+KOPF_KATEGORIE = t(u"Kategorie", u"Category", u"Categoría")
+# Blätter mit der Tabelle wie in Revit - nur zum Lesen, der Import überspringt sie.
+# Der Import erkennt alle Sprachvarianten (Datei aus anderer Revit-Sprache).
+ANSICHT_PRAEFIXE = (u"Ansicht - ", u"View - ", u"Vista - ")
+ANSICHT_PRAEFIX = t(*ANSICHT_PRAEFIXE)
 
 # In Excel-Blattnamen unzulässige Zeichen (Revit erlaubt sie in Ansichtsnamen)
 UNGUELTIGE_BLATTZEICHEN = re.compile(r"[\[\]\:\*\?\/\\]")
@@ -55,8 +58,8 @@ MIN_SPALTENBREITE = 10
 
 def blattname(name, vergeben):
     """Revit-Ansichtsname -> gültiger, eindeutiger Excel-Blattname (max. 31 Zeichen)."""
-    sauber = UNGUELTIGE_BLATTZEICHEN.sub(u"-", name or u"Tabelle").strip()
-    sauber = sauber.strip(u"'") or u"Tabelle"
+    sauber = UNGUELTIGE_BLATTZEICHEN.sub(u"-", name or t(u"Tabelle", u"Table", u"Tabla")).strip()
+    sauber = sauber.strip(u"'") or t(u"Tabelle", u"Table", u"Tabla")
     sauber = sauber[:31]
 
     kandidat = sauber
@@ -74,7 +77,7 @@ def _excel_wert(wert):
     if wert is None:
         return None
     if isinstance(wert, bool):
-        return u"Ja" if wert else u"Nein"
+        return t(u"Ja", u"Yes", u"Sí") if wert else t(u"Nein", u"No", u"No")
     if isinstance(wert, (int, float)):
         return wert
     text = wert if isinstance(wert, str) else str(wert)
@@ -241,7 +244,7 @@ def schreibe_arbeitsmappe(openpyxl, pfad, bloecke, dokumentname,
             meta["ansichten"].append(ansicht_name)
 
     meta_blatt = arbeitsmappe.create_sheet(title=META_BLATT)
-    meta_blatt["A1"] = u"Technische Daten für den Rückimport - bitte nicht ändern."
+    meta_blatt["A1"] = t(u"Technische Daten für den Rückimport - bitte nicht ändern.", u"Technical data for re-import - please do not change.", u"Datos técnicos para la reimportación: no los modifique.")
     meta_blatt["A2"] = json.dumps(meta, ensure_ascii=False)
     meta_blatt.sheet_state = "hidden"
 
@@ -268,7 +271,7 @@ def _schreibe_ansicht(arbeitsmappe, name, block, blattschutz):
 
     for index, (abschnitt, texte) in enumerate(block["ansicht"]):
         zeile = index + 1
-        belegte = [t for t in texte if t]
+        belegte = [text for text in texte if text]
         # Spaltenkopfzeile erkennen: alle belegten Zellen sind Feldüberschriften
         ist_spaltenkopf = (abschnitt != ABSCHNITT_KOPF and len(belegte) > 1
                            and set(belegte) <= spaltenkoepfe)
@@ -288,9 +291,9 @@ def _schreibe_ansicht(arbeitsmappe, name, block, blattschutz):
             MAX_SPALTENBREITE, max(MIN_SPALTENBREITE, breite + 3))
 
     blatt["A1"].comment = Comment(
-        u"Tabelle wie in Revit - nur zur Ansicht.\n"
+        t(u"Tabelle wie in Revit - nur zur Ansicht.\n"
         u"Änderungen in diesem Blatt werden beim Import ignoriert. Bearbeiten "
-        u"im Blatt '%s'." % block["name"], u"pyMLG ScheduleSync")
+        u"im Blatt '%s'.", u"Table as in Revit - for viewing only.\nChanges in this sheet are ignored on import. Edit in sheet '%s'.", u"Tabla como en Revit, solo para consulta.\nLos cambios en esta hoja se ignoran al importar. Edite en la hoja '%s'.") % block["name"], u"pyMLG ScheduleSync")
     blatt.sheet_properties.tabColor = "FF9AA5B1"
     if blattschutz:
         blatt.protection.sheet = True
@@ -300,19 +303,19 @@ def _schreibe_ansicht(arbeitsmappe, name, block, blattschutz):
 def _kopfnotiz(feld, status):
     """Erklärender Kommentar an der Kopfzelle."""
     if status == STATUS_BERECHNET:
-        return (u"Berechnetes Feld (%s).\n"
-                u"Wird von Revit ermittelt und beim Import ignoriert."
+        return (t(u"Berechnetes Feld (%s).\n"
+                u"Wird von Revit ermittelt und beim Import ignoriert.", u"Calculated field (%s).\nDetermined by Revit and ignored on import.", u"Campo calculado (%s).\nLo calcula Revit y se ignora al importar.")
                 % (feld["feldtyp"] or u"?"))
     if status == STATUS_GESPERRT:
-        return (u"Schreibgeschützter Parameter.\n"
-                u"Änderungen in dieser Spalte werden beim Import ignoriert.")
+        return (t(u"Schreibgeschützter Parameter.\n"
+                u"Änderungen in dieser Spalte werden beim Import ignoriert.", u"Read-only parameter.\nChanges in this column are ignored on import.", u"Parámetro de solo lectura.\nLos cambios en esta columna se ignoran al importar."))
     if status == STATUS_FEHLT:
-        return u"Parameter an den Elementen nicht gefunden - wird ignoriert."
+        return t(u"Parameter an den Elementen nicht gefunden - wird ignoriert.", u"Parameter not found on the elements - ignored.", u"Parámetro no encontrado en los elementos: se ignora.")
     if status == STATUS_TYP:
-        return (u"Typparameter: Eine Änderung wirkt auf ALLE Instanzen "
-                u"dieses Typs, nicht nur auf diese Zeile.")
+        return (t(u"Typparameter: Eine Änderung wirkt auf ALLE Instanzen "
+                u"dieses Typs, nicht nur auf diese Zeile.", u"Type parameter: a change affects ALL instances of this type, not only this row.", u"Parámetro de tipo: un cambio afecta a TODOS los ejemplares de este tipo, no solo a esta fila."))
     if feld.get("einheit"):
-        return u"Einheit: %s (Projekteinheit)" % feld["einheit"]
+        return t(u"Einheit: %s (Projekteinheit)", u"Unit: %s (project unit)", u"Unidad: %s (unidad del proyecto)") % feld["einheit"]
     return None
 
 
@@ -400,15 +403,15 @@ def lese_arbeitsmappe(openpyxl, pfad):
         if name == META_BLATT:
             continue
         # Ansichtsblätter sind reine Lesekopien der Revit-Tabelle - still überspringen
-        if name in ansichten or name.startswith(ANSICHT_PRAEFIX):
+        if name in ansichten or name.startswith(ANSICHT_PRAEFIXE):
             continue
         blatt = arbeitsmappe[name]
 
         kopf_a = blatt.cell(row=KOPFZEILE, column=SPALTE_UNIQUEID).value
         if not kopf_a or str(kopf_a).strip() != KOPF_UNIQUEID:
             warnungen.append(
-                u"Blatt '%s' übersprungen: Spalte A enthält keine Kopfzeile "
-                u"'%s'." % (name, KOPF_UNIQUEID))
+                t(u"Blatt '%s' übersprungen: Spalte A enthält keine Kopfzeile "
+                u"'%s'.", u"Sheet '%s' skipped: column A has no header '%s'.", u"Hoja '%s' omitida: la columna A no tiene el encabezado '%s'.") % (name, KOPF_UNIQUEID))
             continue
 
         kopfzeile = {}
@@ -420,7 +423,7 @@ def lese_arbeitsmappe(openpyxl, pfad):
         felder = _felder_aus_meta(meta_blaetter.get(name), kopfzeile)
         if not felder:
             warnungen.append(
-                u"Blatt '%s' übersprungen: keine Datenspalten gefunden." % name)
+                t(u"Blatt '%s' übersprungen: keine Datenspalten gefunden.", u"Sheet '%s' skipped: no data columns found.", u"Hoja '%s' omitida: no se encontraron columnas de datos.") % name)
             continue
 
         zeilen = []
@@ -449,7 +452,7 @@ def lese_arbeitsmappe(openpyxl, pfad):
 
     if meta is None:
         warnungen.append(
-            u"Kein Metablatt gefunden - die Parameter werden anhand der "
-            u"Spaltennamen gesucht. Das funktioniert, ist aber weniger eindeutig.")
+            t(u"Kein Metablatt gefunden - die Parameter werden anhand der "
+            u"Spaltennamen gesucht. Das funktioniert, ist aber weniger eindeutig.", u"No meta sheet found - parameters are looked up by column name. This works but is less unambiguous.", u"No se encontró la hoja de metadatos: los parámetros se buscan por nombre de columna. Funciona, pero es menos inequívoco."))
 
     return blaetter, warnungen

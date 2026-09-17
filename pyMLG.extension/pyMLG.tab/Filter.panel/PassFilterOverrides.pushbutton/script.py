@@ -6,6 +6,7 @@ __author__ = "Manuel"
 from pyrevit import revit, DB, forms, script
 from Autodesk.Revit.DB import Transaction, FilteredElementCollector
 from collections import defaultdict
+from mlg_sprache import t
 
 doc = revit.doc
 
@@ -33,7 +34,7 @@ def get_filter_data(template):
                 filter_data[filter_id] = (filter_elem.Name, overrides)
 
     except Exception as e:
-        print("Fehler beim Auslesen der Filter: {}".format(e))
+        print(t("Fehler beim Auslesen der Filter: {}", u"Error reading the filters: {}", u"Error al leer los filtros: {}").format(e))
 
     return filter_data
 
@@ -45,7 +46,7 @@ def copy_filter_overrides_optimized(source_template, target_templates):
     source_filters = get_filter_data(source_template)
 
     if not source_filters:
-        forms.alert("No filter in this View", exitscript=True)
+        forms.alert(t(u"Keine Filter in dieser Vorlage", u"No filters in this template", u"No hay filtros en esta plantilla"), exitscript=True)
 
     # Ziel-Daten sammeln (welche Filter existieren bereits?)
     target_data = {}
@@ -58,8 +59,8 @@ def copy_filter_overrides_optimized(source_template, target_templates):
     errors = []
 
     # PHASE 2: Eine Transaction für alles
-    with Transaction(doc, "Filter Overrides übertragen") as t:
-        t.Start()
+    with Transaction(doc, t("Filter Overrides übertragen", u"Transfer filter overrides", u"Transferir modificaciones de filtros")) as transaktion:
+        transaktion.Start()
 
         try:
             for target_template in target_templates:
@@ -87,11 +88,11 @@ def copy_filter_overrides_optimized(source_template, target_templates):
                         )
                         errors.append(error_msg)
 
-            t.Commit()
+            transaktion.Commit()
 
         except Exception as e:
-            t.RollBack()
-            forms.alert("Critical error: {}".format(str(e)), exitscript=True)
+            transaktion.RollBack()
+            forms.alert(t(u"Kritischer Fehler: {}", u"Critical error: {}", u"Error crítico: {}").format(str(e)), exitscript=True)
 
     return stats, errors
 
@@ -100,17 +101,17 @@ def show_results_compact(stats, errors, source_name, target_count):
     """Kompakte Ergebnis-Anzeige"""
     output = script.get_output()
 
-    output.print_md("# ✓ Passed Filter Overrides")
-    output.print_md("**Origin:** {}".format(source_name))
-    output.print_md("**Goal:** {} Templates".format(target_count))
+    output.print_md(t(u"# ✓ Filterüberschreibungen übertragen", u"# ✓ Filter overrides transferred", u"# ✓ Modificaciones de filtros transferidas"))
+    output.print_md(t(u"**Quelle:** {}", u"**Source:** {}", u"**Origen:** {}").format(source_name))
+    output.print_md(t(u"**Ziel:** {} Vorlagen", u"**Target:** {} templates", u"**Destino:** {} plantillas").format(target_count))
     output.print_md("")
-    output.print_md("**Total:** {} Filter-Operationen".format(stats['total']))
-    output.print_md("- Added: {}".format(stats['added']))
-    output.print_md("- Updated: {}".format(stats['updated']))
+    output.print_md(t(u"**Gesamt:** {} Filter-Operationen", u"**Total:** {} filter operations", u"**Total:** {} operaciones de filtro").format(stats['total']))
+    output.print_md(t(u"- Hinzugefügt: {}", u"- Added: {}", u"- Añadidos: {}").format(stats['added']))
+    output.print_md(t(u"- Aktualisiert: {}", u"- Updated: {}", u"- Actualizados: {}").format(stats['updated']))
 
     if errors:
         output.print_md("")
-        output.print_md("## ⚠️ Error ({}):".format(len(errors)))
+        output.print_md(t(u"## ⚠️ Fehler ({}):", u"## ⚠️ Errors ({}):", u"## ⚠️ Errores ({}):").format(len(errors)))
         for error in errors:
             output.print_md("- {}".format(error))
 
@@ -120,18 +121,18 @@ def show_results_compact(stats, errors, source_name, target_count):
 all_templates = get_all_view_templates()
 
 if not all_templates:
-    forms.alert("No templates.", exitscript=True)
+    forms.alert(t(u"Keine Ansichtsvorlagen.", u"No view templates.", u"No hay plantillas de vista."), exitscript=True)
 
 # Dictionary mit verbesserter Anzeige
 template_dict = {
-    t.Name: t for t in all_templates
+    vorlage.Name: vorlage for vorlage in all_templates
 }
 
 # Quell-Vorlage
 source_name = forms.SelectFromList.show(
     sorted(template_dict.keys()),
-    title="Origin Template",
-    button_name="Continue",
+    title=t(u"Quellvorlage", u"Source template", u"Plantilla de origen"),
+    button_name=t(u"Weiter", u"Continue", u"Continuar"),
     multiselect=False
 )
 
@@ -145,8 +146,8 @@ target_options = [name for name in template_dict.keys() if name != source_name]
 
 target_names = forms.SelectFromList.show(
     sorted(target_options),
-    title="Goal Template",
-    button_name="Pass",
+    title=t(u"Zielvorlagen", u"Target templates", u"Plantillas de destino"),
+    button_name=t(u"Übertragen", u"Transfer", u"Transferir"),
     multiselect=True
 )
 
@@ -157,7 +158,7 @@ target_templates = [template_dict[name] for name in target_names]
 
 # Bestätigung
 if not forms.alert(
-        "Passed Filter-Overrides from '{}' to {} templates?".format(
+        t(u"Filterüberschreibungen von '{}' auf {} Vorlagen übertragen?", u"Transfer filter overrides from '{}' to {} templates?", u"¿Transferir las modificaciones de filtros de '{}' a {} plantillas?").format(
             source_name,
             len(target_templates)
         ),

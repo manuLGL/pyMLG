@@ -1,0 +1,12 @@
+title:
+  de_de: "ViewId\nsichtbar"
+  en_us: "ViewId\nVisible"
+  es_es: "ViewId\nvisible"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Schreibt die Element-Id jeder Ansicht in den Parameter "ViewId" und macht sie so sichtbar.
+  en_us: >-
+    Writes the element id of each view into the "ViewId" parameter to make it visible.
+  es_es: >-
+    Escribe el id de elemento de cada vista en el parámetro "ViewId" para hacerlo visible.

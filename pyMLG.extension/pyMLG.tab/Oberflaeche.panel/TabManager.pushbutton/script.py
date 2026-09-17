@@ -12,8 +12,9 @@ clr.AddReference('AdWindows')
 from Autodesk.Windows import ComponentManager  # noqa: E402
 
 from pyrevit import forms  # noqa: E402
+from mlg_sprache import t  # noqa: E402
 
-TITEL = u"Tab Manager"
+TITEL = t(u"Tab Manager", u"Tab Manager", u"Gestor de fichas")
 
 config_file = os.path.join(os.getenv('APPDATA'), 'pyRevit', 'ribbon_settings.json')
 
@@ -51,7 +52,7 @@ def load_settings():
         with open(config_file, 'r') as f:
             return json.load(f)
     except Exception as e:
-        forms.alert(u"Einstellungen konnten nicht geladen werden.",
+        forms.alert(t(u"Einstellungen konnten nicht geladen werden.", u"Settings could not be loaded.", u"No se pudo cargar la configuración."),
                     sub_msg=str(e), title=TITEL)
         return {}
 
@@ -64,7 +65,7 @@ def save_settings(settings):
         with open(config_file, 'w') as f:
             json.dump(settings, f, indent=2)
     except Exception as e:
-        forms.alert(u"Einstellungen konnten nicht gespeichert werden.",
+        forms.alert(t(u"Einstellungen konnten nicht gespeichert werden.", u"Settings could not be saved.", u"No se pudo guardar la configuración."),
                     sub_msg=str(e), title=TITEL)
 
 
@@ -119,10 +120,10 @@ def main():
 
     auswahl = forms.SelectFromList.show(
         eintraege,
-        title=u"Wähle sichtbare Ribbon-Tabs",
+        title=t(u"Wähle sichtbare Ribbon-Tabs", u"Choose visible ribbon tabs", u"Elija las fichas visibles de la cinta"),
         width=500,
         height=600,
-        button_name=u"Anwenden",
+        button_name=t(u"Anwenden", u"Apply", u"Aplicar"),
         multiselect=True,
     )
     if auswahl is None:

@@ -28,6 +28,7 @@ from schedule_sync.revit_helpers import (
     zielwert,
 )
 from schedule_sync.schedule_model import SCHREIBBAR
+from mlg_sprache import t
 
 
 class Aenderung(object):
@@ -88,7 +89,7 @@ def _bezeichnung(element):
     kategorie = kategorie_name(element)
     if name and kategorie:
         return u"%s: %s" % (kategorie, name)
-    return name or kategorie or u"Element"
+    return name or kategorie or t(u"Element", u"Element", u"Elemento")
 
 
 def _ueberspringbar(feld):
@@ -110,7 +111,7 @@ def _spalte(bericht, blattname, feld):
             "blatt": blattname,
             "spalte": feld["spalte"],
             "name": feld["name"],
-            "quelle": u"Metadaten" if feld.get("aus_meta") else u"nur Spaltenname",
+            "quelle": t(u"Metadaten", u"metadata", u"metadatos") if feld.get("aus_meta") else t(u"nur Spaltenname", u"column name only", u"solo nombre de columna"),
             "status": feld.get("status") or u"unbekannt",
             "param_id": feld.get("param_id"),
             "verglichen": 0,
@@ -156,7 +157,7 @@ def analysiere(doc, blatt, bericht, gesehen=None):
         if element is None:
             bericht.notiere_uebersprungen(
                 blattname, zeile["excel_zeile"], uid,
-                u"Element existiert nicht mehr (gelöscht oder aus anderem Projekt)")
+                t(u"Element existiert nicht mehr (gelöscht oder aus anderem Projekt)", u"Element no longer exists (deleted or from another project)", u"El elemento ya no existe (eliminado o de otro proyecto)"))
             continue
 
         bezeichnung = _bezeichnung(element)
@@ -177,7 +178,7 @@ def analysiere(doc, blatt, bericht, gesehen=None):
                 bericht.notiere_fehler(
                     blattname, zeile["excel_zeile"], eid_wert(element.Id),
                     bezeichnung, feld["name"],
-                    u"Parameter am Element nicht gefunden")
+                    t(u"Parameter am Element nicht gefunden", u"Parameter not found on the element", u"Parámetro no encontrado en el elemento"))
                 continue
 
             parameter = treffer.parameter
@@ -201,7 +202,7 @@ def analysiere(doc, blatt, bericht, gesehen=None):
                 bericht.notiere_fehler(
                     blattname, zeile["excel_zeile"], eid_wert(element.Id),
                     bezeichnung, feld["name"],
-                    u"Wert nicht verwertbar: %s" % fehler)
+                    t(u"Wert nicht verwertbar: %s", u"Value not usable: %s", u"Valor no utilizable: %s") % fehler)
                 continue
 
             # Diff-Erkennung: unveränderte Werte erzeugen keine Transaktion
@@ -223,8 +224,8 @@ def analysiere(doc, blatt, bericht, gesehen=None):
                     bericht.notiere_fehler(
                         blattname, zeile["excel_zeile"], eid_wert(element.Id),
                         bezeichnung, feld["name"],
-                        u"Widersprüchlicher Wert für denselben Parameter "
-                        u"(bereits in Zeile %d gesetzt)" % frueher.excel_zeile)
+                        t(u"Widersprüchlicher Wert für denselben Parameter "
+                        u"(bereits in Zeile %d gesetzt)", u"Conflicting value for the same parameter (already set in row %d)", u"Valor contradictorio para el mismo parámetro (ya definido en la fila %d)") % frueher.excel_zeile)
                 else:
                     eintrag["gleich"] += 1
                     bericht.unveraendert += 1
@@ -237,7 +238,7 @@ def analysiere(doc, blatt, bericht, gesehen=None):
                 eintrag["uebersprungen"] += 1
                 bericht.notiere_uebersprungen(
                     blattname, zeile["excel_zeile"], uid,
-                    u"Element ist von '%s' ausgeliehen (%s)"
+                    t(u"Element ist von '%s' ausgeliehen (%s)", u"Element is borrowed by '%s' (%s)", u"El elemento lo tiene prestado '%s' (%s)")
                     % (besitzer_name, feld["name"]))
                 continue
 
@@ -270,12 +271,12 @@ def wende_an(doc, aenderungen, bericht):
                 bericht.notiere_fehler(
                     aenderung.blatt, aenderung.excel_zeile, aenderung.element_id,
                     _bezeichnung(aenderung.element), aenderung.feldname,
-                    u"Revit hat den Wert abgelehnt")
+                    t(u"Revit hat den Wert abgelehnt", u"Revit rejected the value", u"Revit rechazó el valor"))
                 continue
             aenderung.angewendet = True
         except Exception as fehler:
             bericht.notiere_fehler(
                 aenderung.blatt, aenderung.excel_zeile, aenderung.element_id,
                 _bezeichnung(aenderung.element), aenderung.feldname,
-                u"Schreiben fehlgeschlagen: %s" % fehler)
+                t(u"Schreiben fehlgeschlagen: %s", u"Writing failed: %s", u"Error al escribir: %s") % fehler)
     return bericht

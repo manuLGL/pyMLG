@@ -1,0 +1,12 @@
+title:
+  de_de: "Tab\nManager"
+  en_us: "Tab\nManager"
+  es_es: "Gestor\nde fichas"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Blendet Ribbon-Tabs ein oder aus und merkt sich die Einstellung.
+  en_us: >-
+    Shows or hides ribbon tabs and remembers the setting.
+  es_es: >-
+    Muestra u oculta fichas de la cinta y recuerda el ajuste.

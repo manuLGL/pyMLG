@@ -1,13 +1,24 @@
-title: "Join\nMultiple"
+title:
+  de_de: "Join\nMultiple"
+  en_us: "Join\nMultiple"
+  es_es: "Unir\nvarios"
 author: pyMLG
-tooltip: >-
-  Viele Elemente auf einmal verbinden ("Geometrie verbinden") - die
-  Schnittreihenfolge folgt einer Priorität je Kategorie: höhere Zahl
-  schneidet niedrigere.
+tooltip:
+  de_de: >-
+    Viele Elemente auf einmal verbinden - die Schnittreihenfolge folgt einer Priorität je Kategorie: höhere Zahl schneidet niedrigere.
 
-  Bereich: ausgewählte Elemente, aktuelle Ansicht oder ganzes Modell.
-  Optionen: nur sich schneidende Elemente, auch innerhalb einer Kategorie,
-  bestehende Verbindungen nach Priorität umkehren, Priorität aus einem
-  Parameter. "Verbindung lösen" hebt die Verbindungen im Bereich auf.
+    Bereich: Auswahl, aktuelle Ansicht oder ganzes Modell. "Verbindung lösen" hebt die Verbindungen im Bereich auf. Ein Rückgängig-Schritt je Ausführung.
 
-  Ein Rückgängig-Schritt je Ausführung. Benötigt die CPython3-Engine.
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Join many elements at once - the cut order follows a priority per category: a higher number cuts a lower one.
+
+    Scope: selection, active view or whole model. "Unjoin" removes the joins in the scope. One undo step per run.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Une muchos elementos a la vez: el orden de corte sigue una prioridad por categoría, un número mayor corta a uno menor.
+
+    Ámbito: selección, vista activa o modelo completo. "Desunir" elimina las uniones del ámbito. Un paso de deshacer por ejecución.
+
+    Requiere el motor CPython3.

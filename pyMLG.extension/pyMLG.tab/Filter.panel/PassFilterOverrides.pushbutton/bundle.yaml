@@ -1,0 +1,12 @@
+title:
+  de_de: "Filter-\nÜberschreibungen"
+  en_us: "Pass Filter\nOverrides"
+  es_es: "Copiar\nmodificaciones"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Überträgt die grafischen Filterüberschreibungen einer Ansichtsvorlage auf andere Vorlagen.
+  en_us: >-
+    Transfers the graphic filter overrides of one view template to other templates.
+  es_es: >-
+    Transfiere las modificaciones gráficas de filtros de una plantilla de vista a otras plantillas.

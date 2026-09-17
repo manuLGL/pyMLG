@@ -1,13 +1,30 @@
-title: "Filter\nManager"
+title:
+  de_de: "Filter\nManager"
+  en_us: "Filter\nManager"
+  es_es: "Gestor\nde filtros"
 author: pyMLG
-tooltip: >-
-  Anzeigefilter verwalten wie im Dialog "Sichtbarkeit/Grafiken > Filter" -
-  mit Suchfeld.
+tooltip:
+  de_de: >-
+    Anzeigefilter verwalten wie im Dialog "Sichtbarkeit/Grafiken > Filter" - mit Suchfeld.
 
-  Suche nach Filtername oder zusätzlich nach Parametern und Regelwerten
-  (z.B. "Typname" oder "WD"). Filter erstellen, duplizieren, umbenennen,
-  löschen; Kategorien und UND/ODER-Regeln bearbeiten; Filter auf die aktive
-  Ansicht oder auf mehrere Ansichten/Vorlagen anwenden bzw. entfernen.
+    Suche nach Filtername oder zusätzlich nach Parametern und Regelwerten. Filter erstellen, duplizieren, umbenennen, löschen; Kategorien und UND/ODER-Regeln bearbeiten; Filter auf die aktive Ansicht oder mehrere Ansichten/Vorlagen anwenden bzw. entfernen.
 
-  Wie im Original: OK übernimmt alle Änderungen (ein Rückgängig-Schritt),
-  Abbrechen verwirft sie. Benötigt die CPython3-Engine.
+    OK übernimmt alle Änderungen (ein Rückgängig-Schritt), Abbrechen verwirft sie.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Manage view filters like in "Visibility/Graphics > Filters" - with a search box.
+
+    Search by filter name or also by parameters and rule values. Create, duplicate, rename and delete filters; edit categories and AND/OR rules; apply filters to the active view or to several views/templates, or remove them.
+
+    OK applies all changes (one undo step), Cancel discards them.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Gestiona los filtros de vista como en "Visibilidad/Gráficos > Filtros", con cuadro de búsqueda.
+
+    Busca por nombre de filtro o también por parámetros y valores de reglas. Crea, duplica, renombra y elimina filtros; edita categorías y reglas Y/O; aplica filtros a la vista activa o a varias vistas/plantillas, o quítalos.
+
+    Aceptar aplica todos los cambios (un paso de deshacer), Cancelar los descarta.
+
+    Requiere el motor CPython3.

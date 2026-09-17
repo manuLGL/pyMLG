@@ -1,4 +1,7 @@
-title: Geometrie
+title:
+  de_de: "Geometrie"
+  en_us: "Geometry"
+  es_es: "Geometría"
 layout:
   - JoinMultiple
   - LevelAutoSet

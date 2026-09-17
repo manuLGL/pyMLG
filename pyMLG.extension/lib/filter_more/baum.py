@@ -50,7 +50,7 @@ def natuerlich(text):
     """Sortierschlüssel: 'Wand 2' vor 'Wand 10', ohne Groß-/Kleinschreibung.
     re.split mit Gruppe liefert immer abwechselnd Text und Zahl."""
     teile = re.split(r"(\d+)", text or u"")
-    return [int(t) if i % 2 else t.casefold() for i, t in enumerate(teile)]
+    return [int(teil) if i % 2 else teil.casefold() for i, teil in enumerate(teile)]
 
 
 def baue(datensaetze, wurzelname=u"Alle"):

@@ -1,0 +1,12 @@
+title:
+  de_de: "Ansicht\nauf Plan"
+  en_us: "View\nto Sheet"
+  es_es: "Vista\na plano"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Erstellt für jede ausgewählte Ansicht einen Plan. Ansichtsvorlage, Plankopf und Position (X/Y) werden im Dialog gewählt.
+  en_us: >-
+    Creates a sheet for each selected view. View template, title block and position (X/Y) are chosen in the dialog.
+  es_es: >-
+    Crea un plano por cada vista seleccionada. La plantilla de vista, el cajetín y la posición (X/Y) se eligen en el cuadro de diálogo.

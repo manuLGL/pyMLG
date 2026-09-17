@@ -8,11 +8,12 @@ import os
 from Autodesk.Revit.DB import *
 from Autodesk.Revit.UI import *
 from pyrevit import forms, script
+from mlg_sprache import t
 
 uidoc = __revit__.ActiveUIDocument
 doc = uidoc.Document
 
-KEINE_VORLAGE = "<Keine Vorlage – Ansicht unverändert>"
+KEINE_VORLAGE = t("<Keine Vorlage – Ansicht unverändert>", u"<No template – view unchanged>", u"<Sin plantilla – vista sin cambios>")
 CM_PRO_FUSS = 30.48
 
 
@@ -33,7 +34,7 @@ def gewaehlte_ansichten():
     views = [v for v in views if platzierbar(v)]
     if views:
         return views
-    return forms.select_views(title="Ansichten für neue Pläne wählen",
+    return forms.select_views(title=t("Ansichten für neue Pläne wählen", u"Select views for new sheets", u"Seleccione vistas para planos nuevos"),
                               multiple=True,
                               filterfunc=platzierbar) or []
 
@@ -71,7 +72,14 @@ class ViewToSheetDialog(forms.WPFWindow):
         forms.WPFWindow.__init__(
             self, os.path.join(os.path.dirname(__file__), "ui.xaml"))
         self.ergebnis = None
-        self.lbl_info.Text = "{} Ansicht(en) ausgewählt.".format(anzahl)
+        self.Title = t(u"Ansichten auf Pläne", u"Views to Sheets", u"Vistas a planos")
+        self.lbl_vorlage.Text = t(u"Ansichtsvorlage", u"View template", u"Plantilla de vista")
+        self.lbl_planfamilie.Text = t(u"Planfamilie (Plankopf)", u"Title block family", u"Familia de cajetín")
+        self.lbl_praefix.Text = t(u"Nummern-Präfix", u"Number prefix", u"Prefijo de número")
+        self.lbl_hinweis.Text = t(u"X/Y = Mittelpunkt des Ansichtsfensters, gemessen vom Plan-Ursprung.", u"X/Y = centre of the viewport, measured from the sheet origin.", u"X/Y = centro de la ventana gráfica, medido desde el origen del plano.")
+        self.btn_ok.Content = t(u"Pläne erstellen", u"Create sheets", u"Crear planos")
+        self.btn_cancel.Content = t(u"Abbrechen", u"Cancel", u"Cancelar")
+        self.lbl_info.Text = t("{} Ansicht(en) ausgewählt.", u"{} view(s) selected.", u"{} vista(s) seleccionadas.").format(anzahl)
 
         self.cb_template.ItemsSource = [KEINE_VORLAGE] + sorted(vorlagen)
         self.cb_template.SelectedItem = cfg.get_option("vorlage", KEINE_VORLAGE)
@@ -95,7 +103,7 @@ class ViewToSheetDialog(forms.WPFWindow):
             x = zahl(self.tb_x.Text)
             y = zahl(self.tb_y.Text)
         except ValueError:
-            forms.alert("X und Y müssen Zahlen sein (in cm).", title="Eingabe prüfen")
+            forms.alert(t("X und Y müssen Zahlen sein (in cm).", u"X and Y must be numbers (in cm).", u"X e Y deben ser números (en cm)."), title=t("Eingabe prüfen", u"Check input", u"Revise la entrada"))
             return
         self.ergebnis = {
             "vorlage": self.cb_template.SelectedItem,
@@ -129,21 +137,21 @@ def plaene_erstellen(views, vorlage, planfamilie, punkt, praefix):
     erstellt = []
     fehler = []
 
-    t = Transaction(doc, "Ansichten auf Pläne")
-    t.Start()
+    transaktion = Transaction(doc, t("Ansichten auf Pläne", u"Views to Sheets", u"Vistas a planos"))
+    transaktion.Start()
     for view in views:
         try:
             sheet = ViewSheet.Create(doc, planfamilie.Id)
             if not Viewport.CanAddViewToSheet(doc, sheet.Id, view.Id):
                 doc.Delete(sheet.Id)
-                fehler.append("{}: bereits auf einem Plan platziert".format(view.Name))
+                fehler.append(t("{}: bereits auf einem Plan platziert", u"{}: already placed on a sheet", u"{}: ya colocada en un plano").format(view.Name))
                 continue
 
             if vorlage is not None:
                 try:
                     view.ViewTemplateId = vorlage.Id
                 except Exception as e:
-                    fehler.append("{}: Vorlage nicht anwendbar ({})".format(view.Name, e))
+                    fehler.append(t("{}: Vorlage nicht anwendbar ({})", u"{}: template not applicable ({})", u"{}: no se puede aplicar la plantilla ({})").format(view.Name, e))
 
             sheet.Name = view.Name
             sheet.SheetNumber = eindeutige_nummer(praefix, vergeben)
@@ -151,19 +159,19 @@ def plaene_erstellen(views, vorlage, planfamilie, punkt, praefix):
             erstellt.append(sheet.SheetNumber)
         except Exception as e:
             fehler.append("{}: {}".format(view.Name, e))
-    t.Commit()
+    transaktion.Commit()
     return erstellt, fehler
 
 
 def main():
     views = gewaehlte_ansichten()
     if not views:
-        forms.alert("Keine platzierbaren Ansichten ausgewählt.", title="ViewToSheet")
+        forms.alert(t("Keine platzierbaren Ansichten ausgewählt.", u"No placeable views selected.", u"No hay vistas colocables seleccionadas."), title="ViewToSheet")
         return
 
     familien = planfamilien()
     if not familien:
-        forms.alert("Keine Planfamilie (Plankopf) im Projekt gefunden.", title="ViewToSheet")
+        forms.alert(t("Keine Planfamilie (Plankopf) im Projekt gefunden.", u"No title block family found in the project.", u"No se encontró ninguna familia de cajetín en el proyecto."), title="ViewToSheet")
         return
     vorlagen = ansichtsvorlagen()
 
@@ -189,11 +197,11 @@ def main():
         punkt,
         wahl["praefix"])
 
-    meldung = "{} Plan/Pläne erstellt.".format(len(erstellt))
+    meldung = t("{} Plan/Pläne erstellt.", u"{} sheet(s) created.", u"{} plano(s) creados.").format(len(erstellt))
     if erstellt:
         meldung += "\n" + ", ".join(erstellt)
     if fehler:
-        meldung += "\n\nHinweise:\n" + "\n".join(fehler)
+        meldung += t("\n\nHinweise:\n", u"\n\nNotes:\n", u"\n\nNotas:\n") + "\n".join(fehler)
     forms.alert(meldung, title="ViewToSheet")
 
 

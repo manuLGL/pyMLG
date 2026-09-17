@@ -8,6 +8,8 @@ Revit prüfen (siehe tools/test_raum_zentrum.py).
 
 import math
 
+from mlg_sprache import t
+
 # Punkte, die näher beieinander liegen, gelten als identisch (ca. 0,3 mm).
 PUNKT_TOLERANZ = 1e-3
 
@@ -113,7 +115,7 @@ def schwerpunkt_mit_loechern(schleifen):
         if cx is not None:
             auswertbar.append((abs(flaeche), cx, cy, punkte))
     if not auswertbar:
-        raise ValueError(u"Der Umriss hat keine auswertbare Fläche.")
+        raise ValueError(t(u"Der Umriss hat keine auswertbare Fläche.", u"The outline has no usable area.", u"El contorno no tiene un área utilizable."))
 
     # Grösste zuerst - das ist die äussere Hauptschleife
     auswertbar.sort(key=lambda eintrag: eintrag[0], reverse=True)
@@ -136,7 +138,7 @@ def schwerpunkt_mit_loechern(schleifen):
         summe_y += vorzeichen * flaeche * cy
 
     if summe_a <= 1e-12:
-        raise ValueError(u"Die Löcher sind grösser als der Umriss.")
+        raise ValueError(t(u"Die Löcher sind grösser als der Umriss.", u"The holes are larger than the outline.", u"Los huecos son mayores que el contorno."))
 
     return {
         "flaeche": summe_a,

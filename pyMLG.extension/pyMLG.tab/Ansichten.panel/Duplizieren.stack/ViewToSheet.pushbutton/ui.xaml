@@ -8,10 +8,10 @@
     <StackPanel Margin="14">
         <TextBlock x:Name="lbl_info" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
-        <TextBlock Text="Ansichtsvorlage" Margin="0,0,0,3"/>
+        <TextBlock x:Name="lbl_vorlage" Text="Ansichtsvorlage" Margin="0,0,0,3"/>
         <ComboBox x:Name="cb_template" Margin="0,0,0,10"/>
 
-        <TextBlock Text="Planfamilie (Plankopf)" Margin="0,0,0,3"/>
+        <TextBlock x:Name="lbl_planfamilie" Text="Planfamilie (Plankopf)" Margin="0,0,0,3"/>
         <ComboBox x:Name="cb_titleblock" Margin="0,0,0,10"/>
 
         <Grid Margin="0,0,0,10">
@@ -31,12 +31,12 @@
                 <TextBox x:Name="tb_y"/>
             </StackPanel>
             <StackPanel Grid.Column="4">
-                <TextBlock Text="Nummern-Präfix" Margin="0,0,0,3"/>
+                <TextBlock x:Name="lbl_praefix" Text="Nummern-Präfix" Margin="0,0,0,3"/>
                 <TextBox x:Name="tb_prefix"/>
             </StackPanel>
         </Grid>
 
-        <TextBlock Text="X/Y = Mittelpunkt des Ansichtsfensters, gemessen vom Plan-Ursprung."
+        <TextBlock x:Name="lbl_hinweis" Text="X/Y = Mittelpunkt des Ansichtsfensters, gemessen vom Plan-Ursprung."
                    Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,12"/>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">

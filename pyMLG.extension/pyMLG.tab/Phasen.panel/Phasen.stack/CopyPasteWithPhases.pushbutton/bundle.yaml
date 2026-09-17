@@ -1,0 +1,12 @@
+title:
+  de_de: "Ausgerichtet einfügen"
+  en_us: "Paste Aligned View"
+  es_es: "Pegar alineado"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Fügt die ausgewählten Elemente an gleicher Grundrissposition auf der Ebene der aktiven Ansicht ein und behält die Phasen der Originale bei.
+  en_us: >-
+    Pastes the selected elements at the same plan position on the level of the active view and keeps the phases of the originals.
+  es_es: >-
+    Pega los elementos seleccionados en la misma posición en planta en el nivel de la vista activa y conserva las fases de los originales.

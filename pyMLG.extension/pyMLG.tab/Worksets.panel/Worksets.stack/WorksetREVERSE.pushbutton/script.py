@@ -2,6 +2,7 @@
 
 from Autodesk.Revit.DB import WorksetVisibility, Transaction, WorksetId, FilteredWorksetCollector, WorksetKind
 from pyrevit import revit
+from mlg_sprache import t
 
 __title__ = "WorksetREVERSE"
 
@@ -21,8 +22,8 @@ if doc.IsWorkshared:
             # Alle User-Worksets sammeln
             all_worksets = FilteredWorksetCollector(doc).OfKind(WorksetKind.UserWorkset).ToWorksets()
 
-            t = Transaction(doc, "Nur ausgewaehltes Workset anzeigen")
-            t.Start()
+            transaktion = Transaction(doc, t("Nur ausgewaehltes Workset anzeigen", u"Show selected workset only", u"Mostrar solo el subproyecto seleccionado"))
+            transaktion.Start()
 
             try:
                 for workset in all_worksets:
@@ -33,6 +34,6 @@ if doc.IsWorkshared:
                         # Alle anderen ausblenden
                         active_view.SetWorksetVisibility(workset.Id, WorksetVisibility.Hidden)
 
-                t.Commit()
+                transaktion.Commit()
             except:
-                t.RollBack()
+                transaktion.RollBack()

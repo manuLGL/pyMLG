@@ -23,7 +23,9 @@ while not _EXT.endswith(".extension") and os.path.dirname(_EXT) != _EXT:
 if os.path.join(_EXT, "lib") not in sys.path:
     sys.path.append(os.path.join(_EXT, "lib"))
 
-TITEL = u"Filter-Manager"
+from mlg_sprache import t  # noqa: E402
+
+TITEL = t(u"Filter-Manager", u"Filter Manager", u"Gestor de filtros")
 
 
 def main():
@@ -32,13 +34,13 @@ def main():
     uidoc = getattr(__revit__, "ActiveUIDocument", None)
     doc = uidoc.Document if uidoc is not None else None
     if doc is None or doc.IsFamilyDocument:
-        ui.meldung(u"Anzeigefilter gibt es nur in Projektdateien.",
-                   titel=TITEL, hauptzeile=u"Kein Projekt geöffnet",
+        ui.meldung(t(u"Anzeigefilter gibt es nur in Projektdateien.", u"View filters only exist in project files.", u"Los filtros de vista solo existen en archivos de proyecto."),
+                   titel=TITEL, hauptzeile=t(u"Kein Projekt geöffnet", u"No project open", u"No hay ningún proyecto abierto"),
                    warnung=True)
         return
     if doc.IsReadOnly:
-        ui.meldung(u"Das Dokument ist schreibgeschützt.", titel=TITEL,
-                   hauptzeile=u"Filter können nicht bearbeitet werden",
+        ui.meldung(t(u"Das Dokument ist schreibgeschützt.", u"The document is read-only.", u"El documento es de solo lectura."), titel=TITEL,
+                   hauptzeile=t(u"Filter können nicht bearbeitet werden", u"Filters cannot be edited", u"No se pueden editar los filtros"),
                    warnung=True)
         return
 
@@ -59,9 +61,9 @@ def _zeige_fehler(spur):
     try:
         from schedule_sync import ui
         letzte_zeile = (spur.strip().splitlines() or [u""])[-1]
-        ui.meldung(letzte_zeile + (u"\n\nProtokoll: %s" % protokoll
+        ui.meldung(letzte_zeile + (t(u"\n\nProtokoll: %s", u"\n\nLog: %s", u"\n\nRegistro: %s") % protokoll
                                    if protokoll else u""),
-                   titel=TITEL, hauptzeile=u"Filter-Manager ist fehlgeschlagen",
+                   titel=TITEL, hauptzeile=t(u"Filter-Manager ist fehlgeschlagen", u"Filter Manager failed", u"El gestor de filtros ha fallado"),
                    warnung=True)
     except Exception:
         pass

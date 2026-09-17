@@ -15,6 +15,8 @@ from Autodesk.Revit.DB import (
     UnitUtils,
 )
 
+from mlg_sprache import t
+
 try:
     # Nur in Zentraldatei-/Worksharing-Projekten relevant
     from Autodesk.Revit.DB import CheckoutStatus, WorksharingUtils
@@ -32,8 +34,9 @@ TOLERANZ = 1e-7
 NACHKOMMASTELLEN = 6
 
 # Texte, die beim Import als Ja/Nein interpretiert werden.
-JA_WERTE = {"ja", "yes", "wahr", "true", "x", "1", "1.0"}
-NEIN_WERTE = {"nein", "no", "falsch", "false", "", "0", "0.0"}
+JA_WERTE = {"ja", "yes", u"sí", "si", "wahr", "true", "verdadero", "x",
+            "1", "1.0"}
+NEIN_WERTE = {"nein", "no", "falsch", "false", "falso", "", "0", "0.0"}
 
 
 # ---------------------------------------------------------------------------
@@ -318,7 +321,7 @@ def lese_wert(doc, param):
             roh = param.AsInteger()
             if ist_janein(param):
                 # Ja/Nein bewusst als Text, damit der Nutzer in Excel nicht mit 0/1 hantiert
-                text = anzeige if anzeige else (u"Ja" if roh else u"Nein")
+                text = anzeige if anzeige else (t(u"Ja", u"Yes", u"Sí") if roh else t(u"Nein", u"No", u"No"))
                 return text, text
             return roh, (anzeige or str(roh))
 
@@ -369,14 +372,14 @@ def _als_zahl(wert):
         return float(wert)
     text = str(wert).strip().replace(u" ", u"").replace(u" ", u"")
     if not text:
-        raise Konvertierungsfehler(u"leerer Wert")
+        raise Konvertierungsfehler(t(u"leerer Wert", u"empty value", u"valor vacío"))
     # Deutsche Schreibweise 1.234,56 ebenso wie 1234.56 zulassen
     if u"," in text:
         text = text.replace(u".", u"").replace(u",", u".")
     try:
         return float(text)
     except ValueError:
-        raise Konvertierungsfehler(u"'%s' ist keine Zahl" % wert)
+        raise Konvertierungsfehler(t(u"'%s' ist keine Zahl", u"'%s' is not a number", u"'%s' no es un número") % wert)
 
 
 def _als_janein(wert):
@@ -388,7 +391,7 @@ def _als_janein(wert):
         return 1
     if text in NEIN_WERTE:
         return 0
-    raise Konvertierungsfehler(u"'%s' ist kein Ja/Nein-Wert" % wert)
+    raise Konvertierungsfehler(t(u"'%s' ist kein Ja/Nein-Wert", u"'%s' is not a yes/no value", u"'%s' no es un valor sí/no") % wert)
 
 
 def _finde_element_nach_name(doc, param, name):
@@ -404,11 +407,11 @@ def _finde_element_nach_name(doc, param, name):
     aktuelle_id = param.AsElementId()
     if not ist_gueltige_id(aktuelle_id):
         raise Konvertierungsfehler(
-            u"Zielelement nicht bestimmbar (Parameter ist aktuell leer)")
+            t(u"Zielelement nicht bestimmbar (Parameter ist aktuell leer)", u"Target element cannot be determined (parameter is currently empty)", u"No se puede determinar el elemento de destino (el parámetro está vacío)"))
 
     aktuelles = doc.GetElement(aktuelle_id)
     if aktuelles is None:
-        raise Konvertierungsfehler(u"Zielelement nicht bestimmbar")
+        raise Konvertierungsfehler(t(u"Zielelement nicht bestimmbar", u"Target element cannot be determined", u"No se puede determinar el elemento de destino"))
 
     treffer = []
     try:
@@ -416,12 +419,12 @@ def _finde_element_nach_name(doc, param, name):
             if element_name(kandidat) == name:
                 treffer.append(kandidat.Id)
     except Exception as fehler:
-        raise Konvertierungsfehler(u"Suche fehlgeschlagen: %s" % fehler)
+        raise Konvertierungsfehler(t(u"Suche fehlgeschlagen: %s", u"Search failed: %s", u"Error en la búsqueda: %s") % fehler)
 
     if not treffer:
-        raise Konvertierungsfehler(u"kein Element namens '%s' gefunden" % name)
+        raise Konvertierungsfehler(t(u"kein Element namens '%s' gefunden", u"no element named '%s' found", u"no se encontró ningún elemento llamado '%s'") % name)
     if len(treffer) > 1:
-        raise Konvertierungsfehler(u"Name '%s' ist nicht eindeutig" % name)
+        raise Konvertierungsfehler(t(u"Name '%s' ist nicht eindeutig", u"name '%s' is not unique", u"el nombre '%s' no es único") % name)
     return treffer[0]
 
 
@@ -439,12 +442,12 @@ def zielwert(doc, param, zellwert):
         if ist_janein(param):
             return _als_janein(u"" if zellwert is None else zellwert)
         if zellwert is None or str(zellwert).strip() == u"":
-            raise Konvertierungsfehler(u"leerer Wert für Ganzzahl-Parameter")
+            raise Konvertierungsfehler(t(u"leerer Wert für Ganzzahl-Parameter", u"empty value for integer parameter", u"valor vacío para parámetro entero"))
         return int(round(_als_zahl(zellwert)))
 
     if speichertyp == StorageType.Double:
         if zellwert is None or str(zellwert).strip() == u"":
-            raise Konvertierungsfehler(u"leerer Wert für Zahl-Parameter")
+            raise Konvertierungsfehler(t(u"leerer Wert für Zahl-Parameter", u"empty value for number parameter", u"valor vacío para parámetro numérico"))
         return nach_interner_einheit(param, _als_zahl(zellwert))
 
     if speichertyp == StorageType.ElementId:
@@ -452,7 +455,7 @@ def zielwert(doc, param, zellwert):
             return ElementId.InvalidElementId
         return _finde_element_nach_name(doc, param, zellwert)
 
-    raise Konvertierungsfehler(u"nicht unterstützter Datentyp")
+    raise Konvertierungsfehler(t(u"nicht unterstützter Datentyp", u"unsupported data type", u"tipo de datos no admitido"))
 
 
 def unterscheidet_sich(param, neuer_wert):
@@ -497,7 +500,7 @@ def fremder_besitzer(doc, element):
         status = WorksharingUtils.GetCheckoutStatus(doc, element.Id)
         if status == CheckoutStatus.OwnedByOtherUser:
             info = WorksharingUtils.GetWorksharingTooltipInfo(doc, element.Id)
-            return info.Owner or u"anderer Benutzer"
+            return info.Owner or t(u"anderer Benutzer", u"another user", u"otro usuario")
     except Exception:
         return None
     return None

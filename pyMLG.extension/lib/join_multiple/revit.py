@@ -38,6 +38,7 @@ from Autodesk.Revit.DB import (  # noqa: E402
 )
 
 from join_multiple import logik as lg  # noqa: E402
+from mlg_sprache import t  # noqa: E402
 
 AUSWAHL = 0
 ANSICHT = 1
@@ -184,16 +185,16 @@ def _vorverarbeiter():
 
 
 def _starte_transaktion(doc, name):
-    t = Transaction(doc, name)
-    t.Start()
+    transaktion = Transaction(doc, name)
+    transaktion.Start()
     try:
-        optionen = t.GetFailureHandlingOptions()
+        optionen = transaktion.GetFailureHandlingOptions()
         optionen.SetFailuresPreprocessor(_vorverarbeiter())
         optionen.SetClearAfterRollback(True)
-        t.SetFailureHandlingOptions(optionen)
+        transaktion.SetFailureHandlingOptions(optionen)
     except Exception:
         pass
-    return t
+    return transaktion
 
 
 # ---------------------------------------------------------------------------
@@ -298,7 +299,7 @@ def verbinde(doc, elemente, prioritaet, nur_bei_schnitt=True,
                    gleiche_kategorie, bestehende_anpassen))
     log.append(u"")
 
-    t = _starte_transaktion(doc, u"pyMLG Elemente verbinden")
+    transaktion = _starte_transaktion(doc, t(u"pyMLG Elemente verbinden", u"pyMLG Join elements", u"pyMLG Unir elementos"))
     try:
         # 1. Verbinden
         for i, j in paare:
@@ -373,10 +374,10 @@ def verbinde(doc, elemente, prioritaet, nur_bei_schnitt=True,
             else:
                 ergebnis.anzahl[lg.ABGELEHNT] += 1
                 ergebnis.abgelehnt.append(ergebnis._paar(oben, unten))
-        status = t.Commit()
+        status = transaktion.Commit()
     except Exception:
-        if t.HasStarted() and not t.HasEnded():
-            t.RollBack()
+        if transaktion.HasStarted() and not transaktion.HasEnded():
+            transaktion.RollBack()
         raise
 
     # 4. Kontrolle nach dem Speichern: Hier sieht man, ob die
@@ -408,7 +409,7 @@ def loese(doc, elemente, gleiche_kategorie=True):
     index = dict((id_wert(e.Id), i) for i, e in enumerate(elemente))
     kategorien = [kategorie_schluessel(e) for e in elemente]
 
-    t = _starte_transaktion(doc, u"pyMLG Verbindungen lösen")
+    transaktion = _starte_transaktion(doc, t(u"pyMLG Verbindungen lösen", u"pyMLG Unjoin elements", u"pyMLG Desunir elementos"))
     try:
         for i, a in enumerate(elemente):
             try:
@@ -428,10 +429,10 @@ def loese(doc, elemente, gleiche_kategorie=True):
                     continue
                 ergebnis.geloest += 1
                 ergebnis.bearbeitet.update((id_wert(a.Id), id_wert(b.Id)))
-        t.Commit()
+        transaktion.Commit()
     except Exception:
-        if t.HasStarted() and not t.HasEnded():
-            t.RollBack()
+        if transaktion.HasStarted() and not transaktion.HasEnded():
+            transaktion.RollBack()
         raise
     return ergebnis
 

@@ -1,15 +1,24 @@
-title: "Level\nAutoSet"
+title:
+  de_de: "Level\nAutoSet"
+  en_us: "Level\nAutoSet"
+  es_es: "Asignar\nnivel"
 author: pyMLG
-tooltip: >-
-  Ausgewählte Elemente auf andere Ebenen setzen, ohne sie zu verschieben -
-  die Versätze werden so umgerechnet, dass die Höhe gleich bleibt.
+tooltip:
+  de_de: >-
+    Setzt ausgewählte Elemente auf andere Ebenen, ohne sie zu verschieben - die Versätze werden umgerechnet.
 
-  Basis und Oberkante getrennt: nächstgelegene Ebene, nächste darüber,
-  nächste darunter oder unverändert. Ebenen lassen sich markieren und
-  filtern (Name/Regex, Gebäudegeschoss, Tragwerk).
+    Basis und Oberkante getrennt: nächstgelegene Ebene, darüber, darunter oder unverändert. Unterstützt Wände, Stützen, Treppen, Dächer, Träger, Geschossdecken, Decken und ebenenbasierte Familien. Geschossdecken folgen der Einstellung "Oben".
 
-  Unterstützt Wände, Stützen, Treppen, Dächer, Träger, Geschossdecken,
-  Decken und ebenenbasierte Familien. Geschossdecken hängen mit der
-  Oberkante an der Ebene und folgen deshalb der Einstellung "Oben" (steht
-  sie auf Ignorieren, gilt "Unten"). Eingefügte Elemente (Türen, Fenster)
-  folgen ihrem Wirt. Ein Rückgängig-Schritt. Benötigt die CPython3-Engine.
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Moves selected elements to other levels without moving them - the offsets are recalculated.
+
+    Base and top separately: closest level, above, below or unchanged. Supports walls, columns, stairs, roofs, beams, floors, ceilings and level-based families. Floors follow the "Top" setting.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Asigna otros niveles a los elementos seleccionados sin moverlos: los desfases se recalculan.
+
+    Base y parte superior por separado: nivel más cercano, superior, inferior o sin cambios. Admite muros, pilares, escaleras, cubiertas, vigas, suelos, techos y familias basadas en nivel. Los suelos siguen el ajuste "Superior".
+
+    Requiere el motor CPython3.

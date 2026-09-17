@@ -5,6 +5,7 @@ __doc__ = "Setzt alle Wall Tags auf den gleichen Abstand zur Wand"
 from Autodesk.Revit.DB import *
 from Autodesk.Revit.UI import *
 from pyrevit import revit, DB, forms
+from mlg_sprache import t
 
 doc = revit.doc
 uidoc = revit.uidoc
@@ -59,13 +60,13 @@ collector = FilteredElementCollector(doc, doc.ActiveView.Id) \
 wall_tags = list(collector)
 
 if not wall_tags:
-    forms.alert("Keine Wall Tags in der aktuellen Ansicht gefunden.", exitscript=True)
+    forms.alert(t("Keine Wall Tags in der aktuellen Ansicht gefunden.", u"No wall tags found in the active view.", u"No se encontraron etiquetas de muro en la vista activa."), exitscript=True)
 
 # Frage den Benutzer nach dem gewünschten Abstand
 distance_input = forms.ask_for_string(
     default="500",
-    prompt="Gib den gewünschten Abstand in mm ein:",
-    title="Abstand für Wall Tags"
+    prompt=t("Gib den gewünschten Abstand in mm ein:", u"Enter the desired distance in mm:", u"Introduzca la distancia deseada en mm:"),
+    title=t("Abstand für Wall Tags", u"Wall tag distance", u"Distancia de etiquetas de muro")
 )
 
 if distance_input:
@@ -74,14 +75,14 @@ if distance_input:
         distance_mm = float(distance_input)
         DESIRED_OFFSET = distance_mm / 304.8  # 1 Fuß = 304.8 mm
     except:
-        forms.alert("Ungültige Eingabe. Verwende Standard-Abstand von 500mm.")
+        forms.alert(t("Ungültige Eingabe. Verwende Standard-Abstand von 500mm.", u"Invalid input. Using the default distance of 500 mm.", u"Entrada no válida. Se usa la distancia por defecto de 500 mm."))
         DESIRED_OFFSET = 500 / 304.8
 else:
     DESIRED_OFFSET = 500 / 304.8
 
 # Starte eine Transaction
-t = Transaction(doc, "Wall Tags ausrichten")
-t.Start()
+transaktion = Transaction(doc, t("Wall Tags ausrichten", u"Align wall tags", u"Alinear etiquetas de muro"))
+transaktion.Start()
 
 success_count = 0
 failed_count = 0
@@ -107,16 +108,16 @@ try:
         else:
             failed_count += 1
 
-    t.Commit()
+    transaktion.Commit()
 
     # Zeige Ergebnis
-    message = "Fertig!\n\n"
-    message += "{} Wall Tags erfolgreich ausgerichtet\n".format(success_count)
+    message = t("Fertig!\n\n", u"Done!\n\n", u"¡Listo!\n\n")
+    message += t("{} Wall Tags erfolgreich ausgerichtet\n", u"{} wall tags aligned successfully\n", u"{} etiquetas de muro alineadas correctamente\n").format(success_count)
     if failed_count > 0:
-        message += "{} Wall Tags konnten nicht ausgerichtet werden".format(failed_count)
+        message += t("{} Wall Tags konnten nicht ausgerichtet werden", u"{} wall tags could not be aligned", u"No se pudieron alinear {} etiquetas de muro").format(failed_count)
 
-    forms.alert(message, title="Ergebnis")
+    forms.alert(message, title=t("Ergebnis", u"Result", u"Resultado"))
 
 except Exception as e:
-    t.RollBack()
-    forms.alert("Fehler: {}".format(str(e)), title="Fehler")
+    transaktion.RollBack()
+    forms.alert(t("Fehler: {}", u"Error: {}", u"Error: {}").format(str(e)), title=t("Fehler", u"Error", u"Error"))

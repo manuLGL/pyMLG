@@ -1,12 +1,18 @@
-title: "Schedules nach Excel"
+title:
+  de_de: "Schedules nach Excel"
+  en_us: "Schedules to Excel"
+  es_es: "Tablas a Excel"
 author: pyMLG
-tooltip: >-
-  Exportiert ausgewählte Bauteillisten nach Excel (.xlsx).
+tooltip:
+  de_de: >-
+    Exportiert ausgewählte Bauteillisten nach Excel (.xlsx), ein Tabellenblatt je Liste. Spalte A enthält die UniqueId für den Rückimport. Graue Zellen sind schreibgeschützt, orange Zellen Typparameter. Benötigt openpyxl.
 
-  Je Bauteilliste entsteht ein Tabellenblatt. Spalte A enthält die UniqueId
-  der Elemente als stabile Kennung für den Rückimport und ist ausgeblendet.
-  Graue Zellen sind schreibgeschützt oder berechnet und werden beim Import
-  ignoriert, orange Zellen sind Typparameter.
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Exports selected schedules to Excel (.xlsx), one worksheet per schedule. Column A holds the UniqueId for re-import. Grey cells are read-only, orange cells are type parameters. Requires openpyxl.
 
-  Unterstützt werden aufgeschlüsselte Bauteillisten ("Jede Instanz aufführen").
-  Benötigt die CPython3-Engine und openpyxl.
+    Requires the CPython3 engine.
+  es_es: >-
+    Exporta las tablas de planificación seleccionadas a Excel (.xlsx), una hoja por tabla. La columna A contiene el UniqueId para la reimportación. Las celdas grises son de solo lectura, las naranjas parámetros de tipo. Requiere openpyxl.
+
+    Requiere el motor CPython3.

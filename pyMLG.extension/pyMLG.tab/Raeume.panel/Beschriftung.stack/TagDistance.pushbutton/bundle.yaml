@@ -1,0 +1,12 @@
+title:
+  de_de: "Wandbeschriftung\nAbstand"
+  en_us: "Wall Tag\nDistance"
+  es_es: "Distancia\netiquetas"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Setzt alle Wandbeschriftungen der aktiven Ansicht auf den gleichen Abstand zur Wand.
+  en_us: >-
+    Places all wall tags of the active view at the same distance from their wall.
+  es_es: >-
+    Coloca todas las etiquetas de muro de la vista activa a la misma distancia de su muro.

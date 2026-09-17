@@ -34,6 +34,7 @@ from System.Windows.Media import Color, SolidColorBrush  # noqa: E402
 from filter_manager import dialoge as dlg  # noqa: E402
 from level_auto_set import logik as lg  # noqa: E402
 from level_auto_set import revit as rv  # noqa: E402
+from mlg_sprache import t, uebersetze_xaml  # noqa: E402
 from workset_creator.logik import filterfunktion  # noqa: E402
 
 TITEL = u"LevelAutoSet"
@@ -59,6 +60,90 @@ MODI = ((lg.NAEHER, "naeher"), (lg.DARUEBER, "darueber"),
 OPTIONEN = ("opt_oben_unverbunden", "opt_ignorierte_auswaehlen",
             "opt_bericht", "opt_profil", "opt_stuetzen", "opt_fehler",
             "filter_name", "filter_regex", "nur_geschoss", "nur_tragwerk")
+
+XAML_TEXTE = {
+    "t0": (u"Ebene",
+           u"Level",
+           u"Nivel"),
+    "t1": (u"Höhe",
+           u"Elevation",
+           u"Elevación"),
+    "t2": (u"Alle markieren",
+           u"Check all",
+           u"Marcar todo"),
+    "t3": (u"Keine",
+           u"None",
+           u"Ninguno"),
+    "t4": (u"Unten (Basis)",
+           u"Down (base)",
+           u"Abajo (base)"),
+    "t5": (u"Näher",
+           u"Closer",
+           u"Más cercano"),
+    "t6": (u"Darüber",
+           u"Above",
+           u"Superior"),
+    "t7": (u"Darunter",
+           u"Below",
+           u"Inferior"),
+    "t8": (u"Ignorieren",
+           u"Ignore",
+           u"Ignorar"),
+    "t9": (u"Oben",
+           u"Up",
+           u"Arriba"),
+    "t10": (u"Gilt auch für Geschossdecken - ihre Ebene bezieht sich auf die Oberkante",
+           u"Also applies to floors - their level refers to the top face",
+           u"También se aplica a los suelos: su nivel se refiere a la cara superior"),
+    "t11": (u"Optionen",
+           u"Options",
+           u"Opciones"),
+    "t12": (u"Wände mit 'Nicht verbunden' oben bleiben oben frei",
+           u"Walls with an 'Unconnected' top stay unconnected",
+           u"Los muros con parte superior 'No conectada' siguen sin conectar"),
+    "t13": (u"Oben ignorieren, wenn nicht verbunden",
+           u"Ignore up if unconnected",
+           u"Ignorar arriba si no está conectado"),
+    "t14": (u"Danach sind nur die übersprungenen, unveränderten und fehlerhaften Elemente ausgewählt",
+           u"Afterwards only the skipped, unchanged and failed elements are selected",
+           u"Después solo quedan seleccionados los elementos omitidos, sin cambios y con errores"),
+    "t15": (u"Ignorierte danach auswählen",
+           u"Keep ignored in selection",
+           u"Mantener ignorados en la selección"),
+    "t16": (u"Bericht am Ende anzeigen",
+           u"Show report at end",
+           u"Mostrar informe al final"),
+    "t17": (u"Wände mit bearbeitetem Profil ignorieren",
+           u"Ignore walls with edited profile",
+           u"Ignorar muros con perfil editado"),
+    "t18": (u"Angehängte Stützen ignorieren",
+           u"Ignore attached columns",
+           u"Ignorar pilares enlazados"),
+    "t19": (u"Aus: der erste Fehler bricht alles ab (nichts wird geändert)",
+           u"Off: the first error cancels everything (nothing is changed)",
+           u"Desactivado: el primer error cancela todo (no se cambia nada)"),
+    "t20": (u"Fehler ignorieren (fehlerhafte Elemente auslassen)",
+           u"Ignore errors (skip failing elements)",
+           u"Ignorar errores (omitir elementos con error)"),
+    "t21": (u"Ebenen filtern",
+           u"Filter levels",
+           u"Filtrar niveles"),
+    "t22": (u"Nach Name",
+           u"By name",
+           u"Por nombre"),
+    "t23": (u"Nur Gebäudegeschosse",
+           u"Only building stories",
+           u"Solo plantas de edificio"),
+    "t24": (u"Nur Tragwerksebenen",
+           u"Only structural levels",
+           u"Solo niveles estructurales"),
+    "t25": (u"Ebenen setzen",
+           u"Set levels",
+           u"Asignar niveles"),
+    "t26": (u"Abbrechen",
+           u"Cancel",
+           u"Cancelar"),
+}
 
 XAML = u"""
 <Window %s Title="LevelAutoSet (pyMLG)" Width="860" Height="820"
@@ -93,8 +178,8 @@ XAML = u"""
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="90"/>
           </Grid.ColumnDefinitions>
-          <TextBlock Text="Ebene" FontWeight="SemiBold"/>
-          <TextBlock Grid.Column="1" Text="Höhe" FontWeight="SemiBold"
+          <TextBlock Text="{{t0}}" FontWeight="SemiBold"/>
+          <TextBlock Grid.Column="1" Text="{{t1}}" FontWeight="SemiBold"
                      HorizontalAlignment="Right"/>
         </Grid>
       </Border>
@@ -106,9 +191,9 @@ XAML = u"""
     <DockPanel Grid.Column="2" LastChildFill="False">
       <StackPanel DockPanel.Dock="Top">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-          <Button x:Name="alle" Content="Alle markieren" Padding="8,3"
+          <Button x:Name="alle" Content="{{t2}}" Padding="8,3"
                   Margin="0,0,6,0"/>
-          <Button x:Name="keine" Content="Keine" Padding="8,3"/>
+          <Button x:Name="keine" Content="{{t3}}" Padding="8,3"/>
         </StackPanel>
 
         <Grid>
@@ -117,69 +202,69 @@ XAML = u"""
             <ColumnDefinition Width="6"/>
             <ColumnDefinition Width="*"/>
           </Grid.ColumnDefinitions>
-          <GroupBox Header="Unten (Basis)">
+          <GroupBox Header="{{t4}}">
             <StackPanel>
               <RadioButton x:Name="basis_naeher" GroupName="basis"
-                           Content="Näher"/>
+                           Content="{{t5}}"/>
               <RadioButton x:Name="basis_darueber" GroupName="basis"
-                           Content="Darüber"/>
+                           Content="{{t6}}"/>
               <RadioButton x:Name="basis_darunter" GroupName="basis"
-                           Content="Darunter"/>
+                           Content="{{t7}}"/>
               <RadioButton x:Name="basis_ignorieren" GroupName="basis"
-                           Content="Ignorieren"/>
+                           Content="{{t8}}"/>
             </StackPanel>
           </GroupBox>
-          <GroupBox Header="Oben" Grid.Column="2"
-                    ToolTip="Gilt auch für Geschossdecken - ihre Ebene bezieht sich auf die Oberkante">
+          <GroupBox Header="{{t9}}" Grid.Column="2"
+                    ToolTip="{{t10}}">
             <StackPanel>
               <RadioButton x:Name="oben_naeher" GroupName="oben"
-                           Content="Näher"/>
+                           Content="{{t5}}"/>
               <RadioButton x:Name="oben_darueber" GroupName="oben"
-                           Content="Darüber"/>
+                           Content="{{t6}}"/>
               <RadioButton x:Name="oben_darunter" GroupName="oben"
-                           Content="Darunter"/>
+                           Content="{{t7}}"/>
               <RadioButton x:Name="oben_ignorieren" GroupName="oben"
-                           Content="Ignorieren"/>
+                           Content="{{t8}}"/>
             </StackPanel>
           </GroupBox>
         </Grid>
 
-        <GroupBox Header="Optionen">
+        <GroupBox Header="{{t11}}">
           <StackPanel>
             <CheckBox x:Name="opt_oben_unverbunden"
-                      ToolTip="Wände mit 'Nicht verbunden' oben bleiben oben frei">
-              <TextBlock Text="Oben ignorieren, wenn nicht verbunden"
+                      ToolTip="{{t12}}">
+              <TextBlock Text="{{t13}}"
                          TextWrapping="Wrap"/>
             </CheckBox>
             <CheckBox x:Name="opt_ignorierte_auswaehlen"
-                      ToolTip="Danach sind nur die übersprungenen, unveränderten und fehlerhaften Elemente ausgewählt">
-              <TextBlock Text="Ignorierte danach auswählen"
+                      ToolTip="{{t14}}">
+              <TextBlock Text="{{t15}}"
                          TextWrapping="Wrap"/>
             </CheckBox>
-            <CheckBox x:Name="opt_bericht" Content="Bericht am Ende anzeigen"/>
+            <CheckBox x:Name="opt_bericht" Content="{{t16}}"/>
             <CheckBox x:Name="opt_profil"
-                      Content="Wände mit bearbeitetem Profil ignorieren"/>
+                      Content="{{t17}}"/>
             <CheckBox x:Name="opt_stuetzen"
-                      Content="Angehängte Stützen ignorieren"/>
+                      Content="{{t18}}"/>
             <CheckBox x:Name="opt_fehler"
-                      ToolTip="Aus: der erste Fehler bricht alles ab (nichts wird geändert)">
-              <TextBlock Text="Fehler ignorieren (fehlerhafte Elemente auslassen)"
+                      ToolTip="{{t19}}">
+              <TextBlock Text="{{t20}}"
                          TextWrapping="Wrap"/>
             </CheckBox>
           </StackPanel>
         </GroupBox>
 
-        <GroupBox Header="Ebenen filtern">
+        <GroupBox Header="{{t21}}">
           <StackPanel>
             <StackPanel Orientation="Horizontal">
-              <CheckBox x:Name="filter_name" Content="Nach Name"
+              <CheckBox x:Name="filter_name" Content="{{t22}}"
                         Margin="0,2,14,2"/>
               <CheckBox x:Name="filter_regex" Content="Regex"/>
             </StackPanel>
             <TextBox x:Name="filter_text" Padding="3" Margin="0,2,0,6"/>
             <CheckBox x:Name="nur_geschoss"
-                      Content="Nur Gebäudegeschosse"/>
-            <CheckBox x:Name="nur_tragwerk" Content="Nur Tragwerksebenen"/>
+                      Content="{{t23}}"/>
+            <CheckBox x:Name="nur_tragwerk" Content="{{t24}}"/>
           </StackPanel>
         </GroupBox>
       </StackPanel>
@@ -188,9 +273,9 @@ XAML = u"""
         <TextBlock x:Name="anzahl" FontSize="22" FontWeight="SemiBold"/>
         <TextBlock x:Name="anzahl_text" Foreground="#555" TextWrapping="Wrap"
                    Margin="0,0,0,10"/>
-        <Button x:Name="setzen" Content="Ebenen setzen" FontWeight="Bold"
+        <Button x:Name="setzen" Content="{{t25}}" FontWeight="Bold"
                 Padding="8,9" Margin="0,0,0,6"/>
-        <Button x:Name="abbrechen" Content="Abbrechen" Padding="8,5"
+        <Button x:Name="abbrechen" Content="{{t26}}" Padding="8,5"
                 IsCancel="True"/>
       </StackPanel>
     </DockPanel>
@@ -226,7 +311,7 @@ def sicher(besitzer_liefern, funktion):
             try:
                 meldung(besitzer_liefern(), u"%s%s" % (
                     dlg.fehlertext(fehler),
-                    u"\n\nTechnische Details: %s" % pfad if pfad else u""),
+                    t(u"\n\nTechnische Details: %s", u"\n\nTechnical details: %s", u"\n\nDetalles técnicos: %s") % pfad if pfad else u""),
                     warnung=True)
             except Exception:
                 pass
@@ -269,7 +354,7 @@ class LevelAutoSetFenster(object):
         self.elemente = elemente
         self.zeilen = [Zeile(e) for e in rv.ebenen(self.doc)]
 
-        f = self.fenster = dlg.lade_xaml(XAML)
+        f = self.fenster = dlg.lade_xaml(uebersetze_xaml(XAML, XAML_TEXTE))
         try:
             dlg.setze_besitzer(f, handle=uiapp.MainWindowHandle)
         except Exception:
@@ -382,7 +467,7 @@ class LevelAutoSetFenster(object):
                                        bool(self.filter_regex.IsChecked))
             except Exception as fehler:
                 self.filter_text.Foreground = ROT
-                self.filter_text.ToolTip = u"Ungültiger Ausdruck: %s" % fehler
+                self.filter_text.ToolTip = t(u"Ungültiger Ausdruck: %s", u"Invalid expression: %s", u"Expresión no válida: %s") % fehler
         for zeile in self.zeilen:
             zeigen = ((passt is None or passt(zeile.info.name))
                       and (zeile.info.geschoss
@@ -403,25 +488,25 @@ class LevelAutoSetFenster(object):
         markiert = sum(1 for z in sichtbar if z.box.IsChecked)
         self.anzahl.Text = u"%d / %d" % (len(self.elemente), markiert)
         self.anzahl_text.Text = (
-            u"Elemente / Ebenen markiert" + (
-                u"\n(keine Ebene markiert: alle %d angezeigten Ebenen "
-                u"kommen in Frage)" % len(sichtbar) if not markiert else u""))
+            t(u"Elemente / Ebenen markiert", u"elements / levels checked", u"elementos / niveles marcados") + (
+                t(u"\n(keine Ebene markiert: alle %d angezeigten Ebenen "
+                u"kommen in Frage)", u"\n(no level checked: all %d shown levels are candidates)", u"\n(ningún nivel marcado: se usan los %d niveles mostrados)") % len(sichtbar) if not markiert else u""))
 
     # --- Ausführen --------------------------------------------------------
     def setze(self):
         if not self.elemente:
-            meldung(self.fenster, u"Es sind keine Elemente ausgewählt. Bitte "
+            meldung(self.fenster, t(u"Es sind keine Elemente ausgewählt. Bitte "
                     u"Elemente in Revit auswählen und das Werkzeug neu "
-                    u"starten.")
+                    u"starten.", u"No elements are selected. Please select elements in Revit and start the tool again.", u"No hay elementos seleccionados. Seleccione elementos en Revit e inicie de nuevo la herramienta."))
             return
         basis, oben = self.modus("basis"), self.modus("oben")
         if basis == lg.IGNORIEREN and oben == lg.IGNORIEREN:
-            meldung(self.fenster, u"Unten und oben stehen auf 'Ignorieren' - "
-                    u"es gibt nichts zu tun.")
+            meldung(self.fenster, t(u"Unten und oben stehen auf 'Ignorieren' - "
+                    u"es gibt nichts zu tun.", u"Down and up are set to 'Ignore' - there is nothing to do.", u"Abajo y arriba están en 'Ignorar': no hay nada que hacer."))
             return
         ebenen = self.kandidaten()
         if not ebenen:
-            meldung(self.fenster, u"Der Filter blendet alle Ebenen aus.")
+            meldung(self.fenster, t(u"Der Filter blendet alle Ebenen aus.", u"The filter hides all levels.", u"El filtro oculta todos los niveles."))
             return
         try:
             ergebnis = rv.setze_ebenen(
@@ -433,9 +518,9 @@ class LevelAutoSetFenster(object):
                     self.opt_stuetzen.IsChecked),
                 fehler_ignorieren=bool(self.opt_fehler.IsChecked))
         except RuntimeError as fehler:
-            meldung(self.fenster, u"Abgebrochen, es wurde nichts geändert:"
+            meldung(self.fenster, t(u"Abgebrochen, es wurde nichts geändert:"
                     u"\n\n%s\n\nMit 'Fehler ignorieren' werden solche "
-                    u"Elemente ausgelassen." % fehler, warnung=True)
+                    u"Elemente ausgelassen.", u"Cancelled, nothing was changed:\n\n%s\n\nWith 'Ignore errors' such elements are skipped.", u"Cancelado, no se ha cambiado nada:\n\n%s\n\nCon 'Ignorar errores' se omiten esos elementos.") % fehler, warnung=True)
             return
 
         if self.opt_ignorierte_auswaehlen.IsChecked:
@@ -451,22 +536,22 @@ class LevelAutoSetFenster(object):
             if not eintraege:
                 return []
             zeilen = [u"", u"%s (%d):" % (titel, len(eintraege))]
-            zeilen += [u"  " + t for t in eintraege[:maximal]]
+            zeilen += [u"  " + text for text in eintraege[:maximal]]
             if len(eintraege) > maximal:
-                zeilen.append(u"  ... und %d weitere"
+                zeilen.append(t(u"  ... und %d weitere", u"  ... and %d more", u"  ... y %d más")
                               % (len(eintraege) - maximal))
             return zeilen
 
-        zeilen = [u"Geändert: %d Elemente" % len(ergebnis.geaendert),
-                  u"  Basis auf andere Ebene: %d" % ergebnis.basis,
-                  u"  Oberkante auf andere Ebene: %d" % ergebnis.oben,
-                  u"Bereits auf der passenden Ebene: %d"
+        zeilen = [t(u"Geändert: %d Elemente", u"Changed: %d elements", u"Modificados: %d elementos") % len(ergebnis.geaendert),
+                  t(u"  Basis auf andere Ebene: %d", u"  base moved to another level: %d", u"  base en otro nivel: %d") % ergebnis.basis,
+                  t(u"  Oberkante auf andere Ebene: %d", u"  top moved to another level: %d", u"  parte superior en otro nivel: %d") % ergebnis.oben,
+                  t(u"Bereits auf der passenden Ebene: %d", u"Already on the right level: %d", u"Ya en el nivel correcto: %d")
                   % len(ergebnis.unveraendert)]
-        zeilen += liste(u"Übersprungen", [u"%s - %s" % (rv.beschreibung(e), g)
+        zeilen += liste(t(u"Übersprungen", u"Skipped", u"Omitidos"), [u"%s - %s" % (rv.beschreibung(e), g)
                                          for e, g in ergebnis.uebersprungen])
-        zeilen += liste(u"Fehler", [u"%s - %s" % (rv.beschreibung(e), t)
-                                   for e, t in ergebnis.fehler])
-        zeilen += liste(u"ACHTUNG, Höhe hat sich verändert - bitte prüfen",
+        zeilen += liste(t(u"Fehler", u"Errors", u"Errores"), [u"%s - %s" % (rv.beschreibung(e), text)
+                                   for e, text in ergebnis.fehler])
+        zeilen += liste(t(u"ACHTUNG, Höhe hat sich verändert - bitte prüfen", u"WARNING, elevation has changed - please check", u"ATENCIÓN, la altura ha cambiado: revíselo"),
                         [rv.beschreibung(e) for e in ergebnis.verschoben])
         return u"\n".join(zeilen)
 

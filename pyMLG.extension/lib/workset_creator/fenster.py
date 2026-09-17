@@ -52,12 +52,17 @@ from System.Windows.Media import Color, SolidColorBrush  # noqa: E402
 
 from filter_manager import dialoge as dlg  # noqa: E402
 from workset_creator import logik as lg  # noqa: E402
+from mlg_sprache import t, uebersetze_xaml  # noqa: E402
 
-TITEL = u"Workset-Creator"
+TITEL = t(u"Workset-Creator", u"Workset Creator",
+          u"Creador de subproyectos")
 
-# Vorgaben der deutschen Revit-Version beim Aktivieren der Teamarbeit
-WS_EBENEN_RASTER = u"Gemeinsam genutzte Ebenen und Raster"
-WS_STANDARD = u"Bearbeitungsbereich1"
+# Vorgaben von Revit beim Aktivieren der Teamarbeit (je Sprache)
+WS_EBENEN_RASTER = t(u"Gemeinsam genutzte Ebenen und Raster",
+                     u"Shared Levels and Grids",
+                     u"Rejillas y niveles compartidos")
+WS_STANDARD = t(u"Bearbeitungsbereich1", u"Workset1",
+                u"Subproyecto1")
 
 
 def _pinsel(r, g, b):
@@ -77,8 +82,113 @@ FEHLERPROTOKOLL = os.path.join(dlg.protokollordner(),
                                "WorksetCreator_Fehler.log")
 EINSTELLUNGEN = os.path.join(dlg.protokollordner(), "WorksetCreator.json")
 
+XAML_TEXTE = {
+    "titel": (u"Workset-Creator (pyMLG)",
+        u"Workset Creator (pyMLG)",
+        u"Creador de subproyectos (pyMLG)"),
+    "vorhanden": (u"Vorhandene Worksets",
+        u"Existing worksets",
+        u"Subproyectos existentes"),
+    "strg_c": (u"Strg+C kopiert die markierten Namen",
+        u"Ctrl+C copies the selected names",
+        u"Ctrl+C copia los nombres seleccionados"),
+    "filter_v": (u"Filter vorhandene Worksets",
+        u"Filter existing worksets",
+        u"Filtrar subproyectos existentes"),
+    "aktiv": (u"Aktiv",
+        u"Active",
+        u"Activo"),
+    "neu": (u"Neue Worksets",
+        u"New worksets",
+        u"Subproyectos nuevos"),
+    "alle": (u"Alle markieren",
+        u"Check all",
+        u"Marcar todo"),
+    "keine": (u"Keine",
+        u"None",
+        u"Ninguno"),
+    "umbenennen": (u"Umbenennen...",
+        u"Rename...",
+        u"Renombrar..."),
+    "f2": (u"F2 oder Doppelklick",
+        u"F2 or double-click",
+        u"F2 o doble clic"),
+    "entfernen": (u"Entfernen",
+        u"Remove",
+        u"Quitar"),
+    "entf": (u"Entf",
+        u"Del",
+        u"Supr"),
+    "leeren": (u"Liste leeren",
+        u"Clear list",
+        u"Vaciar lista"),
+    "tasten": (u"Leertaste: Haken setzen/entfernen - Entf: entfernen - F2: umbenennen",
+        u"Space: check/uncheck - Del: remove - F2: rename",
+        u"Espacio: marcar/desmarcar - Supr: quitar - F2: renombrar"),
+    "filter_n": (u"Filter neue Worksets",
+        u"Filter new worksets",
+        u"Filtrar subproyectos nuevos"),
+    "erstellen": (u"Worksets erstellen",
+        u"Create worksets",
+        u"Crear subproyectos"),
+    "existiert": (u"Wenn Workset existiert",
+        u"If workset exists",
+        u"Si el subproyecto existe"),
+    "nicht_erstellen": (u"Nicht erstellen",
+        u"Do not create",
+        u"No crear"),
+    "umbenennen_erstellen": (u"Umbenennen und erstellen",
+        u"Rename and create",
+        u"Renombrar y crear"),
+    "nummer": (u"Hängt eine Nummer an: Name (2), Name (3) ...",
+        u"Appends a number: Name (2), Name (3) ...",
+        u"Añade un número: Nombre (2), Nombre (3) ..."),
+    "sichtbar_tipp": (u"Einstellung 'In allen Ansichten sichtbar' der neuen Worksets",
+        u"'Visible in all views' setting of the new worksets",
+        u"Ajuste 'Visible en todas las vistas' de los subproyectos nuevos"),
+    "sichtbar": (u"In allen Ansichten sichtbar",
+        u"Visible in all views",
+        u"Visible en todas las vistas"),
+    "anhaengen_tipp": (u"Aus: die Liste 'Neue Worksets' wird ersetzt",
+        u"Off: the 'New worksets' list is replaced",
+        u"Desactivado: se reemplaza la lista 'Subproyectos nuevos'"),
+    "anhaengen": (u"An Liste 'Neue Worksets' anhängen",
+        u"Add to 'New worksets' list",
+        u"Añadir a la lista 'Subproyectos nuevos'"),
+    "dokumente": (u"In Revit geöffnete Projekte mit Teamarbeit",
+        u"Workshared projects open in Revit",
+        u"Proyectos con trabajo compartido abiertos en Revit"),
+    "aus_projekt": (u"Aus offenem Projekt",
+        u"From open project",
+        u"De proyecto abierto"),
+    "aus_datei": (u"Aus Datei (.rvt)...",
+        u"From file (.rvt)...",
+        u"De archivo (.rvt)..."),
+    "ohne_oeffnen": (u"Liest die Worksets, ohne die Datei zu öffnen",
+        u"Reads the worksets without opening the file",
+        u"Lee los subproyectos sin abrir el archivo"),
+    "aus_ablage": (u"Aus Zwischenablage",
+        u"From clipboard",
+        u"Del portapapeles"),
+    "je_zeile": (u"Ein Name je Zeile bzw. Zelle (z.B. aus Excel)",
+        u"One name per line or cell (e.g. from Excel)",
+        u"Un nombre por línea o celda (p. ej. de Excel)"),
+    "eingeben": (u"Namen eingeben...",
+        u"Type names...",
+        u"Escribir nombres..."),
+    "in_ablage": (u"Vorhandene in Zwischenablage",
+        u"Existing to clipboard",
+        u"Existentes al portapapeles"),
+    "in_ablage_tipp": (u"Markierte vorhandene Worksets, sonst alle angezeigten",
+        u"Selected existing worksets, otherwise all shown",
+        u"Subproyectos existentes seleccionados; si no, todos los mostrados"),
+    "schliessen": (u"Schließen",
+        u"Close",
+        u"Cerrar"),
+}
+
 XAML = u"""
-<Window %s Title="Workset-Creator (pyMLG)" Width="1120" Height="660"
+<Window %s Title="{{titel}}" Width="1120" Height="660"
         MinWidth="820" MinHeight="440" WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False" FontFamily="Segoe UI" FontSize="12"
         ResizeMode="CanResizeWithGrip">
@@ -107,14 +217,14 @@ XAML = u"""
 
     <!-- Vorhandene Worksets -->
     <GroupBox x:Name="kopf_vorhanden" Grid.Column="0"
-              Header="Vorhandene Worksets">
+              Header="{{vorhanden}}">
       <ListBox x:Name="liste_vorhanden" SelectionMode="Extended"
-               ToolTip="Strg+C kopiert die markierten Namen"/>
+               ToolTip="{{strg_c}}"/>
     </GroupBox>
-    <GroupBox Header="Filter vorhandene Worksets" Grid.Column="0"
+    <GroupBox Header="{{filter_v}}" Grid.Column="0"
               Grid.Row="1" Margin="0,6,0,0">
       <DockPanel>
-        <CheckBox x:Name="filter_v_aktiv" Content="Aktiv"
+        <CheckBox x:Name="filter_v_aktiv" Content="{{aktiv}}"
                   VerticalAlignment="Center" Margin="0,0,10,0"/>
         <CheckBox x:Name="filter_v_regex" Content="Regex"
                   VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -123,26 +233,26 @@ XAML = u"""
     </GroupBox>
 
     <!-- Neue Worksets -->
-    <GroupBox x:Name="kopf_neu" Grid.Column="2" Header="Neue Worksets">
+    <GroupBox x:Name="kopf_neu" Grid.Column="2" Header="{{neu}}">
       <DockPanel>
         <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,4">
-          <Button x:Name="alle" Content="Alle markieren" Margin="0,0,4,0"/>
-          <Button x:Name="keine" Content="Keine" Margin="0,0,4,0"/>
-          <Button x:Name="umbenennen" Content="Umbenennen..."
-                  Margin="0,0,4,0" ToolTip="F2 oder Doppelklick"/>
-          <Button x:Name="entfernen" Content="Entfernen" Margin="0,0,4,0"
-                  ToolTip="Entf"/>
-          <Button x:Name="leeren" Content="Liste leeren" Margin="0,0,4,0"/>
+          <Button x:Name="alle" Content="{{alle}}" Margin="0,0,4,0"/>
+          <Button x:Name="keine" Content="{{keine}}" Margin="0,0,4,0"/>
+          <Button x:Name="umbenennen" Content="{{umbenennen}}"
+                  Margin="0,0,4,0" ToolTip="{{f2}}"/>
+          <Button x:Name="entfernen" Content="{{entfernen}}" Margin="0,0,4,0"
+                  ToolTip="{{entf}}"/>
+          <Button x:Name="leeren" Content="{{leeren}}" Margin="0,0,4,0"/>
         </WrapPanel>
         <ListBox x:Name="liste_neu" SelectionMode="Extended"
                  HorizontalContentAlignment="Stretch"
-                 ToolTip="Leertaste: Haken setzen/entfernen - Entf: entfernen - F2: umbenennen"/>
+                 ToolTip="{{tasten}}"/>
       </DockPanel>
     </GroupBox>
-    <GroupBox Header="Filter neue Worksets" Grid.Column="2" Grid.Row="1"
+    <GroupBox Header="{{filter_n}}" Grid.Column="2" Grid.Row="1"
               Margin="0,6,0,0">
       <DockPanel>
-        <CheckBox x:Name="filter_n_aktiv" Content="Aktiv"
+        <CheckBox x:Name="filter_n_aktiv" Content="{{aktiv}}"
                   VerticalAlignment="Center" Margin="0,0,10,0"/>
         <CheckBox x:Name="filter_n_regex" Content="Regex"
                   VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -153,46 +263,46 @@ XAML = u"""
     <!-- Aktionen -->
     <DockPanel Grid.Column="4" Grid.RowSpan="2" LastChildFill="False">
       <StackPanel DockPanel.Dock="Top">
-        <Button x:Name="erstellen" Content="Worksets erstellen"
+        <Button x:Name="erstellen" Content="{{erstellen}}"
                 FontWeight="Bold" Padding="8,9"/>
-        <GroupBox Header="Wenn Workset existiert" Margin="0,2,0,8">
+        <GroupBox Header="{{existiert}}" Margin="0,2,0,8">
           <StackPanel Margin="2">
-            <RadioButton x:Name="modus_ueberspringen" Content="Nicht erstellen"
+            <RadioButton x:Name="modus_ueberspringen" Content="{{nicht_erstellen}}"
                          Margin="0,2"/>
             <RadioButton x:Name="modus_umbenennen"
-                         Content="Umbenennen und erstellen" Margin="0,2"
-                         ToolTip="Hängt eine Nummer an: Name (2), Name (3) ..."/>
+                         Content="{{umbenennen_erstellen}}" Margin="0,2"
+                         ToolTip="{{nummer}}"/>
           </StackPanel>
         </GroupBox>
         <CheckBox x:Name="sichtbar" Margin="2,0,0,4"
-                  ToolTip="Einstellung 'In allen Ansichten sichtbar' der neuen Worksets">
-          <TextBlock Text="In allen Ansichten sichtbar" TextWrapping="Wrap"/>
+                  ToolTip="{{sichtbar_tipp}}">
+          <TextBlock Text="{{sichtbar}}" TextWrapping="Wrap"/>
         </CheckBox>
       </StackPanel>
 
       <StackPanel DockPanel.Dock="Bottom">
         <CheckBox x:Name="anhaengen" Margin="2,0,0,6"
-                  ToolTip="Aus: die Liste 'Neue Worksets' wird ersetzt">
-          <TextBlock Text="An Liste 'Neue Worksets' anhängen"
+                  ToolTip="{{anhaengen_tipp}}">
+          <TextBlock Text="{{anhaengen}}"
                      TextWrapping="Wrap"/>
         </CheckBox>
         <ComboBox x:Name="dokumente" Margin="0,0,0,4"
-                  ToolTip="In Revit geöffnete Projekte mit Teamarbeit"/>
-        <Button x:Name="aus_projekt" Content="Aus offenem Projekt"/>
-        <Button x:Name="aus_datei" Content="Aus Datei (.rvt)..."
-                ToolTip="Liest die Worksets, ohne die Datei zu öffnen"/>
-        <Button x:Name="aus_zwischenablage" Content="Aus Zwischenablage"
-                ToolTip="Ein Name je Zeile bzw. Zelle (z.B. aus Excel)"/>
-        <Button x:Name="eingeben" Content="Namen eingeben..."/>
+                  ToolTip="{{dokumente}}"/>
+        <Button x:Name="aus_projekt" Content="{{aus_projekt}}"/>
+        <Button x:Name="aus_datei" Content="{{aus_datei}}"
+                ToolTip="{{ohne_oeffnen}}"/>
+        <Button x:Name="aus_zwischenablage" Content="{{aus_ablage}}"
+                ToolTip="{{je_zeile}}"/>
+        <Button x:Name="eingeben" Content="{{eingeben}}"/>
         <Button x:Name="in_zwischenablage"
-                Content="Vorhandene in Zwischenablage"
-                ToolTip="Markierte vorhandene Worksets, sonst alle angezeigten"/>
+                Content="{{in_ablage}}"
+                ToolTip="{{in_ablage_tipp}}"/>
       </StackPanel>
     </DockPanel>
 
     <!-- Fußzeile -->
     <DockPanel Grid.Row="2" Grid.ColumnSpan="5" Margin="0,10,0,0">
-      <Button x:Name="schliessen" Content="Schließen" Width="100"
+      <Button x:Name="schliessen" Content="{{schliessen}}" Width="100"
               DockPanel.Dock="Right" IsCancel="True" Margin="0"/>
       <TextBlock x:Name="status" VerticalAlignment="Center" Foreground="#555"
                  TextTrimming="CharacterEllipsis"/>
@@ -200,17 +310,32 @@ XAML = u"""
   </Grid>
 </Window>""" % dlg.XMLNS
 
+_XAML_NAMEN_TEXTE = {
+    "titel": (u"Namen eingeben",
+        u"Type names",
+        u"Escribir nombres"),
+    "hinweis": (u"Ein Workset-Name pro Zeile:",
+        u"One workset name per line:",
+        u"Un nombre de subproyecto por línea:"),
+    "ok": (u"Übernehmen",
+        u"Apply",
+        u"Aplicar"),
+    "abbrechen": (u"Abbrechen",
+        u"Cancel",
+        u"Cancelar"),
+}
+
 _XAML_NAMEN = u"""
-<Window %s Title="Namen eingeben" Width="460" Height="480"
+<Window %s Title="{{titel}}" Width="460" Height="480"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         FontFamily="Segoe UI" FontSize="12" MinWidth="320" MinHeight="260">
   <DockPanel Margin="12">
     <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,8"
-               Text="Ein Workset-Name pro Zeile:"/>
+               Text="{{hinweis}}"/>
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Margin="0,10,0,0">
-      <Button x:Name="ok" Content="Übernehmen" Width="100" Margin="0,0,8,0"/>
-      <Button Content="Abbrechen" Width="90" IsCancel="True"/>
+      <Button x:Name="ok" Content="{{ok}}" Width="100" Margin="0,0,8,0"/>
+      <Button Content="{{abbrechen}}" Width="90" IsCancel="True"/>
     </StackPanel>
     <TextBox x:Name="eingabe" AcceptsReturn="True" AcceptsTab="True"
              VerticalScrollBarVisibility="Auto" Padding="3"
@@ -247,7 +372,7 @@ def sicher(besitzer_liefern, funktion):
             try:
                 meldung(besitzer_liefern(), u"%s%s" % (
                     dlg.fehlertext(fehler),
-                    u"\n\nTechnische Details: %s" % pfad if pfad else u""),
+                    t(u"\n\nTechnische Details: %s", u"\n\nTechnical details: %s", u"\n\nDetalles técnicos: %s") % pfad if pfad else u""),
                     warnung=True)
             except Exception:
                 pass
@@ -284,8 +409,8 @@ def workset_namen_aus_datei(pfad):
         vorschau = WorksharingUtils.GetUserWorksetInfo(modellpfad)
     except Exception as fehler:
         raise ValueError(
-            u"Die Worksets der Datei konnten nicht gelesen werden.\n\n"
-            u"Ist die Datei für Teamarbeit aktiviert?\n\n%s"
+            t(u"Die Worksets der Datei konnten nicht gelesen werden.\n\n"
+            u"Ist die Datei für Teamarbeit aktiviert?\n\n%s", u"The worksets of the file could not be read.\n\nIs the file workshared?\n\n%s", u"No se pudieron leer los subproyectos del archivo.\n\n¿Tiene el archivo trabajo compartido activado?\n\n%s")
             % dlg.fehlertext(fehler))
     return [ws.Name for ws in vorschau]
 
@@ -327,7 +452,7 @@ class WorksetCreatorFenster(object):
         self.vorhanden_items = []      # [(ListBoxItem, Name)]
         self.fremde_dokumente = []     # parallel zur ComboBox
 
-        f = self.fenster = dlg.lade_xaml(XAML)
+        f = self.fenster = dlg.lade_xaml(uebersetze_xaml(XAML, XAML_TEXTE))
         try:
             dlg.setze_besitzer(f, handle=uiapp.MainWindowHandle)
         except Exception:
@@ -460,7 +585,7 @@ class WorksetCreatorFenster(object):
             return lg.filterfunktion(textfeld.Text, bool(regex.IsChecked))
         except Exception as fehler:
             textfeld.Foreground = ROT
-            textfeld.ToolTip = u"Ungültiger regulärer Ausdruck: %s" % fehler
+            textfeld.ToolTip = t(u"Ungültiger regulärer Ausdruck: %s", u"Invalid regular expression: %s", u"Expresión regular no válida: %s") % fehler
             return None
 
     def filtere_vorhandene(self):
@@ -475,10 +600,10 @@ class WorksetCreatorFenster(object):
         if sichtbar == len(self.vorhanden):
             anzahl = u"%d" % sichtbar
         else:
-            anzahl = u"%d von %d" % (sichtbar, len(self.vorhanden))
-        kopf = u"Vorhandene Worksets (%s)" % anzahl
+            anzahl = t(u"%d von %d", u"%d of %d", u"%d de %d") % (sichtbar, len(self.vorhanden))
+        kopf = t(u"Vorhandene Worksets (%s)", u"Existing worksets (%s)", u"Subproyectos existentes (%s)") % anzahl
         if not self.doc.IsWorkshared:
-            kopf = u"Vorhandene Worksets - Teamarbeit nicht aktiviert"
+            kopf = t(u"Vorhandene Worksets - Teamarbeit nicht aktiviert", u"Existing worksets - worksharing not enabled", u"Subproyectos existentes - trabajo compartido no activado")
         self.kopf_vorhanden.Header = kopf
 
     def in_zwischenablage(self):
@@ -488,10 +613,10 @@ class WorksetCreatorFenster(object):
         namen = ([n for item, n in angezeigt if item.IsSelected]
                  or [n for _item, n in angezeigt])
         if not namen:
-            meldung(self.fenster, u"Keine vorhandenen Worksets angezeigt.")
+            meldung(self.fenster, t(u"Keine vorhandenen Worksets angezeigt.", u"No existing worksets shown.", u"No se muestran subproyectos existentes."))
             return
         Clipboard.SetText(u"\r\n".join(namen))
-        self.status.Text = u"%d Namen in die Zwischenablage kopiert." % len(
+        self.status.Text = t(u"%d Namen in die Zwischenablage kopiert.", u"%d names copied to the clipboard.", u"%d nombres copiados al portapapeles.") % len(
             namen)
 
     # --- Neue Worksets ----------------------------------------------------
@@ -518,9 +643,9 @@ class WorksetCreatorFenster(object):
             if status == lg.UMBENANNT:
                 hinweis.Text, hinweis.Foreground = u"→ %s" % ziel, ORANGE
             elif status == lg.UEBERSPRUNGEN:
-                hinweis.Text, hinweis.Foreground = u"existiert", GRAU
+                hinweis.Text, hinweis.Foreground = t(u"existiert", u"exists", u"existe"), GRAU
             elif status == lg.UNGUELTIG:
-                hinweis.Text, hinweis.Foreground = u"ungültige Zeichen", ROT
+                hinweis.Text, hinweis.Foreground = t(u"ungültige Zeichen", u"invalid characters", u"caracteres no válidos"), ROT
             DockPanel.SetDock(hinweis, Dock.Right)
             zeile.Children.Add(hinweis)
 
@@ -563,8 +688,8 @@ class WorksetCreatorFenster(object):
     def aktualisiere_status(self):
         sichtbar = len(self._sichtbare_neu())
         anzahl = (u"%d" % len(self.neu) if sichtbar == len(self.neu)
-                  else u"%d von %d" % (sichtbar, len(self.neu)))
-        self.kopf_neu.Header = u"Neue Worksets (%s)" % anzahl
+                  else t(u"%d von %d", u"%d of %d", u"%d de %d") % (sichtbar, len(self.neu)))
+        self.kopf_neu.Header = t(u"Neue Worksets (%s)", u"New worksets (%s)", u"Subproyectos nuevos (%s)") % anzahl
         markiert = [e.name for e in self.neu if e.markiert]
         plan = lg.plane(markiert, self.vorhanden,
                         bool(self.modus_umbenennen.IsChecked), revit_gueltig)
@@ -572,16 +697,16 @@ class WorksetCreatorFenster(object):
                                       lg.UEBERSPRUNGEN, lg.UNGUELTIG))
         for _n, _z, status in plan:
             zaehl[status] += 1
-        teile = [u"%d markiert" % len(markiert)]
+        teile = [t(u"%d markiert", u"%d checked", u"%d marcados") % len(markiert)]
         if markiert:
-            teile.append(u"werden erstellt: %d" % (
+            teile.append(t(u"werden erstellt: %d", u"to be created: %d", u"se crearán: %d") % (
                 zaehl[lg.NEU] + zaehl[lg.UMBENANNT]))
             if zaehl[lg.UMBENANNT]:
-                teile.append(u"davon umbenannt: %d" % zaehl[lg.UMBENANNT])
+                teile.append(t(u"davon umbenannt: %d", u"of which renamed: %d", u"de ellos renombrados: %d") % zaehl[lg.UMBENANNT])
             if zaehl[lg.UEBERSPRUNGEN]:
-                teile.append(u"übersprungen: %d" % zaehl[lg.UEBERSPRUNGEN])
+                teile.append(t(u"übersprungen: %d", u"skipped: %d", u"omitidos: %d") % zaehl[lg.UEBERSPRUNGEN])
             if zaehl[lg.UNGUELTIG]:
-                teile.append(u"ungültig: %d" % zaehl[lg.UNGUELTIG])
+                teile.append(t(u"ungültig: %d", u"invalid: %d", u"no válidos: %d") % zaehl[lg.UNGUELTIG])
         self.status.Text = u" - ".join(teile)
 
     def markiere(self, zustand):
@@ -593,7 +718,7 @@ class WorksetCreatorFenster(object):
 
     def uebernimm(self, namen, quelle):
         if not namen:
-            self.status.Text = u"%s: keine Namen gefunden." % quelle
+            self.status.Text = t(u"%s: keine Namen gefunden.", u"%s: no names found.", u"%s: no se encontraron nombres.") % quelle
             return
         anhaengen = bool(self.anhaengen.IsChecked)
         bisher = [e.name for e in self.neu]
@@ -602,10 +727,10 @@ class WorksetCreatorFenster(object):
         self.neu = [alte.get(lg.schluessel(n)) or Eintrag(n) for n in liste]
         self.zeichne_neu()
         if anhaengen:
-            text = u"%s: %d Namen gelesen, %d neu in der Liste." % (
+            text = t(u"%s: %d Namen gelesen, %d neu in der Liste.", u"%s: %d names read, %d new in the list.", u"%s: %d nombres leídos, %d nuevos en la lista.") % (
                 quelle, len(namen), hinzu)
         else:
-            text = u"%s: Liste mit %d Namen ersetzt." % (quelle, len(liste))
+            text = t(u"%s: Liste mit %d Namen ersetzt.", u"%s: list replaced with %d names.", u"%s: lista reemplazada con %d nombres.") % (quelle, len(liste))
         self.status.Text = text
 
     def entferne_markierte_zeilen(self):
@@ -618,8 +743,8 @@ class WorksetCreatorFenster(object):
     def leere(self):
         if not self.neu:
             return
-        if not dlg.frage(self.fenster, u"Liste 'Neue Worksets' mit %d "
-                         u"Einträgen leeren?" % len(self.neu), titel=TITEL):
+        if not dlg.frage(self.fenster, t(u"Liste 'Neue Worksets' mit %d "
+                         u"Einträgen leeren?", u"Clear the 'New worksets' list with %d entries?", u"¿Vaciar la lista 'Subproyectos nuevos' con %d entradas?") % len(self.neu), titel=TITEL):
             return
         self.neu = []
         self.zeichne_neu()
@@ -629,8 +754,8 @@ class WorksetCreatorFenster(object):
         if len(gewaehlt) != 1:
             if still:
                 return
-            meldung(self.fenster, u"Bitte genau einen Eintrag in "
-                    u"'Neue Worksets' auswählen.")
+            meldung(self.fenster, t(u"Bitte genau einen Eintrag in "
+                    u"'Neue Worksets' auswählen.", u"Please select exactly one entry in 'New worksets'.", u"Seleccione exactamente una entrada en 'Subproyectos nuevos'."))
             return
         eintrag = gewaehlt[0]
         andere = set(lg.schluessel(e.name) for e in self.neu
@@ -639,16 +764,16 @@ class WorksetCreatorFenster(object):
         def pruefen(text):
             name = lg.bereinige(text)
             if not name:
-                raise ValueError(u"Der Name darf nicht leer sein.")
+                raise ValueError(t(u"Der Name darf nicht leer sein.", u"The name must not be empty.", u"El nombre no puede estar vacío."))
             if not revit_gueltig(name):
-                raise ValueError(u"Nicht erlaubt: %s"
+                raise ValueError(t(u"Nicht erlaubt: %s", u"Not allowed: %s", u"No permitido: %s")
                                  % u" ".join(lg.VERBOTENE_ZEICHEN))
             if lg.schluessel(name) in andere:
-                raise ValueError(u"Der Name steht schon in der Liste.")
+                raise ValueError(t(u"Der Name steht schon in der Liste.", u"The name is already in the list.", u"El nombre ya está en la lista."))
             return name
 
-        name = dlg.frage_text(self.fenster, u"Umbenennen",
-                              u"Neuer Name des Worksets:", eintrag.name,
+        name = dlg.frage_text(self.fenster, t(u"Umbenennen", u"Rename", u"Renombrar"),
+                              t(u"Neuer Name des Worksets:", u"New workset name:", u"Nuevo nombre del subproyecto:"), eintrag.name,
                               pruefen)
         if name:
             eintrag.name = name
@@ -670,13 +795,13 @@ class WorksetCreatorFenster(object):
             except Exception:
                 continue
             item = ComboBoxItem()
-            item.Content = d.Title + (u"  (Verknüpfung)" if d.IsLinked
+            item.Content = d.Title + (t(u"  (Verknüpfung)", u"  (link)", u"  (vínculo)") if d.IsLinked
                                       else u"")
             self.dokumente.Items.Add(item)
             self.fremde_dokumente.append(d)
         if not self.fremde_dokumente:
             item = ComboBoxItem()
-            item.Content = u"(keine weiteren Projekte geöffnet)"
+            item.Content = t(u"(keine weiteren Projekte geöffnet)", u"(no other projects open)", u"(no hay otros proyectos abiertos)")
             item.IsEnabled = False
             self.dokumente.Items.Add(item)
             return
@@ -687,18 +812,18 @@ class WorksetCreatorFenster(object):
     def aus_projekt(self):
         index = self.dokumente.SelectedIndex
         if not 0 <= index < len(self.fremde_dokumente):
-            meldung(self.fenster, u"Es ist kein weiteres Projekt mit "
+            meldung(self.fenster, t(u"Es ist kein weiteres Projekt mit "
                     u"Teamarbeit geöffnet.\n\nWorksets lassen sich auch "
                     u"über 'Aus Datei (.rvt)...' übernehmen, ohne die Datei "
-                    u"zu öffnen.")
+                    u"zu öffnen.", u"No other workshared project is open.\n\nWorksets can also be taken over via 'From file (.rvt)...' without opening the file.", u"No hay otro proyecto con trabajo compartido abierto.\n\nLos subproyectos también se pueden tomar con 'De archivo (.rvt)...' sin abrir el archivo."))
             return
         quelle = self.fremde_dokumente[index]
         self.uebernimm(workset_namen(quelle), quelle.Title)
 
     def aus_datei(self):
         dialog = OpenFileDialog()
-        dialog.Title = u"Projekt wählen, dessen Worksets übernommen werden"
-        dialog.Filter = u"Revit-Projekte (*.rvt)|*.rvt|Alle Dateien (*.*)|*.*"
+        dialog.Title = t(u"Projekt wählen, dessen Worksets übernommen werden", u"Choose the project whose worksets to take over", u"Elija el proyecto cuyos subproyectos se van a tomar")
+        dialog.Filter = t(u"Revit-Projekte (*.rvt)|*.rvt|Alle Dateien (*.*)|*.*", u"Revit projects (*.rvt)|*.rvt|All files (*.*)|*.*", u"Proyectos de Revit (*.rvt)|*.rvt|Todos los archivos (*.*)|*.*")
         dialog.CheckFileExists = True
         if self.letzter_ordner and os.path.isdir(self.letzter_ordner):
             dialog.InitialDirectory = self.letzter_ordner
@@ -716,12 +841,13 @@ class WorksetCreatorFenster(object):
     def aus_zwischenablage(self):
         text = Clipboard.GetText() if Clipboard.ContainsText() else u""
         if not text.strip():
-            meldung(self.fenster, u"Die Zwischenablage enthält keinen Text.")
+            meldung(self.fenster, t(u"Die Zwischenablage enthält keinen Text.", u"The clipboard contains no text.", u"El portapapeles no contiene texto."))
             return
-        self.uebernimm(lg.namen_aus_text(text), u"Zwischenablage")
+        self.uebernimm(lg.namen_aus_text(text),
+                       t(u"Zwischenablage", u"Clipboard", u"Portapapeles"))
 
     def eingeben(self):
-        f = dlg.lade_xaml(_XAML_NAMEN)
+        f = dlg.lade_xaml(uebersetze_xaml(_XAML_NAMEN, _XAML_NAMEN_TEXTE))
         dlg.setze_besitzer(f, besitzer=self.fenster)
         eingabe = f.FindName("eingabe")
         ergebnis = {"text": None}
@@ -734,7 +860,7 @@ class WorksetCreatorFenster(object):
         f.Loaded += lambda _s, _a: eingabe.Focus()
         f.ShowDialog()
         if ergebnis["text"] is not None:
-            self.uebernimm(lg.namen_aus_text(ergebnis["text"]), u"Eingabe")
+            self.uebernimm(lg.namen_aus_text(ergebnis["text"]), t(u"Eingabe", u"Input", u"Entrada"))
 
     # --- Erstellen --------------------------------------------------------
     def _teamarbeit_sicherstellen(self):
@@ -742,11 +868,11 @@ class WorksetCreatorFenster(object):
             return True
         if not dlg.frage(
                 self.fenster,
-                u"Für dieses Projekt ist die Teamarbeit nicht aktiviert.\n\n"
+                t(u"Für dieses Projekt ist die Teamarbeit nicht aktiviert.\n\n"
                 u"Teamarbeit jetzt aktivieren? Revit legt dabei die Worksets "
                 u"'%s' und '%s' an. Danach muss das Projekt als "
                 u"Zentralmodell gespeichert werden.\n\nDas lässt sich nicht "
-                u"rückgängig machen." % (WS_EBENEN_RASTER, WS_STANDARD),
+                u"rückgängig machen.", u"Worksharing is not enabled for this project.\n\nEnable worksharing now? Revit creates the worksets '%s' and '%s'. The project must then be saved as a central model.\n\nThis cannot be undone.", u"El trabajo compartido no está activado en este proyecto.\n\n¿Activarlo ahora? Revit crea los subproyectos '%s' y '%s'. Después hay que guardar el proyecto como modelo central.\n\nNo se puede deshacer.") % (WS_EBENEN_RASTER, WS_STANDARD),
                 titel=TITEL, warnung=True):
             return False
         self.doc.EnableWorksharing(WS_EBENEN_RASTER, WS_STANDARD)
@@ -756,7 +882,7 @@ class WorksetCreatorFenster(object):
     def erstelle(self):
         markiert = [e for e in self.neu if e.markiert]
         if not markiert:
-            meldung(self.fenster, u"In 'Neue Worksets' ist nichts markiert.")
+            meldung(self.fenster, t(u"In 'Neue Worksets' ist nichts markiert.", u"Nothing is checked in 'New worksets'.", u"No hay nada marcado en 'Subproyectos nuevos'."))
             return
         if not self._teamarbeit_sicherstellen():
             return
@@ -769,19 +895,19 @@ class WorksetCreatorFenster(object):
             if status == lg.UEBERSPRUNGEN:
                 uebersprungen.append(name)
             elif status == lg.UNGUELTIG:
-                fehler.append(u"%s: ungültige Zeichen" % name)
+                fehler.append(t(u"%s: ungültige Zeichen", u"%s: invalid characters", u"%s: caracteres no válidos") % name)
 
         aufgaben = [(n, z, s) for n, z, s in plan if z]
         if aufgaben:
             sichtbar = bool(self.sichtbar.IsChecked)
-            t = Transaction(self.doc, u"pyMLG Worksets erstellen")
-            t.Start()
+            transaktion = Transaction(self.doc, t(u"pyMLG Worksets erstellen", u"pyMLG Create worksets", u"pyMLG Crear subproyectos"))
+            transaktion.Start()
             try:
                 einstellungen = WorksetDefaultVisibilitySettings \
                     .GetWorksetDefaultVisibilitySettings(self.doc)
                 for name, ziel, status in aufgaben:
                     if not WorksetTable.IsWorksetNameUnique(self.doc, ziel):
-                        fehler.append(u"%s: Name bereits vergeben" % ziel)
+                        fehler.append(t(u"%s: Name bereits vergeben", u"%s: name already taken", u"%s: el nombre ya existe") % ziel)
                         continue
                     try:
                         ws = Workset.Create(self.doc, ziel)
@@ -794,10 +920,10 @@ class WorksetCreatorFenster(object):
                     erstellt.append(name)
                     if status == lg.UMBENANNT:
                         umbenannt.append(u"%s → %s" % (name, ziel))
-                t.Commit()
+                transaktion.Commit()
             except Exception:
-                if t.HasStarted() and not t.HasEnded():
-                    t.RollBack()
+                if transaktion.HasStarted() and not transaktion.HasEnded():
+                    transaktion.RollBack()
                 raise
 
         fertig = set(lg.schluessel(n) for n in erstellt)
@@ -805,7 +931,7 @@ class WorksetCreatorFenster(object):
                     if lg.schluessel(e.name) not in fertig]
         self.lade_vorhandene()
         self.zeichne_neu()
-        self.status.Text = u"%d Worksets erstellt." % len(erstellt)
+        self.status.Text = t(u"%d Worksets erstellt.", u"%d worksets created.", u"%d subproyectos creados.") % len(erstellt)
         meldung(self.fenster, self._bericht(erstellt, umbenannt,
                                             uebersprungen, fehler),
                 warnung=bool(fehler))
@@ -817,14 +943,14 @@ class WorksetCreatorFenster(object):
                 return u""
             zeilen = [u"  " + n for n in namen[:maximal]]
             if len(namen) > maximal:
-                zeilen.append(u"  ... und %d weitere" % (len(namen) - maximal))
+                zeilen.append(t(u"  ... und %d weitere", u"  ... and %d more", u"  ... y %d más") % (len(namen) - maximal))
             return u"\n\n%s (%d):\n%s" % (titel, len(namen),
                                           u"\n".join(zeilen))
 
-        return (u"%d Worksets erstellt." % len(erstellt)
-                + liste(u"Umbenannt", umbenannt)
-                + liste(u"Übersprungen, existieren bereits", uebersprungen)
-                + liste(u"Nicht erstellt", fehler))
+        return (t(u"%d Worksets erstellt.", u"%d worksets created.", u"%d subproyectos creados.") % len(erstellt)
+                + liste(t(u"Umbenannt", u"Renamed", u"Renombrados"), umbenannt)
+                + liste(t(u"Übersprungen, existieren bereits", u"Skipped, already exist", u"Omitidos, ya existen"), uebersprungen)
+                + liste(t(u"Nicht erstellt", u"Not created", u"No creados"), fehler))
 
     def zeige(self):
         self.fenster.ShowDialog()

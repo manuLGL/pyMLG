@@ -1,12 +1,18 @@
-title: "Excel zurück lesen"
+title:
+  de_de: "Excel zurück lesen"
+  en_us: "Read Excel Back"
+  es_es: "Leer Excel"
 author: pyMLG
-tooltip: >-
-  Liest eine zuvor exportierte und in Excel bearbeitete Datei zurück
-  in das Modell.
+tooltip:
+  de_de: >-
+    Liest eine exportierte und in Excel bearbeitete Datei zurück in das Modell (Zuordnung über die UniqueId). Vor dem Schreiben wird angezeigt, was sich ändert; ein Rückgängig-Schritt. Benötigt openpyxl.
 
-  Die Zuordnung erfolgt über die UniqueId in Spalte A. Schreibgeschützte und
-  berechnete Spalten werden ignoriert, gelöschte Elemente übersprungen.
-  Vor dem Schreiben wird angezeigt, was geändert wird; alle Änderungen
-  lassen sich mit einem einzigen Rückgängig-Schritt zurücknehmen.
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Reads an exported file edited in Excel back into the model (matched by UniqueId). Shows what will change before writing; one undo step. Requires openpyxl.
 
-  Benötigt die CPython3-Engine und openpyxl.
+    Requires the CPython3 engine.
+  es_es: >-
+    Vuelve a leer en el modelo un archivo exportado y editado en Excel (asociado por UniqueId). Muestra qué cambiará antes de escribir; un paso de deshacer. Requiere openpyxl.
+
+    Requiere el motor CPython3.

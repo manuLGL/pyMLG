@@ -1,0 +1,12 @@
+title:
+  de_de: "Workset aus"
+  en_us: "Workset Off"
+  es_es: "Ocultar subproyecto"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Blendet das Workset des ausgewählten Elements in der aktiven Ansicht aus.
+  en_us: >-
+    Hides the workset of the selected element in the active view.
+  es_es: >-
+    Oculta el subproyecto del elemento seleccionado en la vista activa.

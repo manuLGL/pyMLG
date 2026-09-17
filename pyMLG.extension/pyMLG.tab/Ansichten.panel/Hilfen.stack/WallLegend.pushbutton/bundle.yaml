@@ -1,0 +1,12 @@
+title:
+  de_de: "Wand-\nlegende"
+  en_us: "Wall\nLegend"
+  es_es: "Leyenda\nde muros"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Erstellt automatisch einen Schnitt je verwendetem Wandtyp.
+  en_us: >-
+    Automatically creates one section per wall type used in the project.
+  es_es: >-
+    Crea automáticamente una sección por cada tipo de muro usado en el proyecto.

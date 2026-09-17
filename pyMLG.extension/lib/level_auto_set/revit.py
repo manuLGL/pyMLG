@@ -38,6 +38,7 @@ from Autodesk.Revit.DB import (  # noqa: E402
 )
 
 from level_auto_set import logik as lg  # noqa: E402
+from mlg_sprache import t  # noqa: E402
 
 # Ab dieser Abweichung (Fuß, ca. 0,3 mm) gilt ein Element als verschoben
 BEWEGT_TOLERANZ = 1e-3
@@ -157,12 +158,18 @@ def _parameter(element, bip_name, beschreibbar=True):
 
 
 def _finde_anker(element, kandidaten):
-    """(Anker, Ebenenparameter, [Versatzparameter]) oder None."""
+    """(Anker, Ebenenparameter, [Versatzparameter]) oder None.
+
+    Anker mit freier Höhe (Wand oben): Bei "Nicht verbunden" ist der Versatz
+    oben in Revit schreibgeschützt - er wird erst nach dem Setzen der Ebene
+    beschreibbar und darf deshalb hier schreibgeschützt sein."""
     for anker in kandidaten:
         ebene = _parameter(element, anker.ebene)
         if ebene is None or ebene.StorageType != StorageType.ElementId:
             continue
-        versaetze = [_parameter(element, n) for n in anker.versaetze]
+        beschreibbar = not anker.freie_hoehe
+        versaetze = [_parameter(element, n, beschreibbar)
+                     for n in anker.versaetze]
         if any(v is None or v.StorageType != StorageType.Double
                for v in versaetze):
             continue
@@ -279,7 +286,7 @@ def beschreibung(element):
 def _set(parameter, wert):
     """Parameter.Set meldet viele Ablehnungen nur über den Rückgabewert."""
     if not parameter.Set(wert):
-        raise ValueError(u"Revit lehnt '%s' ab" % parameter.Definition.Name)
+        raise ValueError(t(u"Revit lehnt '%s' ab", u"Revit rejects '%s'", u"Revit rechaza '%s'") % parameter.Definition.Name)
 
 
 def _setze_seite(seite, ebene):
@@ -291,10 +298,16 @@ def _setze_seite(seite, ebene):
         _set(parameter, wert)
 
 
-def _verbinde_oben(seite, ebene):
-    """Nicht verbundene Oberkante an eine Ebene hängen."""
+def _verbinde_oben(element, seite, ebene):
+    """Nicht verbundene Oberkante an eine Ebene hängen. Der Versatz wird
+    erst danach beschreibbar - deshalb hier neu holen."""
     _set(seite.ebene_param, ebene.ebene.Id)
-    for parameter in seite.versatz_params:
+    for name in seite.anker.versaetze:
+        parameter = _parameter(element, name)
+        if parameter is None:
+            raise ValueError(t(u"Versatz oben ist schreibgeschützt",
+                               u"Top offset is read-only",
+                               u"El desfase superior es de solo lectura"))
         _set(parameter, seite.hoehe - ebene.hoehe)
 
 
@@ -312,8 +325,8 @@ def setze_ebenen(doc, elemente, ebenen_liste, modus_basis, modus_oben,
     nach_id = dict((e.id, e) for e in ebenen_liste)
     boxen = {}
 
-    t = Transaction(doc, u"pyMLG Ebenen setzen")
-    t.Start()
+    transaktion = Transaction(doc, t(u"pyMLG Ebenen setzen", u"pyMLG Set levels", u"pyMLG Asignar niveles"))
+    transaktion.Start()
     try:
         for element in elemente:
             grund = _pruefe(element, profil_ignorieren,
@@ -324,7 +337,7 @@ def setze_ebenen(doc, elemente, ebenen_liste, modus_basis, modus_oben,
             basis = lies_basis(doc, element)
             if basis is None:
                 ergebnis.uebersprungen.append(
-                    (element, u"keine änderbare Ebene"))
+                    (element, t(u"keine änderbare Ebene", u"no editable level", u"sin nivel editable")))
                 continue
             oben = lies_oben(doc, element, basis)
 
@@ -334,27 +347,28 @@ def setze_ebenen(doc, elemente, ebenen_liste, modus_basis, modus_oben,
             plan_basis = None
             if _ist_ja(element, "WALL_BOTTOM_IS_ATTACHED"):
                 if modus != lg.IGNORIEREN:
-                    hinweise.append(u"Unterkante angehängt")
+                    hinweise.append(t(u"Unterkante angehängt", u"base attached", u"base enlazada"))
             else:
                 ziel = lg.waehle_ebene(basis.hoehe, auswahl, modus)
                 plan_basis = nach_id.get(ziel)
                 if plan_basis is None and modus != lg.IGNORIEREN:
-                    hinweise.append(u"keine passende Ebene für %s" % (
-                        u"die Oberkante" if basis.anker.oberkante
-                        else u"die Basis"))
+                    hinweise.append(
+                        t(u"keine passende Ebene für die Oberkante", u"no suitable level for the top", u"ningún nivel adecuado para la parte superior")
+                        if basis.anker.oberkante
+                        else t(u"keine passende Ebene für die Basis", u"no suitable level for the base", u"ningún nivel adecuado para la base"))
             plan_oben = None
             if oben is not None and oben.hoehe is not None \
                     and modus_oben != lg.IGNORIEREN \
                     and not (oben_unverbunden_ignorieren
                              and not oben.verbunden):
                 if _ist_ja(element, "WALL_TOP_IS_ATTACHED"):
-                    hinweise.append(u"Oberkante angehängt")
+                    hinweise.append(t(u"Oberkante angehängt", u"top attached", u"parte superior enlazada"))
                 else:
                     ziel = lg.waehle_ebene(oben.hoehe, auswahl, modus_oben)
                     plan_oben = nach_id.get(ziel)
                     if plan_oben is None:
                         hinweise.append(
-                            u"keine passende Ebene für die Oberkante")
+                            t(u"keine passende Ebene für die Oberkante", u"no suitable level for the top", u"ningún nivel adecuado para la parte superior"))
 
             aendern_basis = plan_basis is not None and (
                 id_wert(basis.ebene_param.AsElementId()) != plan_basis.id)
@@ -376,7 +390,7 @@ def setze_ebenen(doc, elemente, ebenen_liste, modus_basis, modus_oben,
             if aendern_oben:
                 schritte.append(
                     (lambda: _setze_seite(oben, plan_oben)) if oben.verbunden
-                    else (lambda: _verbinde_oben(oben, plan_oben)))
+                    else (lambda: _verbinde_oben(element, oben, plan_oben)))
             # Revit lehnt z.B. eine Stützenbasis über der aktuellen oberen
             # Ebene ab - dann zuerst die Oberkante setzen
             text = _ausfuehren(doc, schritte) \
@@ -400,10 +414,10 @@ def setze_ebenen(doc, elemente, ebenen_liste, modus_basis, modus_oben,
                     abs(a - b) > BEWEGT_TOLERANZ
                     for a, b in zip(vorher, nachher)):
                 ergebnis.verschoben.append(element)
-        t.Commit()
+        transaktion.Commit()
     except Exception:
-        if t.HasStarted() and not t.HasEnded():
-            t.RollBack()
+        if transaktion.HasStarted() and not transaktion.HasEnded():
+            transaktion.RollBack()
         raise
     return ergebnis
 
@@ -422,18 +436,18 @@ def _ausfuehren(doc, schritte):
         if st.HasStarted() and not st.HasEnded():
             st.RollBack()
         text = getattr(ausnahme, "Message", None) or u"%s" % ausnahme
-        return (text.strip().splitlines() or [u"Fehler"])[0]
+        return (text.strip().splitlines() or [t(u"Fehler", u"Error", u"Error")])[0]
 
 
 def _pruefe(element, profil_ignorieren, angehaengte_stuetzen_ignorieren):
     """Grund zum Überspringen oder None."""
     if profil_ignorieren and _parameter(element, "WALL_BASE_CONSTRAINT") \
             is not None and profil_bearbeitet(element):
-        return u"Wand mit bearbeitetem Profil"
+        return t(u"Wand mit bearbeitetem Profil", u"wall with edited profile", u"muro con perfil editado")
     if angehaengte_stuetzen_ignorieren and (
             _ist_ja(element, "COLUMN_TOP_ATTACHED_PARAM")
             or _ist_ja(element, "COLUMN_BASE_ATTACHED_PARAM")):
-        return u"angehängte Stütze"
+        return t(u"angehängte Stütze", u"attached column", u"pilar enlazado")
     return None
 
 

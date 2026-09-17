@@ -2,6 +2,7 @@
 
 from Autodesk.Revit.DB import WorksetVisibility, Transaction, WorksetId
 from pyrevit import revit
+from mlg_sprache import t
 
 __title__ = "WorksetOFF"
 
@@ -16,11 +17,11 @@ if doc.IsWorkshared:
         workset_id = element.WorksetId
 
         if workset_id != WorksetId.InvalidWorksetId:
-            t = Transaction(doc, "Workset ausblenden")
-            t.Start()
+            transaktion = Transaction(doc, t("Workset ausblenden", u"Hide workset", u"Ocultar subproyecto"))
+            transaktion.Start()
 
             try:
                 uidoc.ActiveView.SetWorksetVisibility(workset_id, WorksetVisibility.Hidden)
-                t.Commit()
+                transaktion.Commit()
             except:
-                t.RollBack()
+                transaktion.RollBack()

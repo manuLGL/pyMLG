@@ -41,6 +41,8 @@ GetType().Name erkannt, alle Id-Auflösungen erledigt ein übergebener
 Logik mit Attrappen ohne Revit prüfen (tools/test_filter_regelbaum.py).
 """
 
+from mlg_sprache import t
+
 # Knotenarten
 UND = "UND"
 ODER = "ODER"
@@ -53,31 +55,31 @@ FEHLER = "FEHLER"
 # Auswerter-Klasse -> (Schlüssel, Text, negierter Text)
 # Texte wie im deutschen Revit-Dialog "Filter".
 OPERATOREN = {
-    "FilterStringEquals": ("gleich", u"ist gleich", u"ist ungleich"),
-    "FilterStringBeginsWith": ("beginnt", u"beginnt mit", u"beginnt nicht mit"),
-    "FilterStringEndsWith": ("endet", u"endet mit", u"endet nicht mit"),
-    "FilterStringContains": ("enthaelt", u"enthält", u"enthält nicht"),
-    "FilterStringGreater": ("groesser", u"ist größer als",
-                            u"ist nicht größer als"),
+    "FilterStringEquals": ("gleich", t(u"ist gleich", u"equals", u"igual a"), t(u"ist ungleich", u"does not equal", u"no es igual a")),
+    "FilterStringBeginsWith": ("beginnt", t(u"beginnt mit", u"begins with", u"empieza por"), t(u"beginnt nicht mit", u"does not begin with", u"no empieza por")),
+    "FilterStringEndsWith": ("endet", t(u"endet mit", u"ends with", u"termina por"), t(u"endet nicht mit", u"does not end with", u"no termina por")),
+    "FilterStringContains": ("enthaelt", t(u"enthält", u"contains", u"contiene"), t(u"enthält nicht", u"does not contain", u"no contiene")),
+    "FilterStringGreater": ("groesser", t(u"ist größer als", u"is greater than", u"es mayor que"),
+                            t(u"ist nicht größer als", u"is not greater than", u"no es mayor que")),
     "FilterStringGreaterOrEqual": ("groesser_gleich",
-                                   u"ist größer als oder gleich",
-                                   u"ist nicht größer als oder gleich"),
-    "FilterStringLess": ("kleiner", u"ist kleiner als",
-                         u"ist nicht kleiner als"),
+                                   t(u"ist größer als oder gleich", u"is greater than or equal to", u"es mayor o igual que"),
+                                   t(u"ist nicht größer als oder gleich", u"is not greater than or equal to", u"no es mayor o igual que")),
+    "FilterStringLess": ("kleiner", t(u"ist kleiner als", u"is less than", u"es menor que"),
+                         t(u"ist nicht kleiner als", u"is not less than", u"no es menor que")),
     "FilterStringLessOrEqual": ("kleiner_gleich",
-                                u"ist kleiner als oder gleich",
-                                u"ist nicht kleiner als oder gleich"),
-    "FilterNumericEquals": ("gleich", u"ist gleich", u"ist ungleich"),
-    "FilterNumericGreater": ("groesser", u"ist größer als",
-                             u"ist nicht größer als"),
+                                t(u"ist kleiner als oder gleich", u"is less than or equal to", u"es menor o igual que"),
+                                t(u"ist nicht kleiner als oder gleich", u"is not less than or equal to", u"no es menor o igual que")),
+    "FilterNumericEquals": ("gleich", t(u"ist gleich", u"equals", u"igual a"), t(u"ist ungleich", u"does not equal", u"no es igual a")),
+    "FilterNumericGreater": ("groesser", t(u"ist größer als", u"is greater than", u"es mayor que"),
+                             t(u"ist nicht größer als", u"is not greater than", u"no es mayor que")),
     "FilterNumericGreaterOrEqual": ("groesser_gleich",
-                                    u"ist größer als oder gleich",
-                                    u"ist nicht größer als oder gleich"),
-    "FilterNumericLess": ("kleiner", u"ist kleiner als",
-                          u"ist nicht kleiner als"),
+                                    t(u"ist größer als oder gleich", u"is greater than or equal to", u"es mayor o igual que"),
+                                    t(u"ist nicht größer als oder gleich", u"is not greater than or equal to", u"no es mayor o igual que")),
+    "FilterNumericLess": ("kleiner", t(u"ist kleiner als", u"is less than", u"es menor que"),
+                          t(u"ist nicht kleiner als", u"is not less than", u"no es menor que")),
     "FilterNumericLessOrEqual": ("kleiner_gleich",
-                                 u"ist kleiner als oder gleich",
-                                 u"ist nicht kleiner als oder gleich"),
+                                 t(u"ist kleiner als oder gleich", u"is less than or equal to", u"es menor o igual que"),
+                                 t(u"ist nicht kleiner als oder gleich", u"is not less than or equal to", u"no es menor o igual que")),
 }
 
 WERTREGELN_ZAHL = ("FilterDoubleRule", "FilterIntegerRule",
@@ -214,8 +216,8 @@ def _zerlege_regel(regel, typ, aufloeser, negiert):
 
     if typ == "FilterCategoryRule":
         knoten.operator = "kategorie"
-        knoten.text_operator = (u"Kategorie ist nicht" if negiert
-                                else u"Kategorie ist")
+        knoten.text_operator = (t(u"Kategorie ist nicht", u"Category is not", u"La categoría no es") if negiert
+                                else t(u"Kategorie ist", u"Category is", u"La categoría es"))
         knoten.wert = u", ".join(aufloeser.kategorienamen(
             regel.GetCategories()))
         return knoten
@@ -224,8 +226,8 @@ def _zerlege_regel(regel, typ, aufloeser, negiert):
         # Einzige Regel, die den Parameter per Name statt per Id kennt
         knoten.parametername = regel.ParameterName
         knoten.operator = "vorhanden"
-        knoten.text_operator = (u"ist nicht vorhanden" if negiert
-                                else u"ist vorhanden")
+        knoten.text_operator = (t(u"ist nicht vorhanden", u"does not exist", u"no existe") if negiert
+                                else t(u"ist vorhanden", u"exists", u"existe"))
         return knoten
 
     knoten.parameter_id, knoten.parametername = _regelparameter(regel,
@@ -235,27 +237,27 @@ def _zerlege_regel(regel, typ, aufloeser, negiert):
         hat_wert = (typ == "HasValueFilterRule") != negiert
         knoten.operator = "hat_wert" if typ == "HasValueFilterRule" \
             else "hat_keinen_wert"
-        knoten.text_operator = (u"hat einen Wert" if hat_wert
-                                else u"hat keinen Wert")
+        knoten.text_operator = (t(u"hat einen Wert", u"has a value", u"tiene un valor") if hat_wert
+                                else t(u"hat keinen Wert", u"has no value", u"no tiene valor"))
         return knoten
 
     if typ == "FilterGlobalParameterAssociationRule":
         knoten.operator = "global"
         knoten.text_operator = (
-            u"ist nicht mit globalem Parameter verknüpft" if negiert
-            else u"ist mit globalem Parameter verknüpft")
+            t(u"ist nicht mit globalem Parameter verknüpft", u"is not associated with global parameter", u"no está asociado a un parámetro global") if negiert
+            else t(u"ist mit globalem Parameter verknüpft", u"is associated with global parameter", u"está asociado a un parámetro global"))
         knoten.wert = aufloeser.elementname(regel.RuleValue)
         return knoten
 
     if typ == "FilterStringRule" or typ in WERTREGELN_ZAHL:
         auswerter = typname(regel.GetEvaluator())
         schluessel, text, text_negiert = OPERATOREN.get(
-            auswerter, (auswerter, auswerter, u"nicht " + auswerter))
+            auswerter, (auswerter, auswerter, t(u"nicht ", u"not ", u"no ") + auswerter))
         knoten.operator = schluessel
         knoten.text_operator = text_negiert if negiert else text
         if typ == "FilterStringRule":
             knoten.rohwert = regel.RuleString
-            knoten.wert = u"„%s“" % regel.RuleString
+            knoten.wert = t(u"„%s“", u"\"%s\"", u"«%s»") % regel.RuleString
         elif typ == "FilterDoubleRule":
             knoten.rohwert = float(regel.RuleValue)
             knoten.epsilon = float(getattr(regel, "Epsilon", 0.0) or 0.0) \
@@ -273,7 +275,7 @@ def _zerlege_regel(regel, typ, aufloeser, negiert):
 
     # Unbekannte (künftige) Regelart: Parameter trotzdem ausweisen
     knoten.operator = typ
-    knoten.text_operator = (u"nicht " if negiert else u"") + typ
+    knoten.text_operator = (t(u"nicht ", u"not ", u"no ") if negiert else u"") + typ
     return knoten
 
 
@@ -348,17 +350,17 @@ def regel_als_text(knoten):
 
 
 def _verknuepfung(knoten):
-    return u" UND " if knoten.art in (UND, REGELN) else u" ODER "
+    return t(u" UND ", u" AND ", u" Y ") if knoten.art in (UND, REGELN) else t(u" ODER ", u" OR ", u" O ")
 
 
 def als_formel(knoten):
     """Einzeiliger Ausdruck, z.B. '(Typname beginnt mit „WD“ UND …) ODER …'."""
     if knoten is None or knoten.art == LEER:
-        return u"(keine Regeln)"
+        return t(u"(keine Regeln)", u"(no rules)", u"(sin reglas)")
     if knoten.art == REGEL:
         text = regel_als_text(knoten)
     elif knoten.art == FEHLER:
-        text = u"[Fehler: %s]" % knoten.wert
+        text = t(u"[Fehler: %s]", u"[Error: %s]", u"[Error: %s]") % knoten.wert
     elif knoten.art == UNBEKANNT:
         text = u"[%s]" % knoten.regeltyp
     else:
@@ -370,7 +372,7 @@ def als_formel(knoten):
             teile.append(teil)
         text = _verknuepfung(knoten).join(teile)
     if knoten.invertiert:
-        text = u"NICHT (" + text + u")"
+        text = t(u"NICHT (", u"NOT (", u"NO (") + text + u")"
     return text
 
 
@@ -378,24 +380,24 @@ def als_zeilen(knoten, tiefe=0):
     """Mehrzeilige, eingerückte Darstellung für Ausgabefenster/Protokoll."""
     einzug = u"    " * tiefe
     if knoten is None or knoten.art == LEER:
-        return [einzug + u"(keine Regeln - nur Kategorien)"]
-    nicht = u"NICHT " if knoten.invertiert else u""
+        return [einzug + t(u"(keine Regeln - nur Kategorien)", u"(no rules - categories only)", u"(sin reglas - solo categorías)")]
+    nicht = t(u"NICHT ", u"NOT ", u"NO ") if knoten.invertiert else u""
     if knoten.art == REGEL:
         return [einzug + u"- " + nicht + regel_als_text(knoten)
                 + u"   [%s%s, Parameter-Id %s]" % (
                     u"FilterInverseRule > " if knoten.negiert else u"",
                     knoten.regeltyp, knoten.parameter_id)]
     if knoten.art == FEHLER:
-        return [einzug + u"- FEHLER in %s: %s" % (knoten.regeltyp, knoten.wert)]
+        return [einzug + t(u"- FEHLER in %s: %s", u"- ERROR in %s: %s", u"- ERROR en %s: %s") % (knoten.regeltyp, knoten.wert)]
     if knoten.art == UNBEKANNT:
-        return [einzug + u"- UNBEKANNTER Filtertyp: %s" % knoten.regeltyp]
+        return [einzug + t(u"- UNBEKANNTER Filtertyp: %s", u"- UNKNOWN filter type: %s", u"- Tipo de filtro DESCONOCIDO: %s") % knoten.regeltyp]
     if (knoten.art == REGELN and len(knoten.kinder) == 1
             and not knoten.invertiert):
         # ElementParameterFilter mit nur einer Regel: keine eigene Ebene
         return als_zeilen(knoten.kinder[0], tiefe)
-    kopf = {UND: u"UND  [LogicalAndFilter]",
-            ODER: u"ODER  [LogicalOrFilter]",
-            REGELN: u"UND  [ElementParameterFilter, %d Regel(n)]"
+    kopf = {UND: t(u"UND  [LogicalAndFilter]", u"AND  [LogicalAndFilter]", u"Y  [LogicalAndFilter]"),
+            ODER: t(u"ODER  [LogicalOrFilter]", u"OR  [LogicalOrFilter]", u"O  [LogicalOrFilter]"),
+            REGELN: t(u"UND  [ElementParameterFilter, %d Regel(n)]", u"AND  [ElementParameterFilter, %d rule(s)]", u"Y  [ElementParameterFilter, %d regla(s)]")
                     % len(knoten.kinder)}[knoten.art]
     zeilen = [einzug + nicht + kopf]
     for kind in knoten.kinder:

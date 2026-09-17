@@ -34,6 +34,7 @@ from System.Windows.Media import Color, SolidColorBrush  # noqa: E402
 from filter_manager import dialoge as dlg  # noqa: E402
 from join_multiple import logik as lg  # noqa: E402
 from join_multiple import revit as rv  # noqa: E402
+from mlg_sprache import t, uebersetze_xaml  # noqa: E402
 
 TITEL = u"JoinMultiple"
 
@@ -53,13 +54,94 @@ FEHLERPROTOKOLL = os.path.join(dlg.protokollordner(),
 EINSTELLUNGEN = os.path.join(dlg.protokollordner(), "JoinMultiple.json")
 
 BEREICH_TEXT = {
-    rv.AUSWAHL: u"Elemente in der Auswahl",
-    rv.ANSICHT: u"Elemente in der aktuellen Ansicht",
-    rv.MODELL: u"Elemente im ganzen Modell",
+    rv.AUSWAHL: t(u"Elemente in der Auswahl", u"elements in selection", u"elementos en la selección"),
+    rv.ANSICHT: t(u"Elemente in der aktuellen Ansicht", u"elements in active view", u"elementos en la vista activa"),
+    rv.MODELL: t(u"Elemente im ganzen Modell", u"elements in the whole model", u"elementos en todo el modelo"),
 }
 
 BREITE_ANZAHL = 80.0
 BREITE_PRIO = 90.0
+
+XAML_TEXTE = {
+    "t0": (u"Höhere Priorität schneidet niedrigere. Nur markierte Kategorien werden bearbeitet.",
+           u"Higher priority cuts lower. Only checked categories are processed.",
+           u"La prioridad mayor corta a la menor. Solo se procesan las categorías marcadas."),
+    "t1": (u"Kategorie",
+           u"Category",
+           u"Categoría"),
+    "t2": (u"Elemente",
+           u"Elements",
+           u"Elementos"),
+    "t3": (u"Priorität",
+           u"Priority",
+           u"Prioridad"),
+    "t4": (u"Alle markieren",
+           u"Check all",
+           u"Marcar todo"),
+    "t5": (u"Keine",
+           u"None",
+           u"Ninguno"),
+    "t6": (u"Bereich",
+           u"Scope",
+           u"Ámbito"),
+    "t7": (u"Ausgewählte Elemente",
+           u"Selected elements",
+           u"Elementos seleccionados"),
+    "t8": (u"Elemente in aktueller Ansicht",
+           u"Elements in active view",
+           u"Elementos en la vista activa"),
+    "t9": (u"Alle Modellelemente",
+           u"All model elements",
+           u"Todos los elementos del modelo"),
+    "t10": (u"Sonst nur Kategorien, die sich mit 'Geometrie verbinden' zuverlässig bearbeiten lassen (Wände, Decken, Dächer, Stützen, Tragwerk, Fundamente, Allgemeines Modell ...)",
+           u"Otherwise only categories that work reliably with 'Join Geometry' (walls, floors, roofs, columns, framing, foundations, generic models ...)",
+           u"Si no, solo categorías que funcionan bien con 'Unir geometría' (muros, suelos, cubiertas, pilares, armazón, cimentaciones, modelos genéricos ...)"),
+    "t11": (u"Alle Modellkategorien anzeigen",
+           u"Show all model categories",
+           u"Mostrar todas las categorías de modelo"),
+    "t12": (u"Verbinden",
+           u"Join",
+           u"Unir"),
+    "t13": (u"Nur Elemente verbinden, deren Volumen sich überschneiden. Aus: auch Elemente, die sich nur berühren oder deren Umrisse sich überlagern.",
+           u"Only join elements whose volumes overlap. Off: also elements that only touch or whose bounding boxes overlap.",
+           u"Unir solo elementos cuyos volúmenes se solapan. Desactivado: también elementos que solo se tocan o cuyos contornos se superponen."),
+    "t14": (u"Nur wenn sich Elemente schneiden",
+           u"Only if elements intersect",
+           u"Solo si los elementos se intersecan"),
+    "t15": (u"Auch innerhalb derselben Kategorie",
+           u"Also within the same category",
+           u"También dentro de la misma categoría"),
+    "t16": (u"Bereits verbundene Elemente: Schnittreihenfolge nach Priorität umkehren, falls nötig",
+           u"Already joined elements: switch the cut order by priority if needed",
+           u"Elementos ya unidos: invertir el orden de corte según la prioridad si es necesario"),
+    "t17": (u"Bereits verbundene nach Priorität anpassen",
+           u"Adjust already joined by priority",
+           u"Ajustar los ya unidos por prioridad"),
+    "t18": (u"Zahlenwert eines Exemplar- oder Typparameters. Elemente ohne Wert nutzen die Priorität ihrer Kategorie.",
+           u"Numeric value of an instance or type parameter. Elements without a value use the priority of their category.",
+           u"Valor numérico de un parámetro de ejemplar o de tipo. Los elementos sin valor usan la prioridad de su categoría."),
+    "t19": (u"Priorität aus Parameter:",
+           u"Priority from parameter:",
+           u"Prioridad desde parámetro:"),
+    "t20": (u"Prioritäten zurücksetzen",
+           u"Reset priorities",
+           u"Restablecer prioridades"),
+    "t21": (u"Alle Kategorien auf die Vorgabewerte setzen (Stützen 500 ... Wände 300, Decken 200 ...)",
+           u"Set all categories to the default values (columns 500 ... walls 300, floors 200 ...)",
+           u"Poner todas las categorías en los valores por defecto (pilares 500 ... muros 300, suelos 200 ...)"),
+    "t22": (u"Bearbeitete Elemente danach auswählen",
+           u"Select processed elements afterwards",
+           u"Seleccionar después los elementos procesados"),
+    "t23": (u"Verbindung lösen",
+           u"Unjoin elements",
+           u"Desunir elementos"),
+    "t24": (u"Elemente verbinden",
+           u"Join elements",
+           u"Unir elementos"),
+    "t25": (u"Schließen",
+           u"Close",
+           u"Cerrar"),
+}
 
 XAML = u"""
 <Window %s Title="JoinMultiple (pyMLG)" Width="980" Height="640"
@@ -93,7 +175,7 @@ XAML = u"""
     <DockPanel>
       <TextBlock DockPanel.Dock="Top" Foreground="#555" Margin="0,0,0,6"
                  TextWrapping="Wrap"
-                 Text="Höhere Priorität schneidet niedrigere. Nur markierte Kategorien werden bearbeitet."/>
+                 Text="{{t0}}"/>
       <Border DockPanel.Dock="Top" BorderBrush="#ABADB3"
               BorderThickness="1,1,1,0" Background="#F3F3F3">
         <Grid Margin="6,4,24,4">
@@ -102,10 +184,10 @@ XAML = u"""
             <ColumnDefinition Width="80"/>
             <ColumnDefinition Width="90"/>
           </Grid.ColumnDefinitions>
-          <TextBlock Text="Kategorie" FontWeight="SemiBold"/>
-          <TextBlock Grid.Column="1" Text="Elemente" FontWeight="SemiBold"
+          <TextBlock Text="{{t1}}" FontWeight="SemiBold"/>
+          <TextBlock Grid.Column="1" Text="{{t2}}" FontWeight="SemiBold"
                      HorizontalAlignment="Right" Margin="0,0,12,0"/>
-          <TextBlock Grid.Column="2" Text="Priorität" FontWeight="SemiBold"/>
+          <TextBlock Grid.Column="2" Text="{{t3}}" FontWeight="SemiBold"/>
         </Grid>
       </Border>
       <ListBox x:Name="liste" HorizontalContentAlignment="Stretch"
@@ -116,61 +198,61 @@ XAML = u"""
     <DockPanel Grid.Column="2" LastChildFill="False">
       <StackPanel DockPanel.Dock="Top">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-          <Button x:Name="alle" Content="Alle markieren" Padding="8,3"
+          <Button x:Name="alle" Content="{{t4}}" Padding="8,3"
                   Margin="0,0,6,0"/>
-          <Button x:Name="keine" Content="Keine" Padding="8,3"/>
+          <Button x:Name="keine" Content="{{t5}}" Padding="8,3"/>
         </StackPanel>
 
-        <GroupBox Header="Bereich">
+        <GroupBox Header="{{t6}}">
           <StackPanel>
             <RadioButton x:Name="bereich_auswahl"
-                         Content="Ausgewählte Elemente"/>
+                         Content="{{t7}}"/>
             <RadioButton x:Name="bereich_ansicht"
-                         Content="Elemente in aktueller Ansicht"/>
-            <RadioButton x:Name="bereich_modell" Content="Alle Modellelemente"/>
+                         Content="{{t8}}"/>
+            <RadioButton x:Name="bereich_modell" Content="{{t9}}"/>
             <CheckBox x:Name="alle_kategorien"
-                      ToolTip="Sonst nur Kategorien, die sich mit 'Geometrie verbinden' zuverlässig bearbeiten lassen (Wände, Decken, Dächer, Stützen, Tragwerk, Fundamente, Allgemeines Modell ...)">
-              <TextBlock Text="Alle Modellkategorien anzeigen"
+                      ToolTip="{{t10}}">
+              <TextBlock Text="{{t11}}"
                          TextWrapping="Wrap"/>
             </CheckBox>
           </StackPanel>
         </GroupBox>
 
-        <GroupBox Header="Verbinden">
+        <GroupBox Header="{{t12}}">
           <StackPanel>
             <CheckBox x:Name="nur_bei_schnitt"
-                      ToolTip="Nur Elemente verbinden, deren Volumen sich überschneiden. Aus: auch Elemente, die sich nur berühren oder deren Umrisse sich überlagern.">
-              <TextBlock Text="Nur wenn sich Elemente schneiden"
+                      ToolTip="{{t13}}">
+              <TextBlock Text="{{t14}}"
                          TextWrapping="Wrap"/>
             </CheckBox>
             <CheckBox x:Name="gleiche_kategorie">
-              <TextBlock Text="Auch innerhalb derselben Kategorie"
+              <TextBlock Text="{{t15}}"
                          TextWrapping="Wrap"/>
             </CheckBox>
             <CheckBox x:Name="bestehende_anpassen"
-                      ToolTip="Bereits verbundene Elemente: Schnittreihenfolge nach Priorität umkehren, falls nötig">
-              <TextBlock Text="Bereits verbundene nach Priorität anpassen"
+                      ToolTip="{{t16}}">
+              <TextBlock Text="{{t17}}"
                          TextWrapping="Wrap"/>
             </CheckBox>
           </StackPanel>
         </GroupBox>
 
-        <GroupBox Header="Priorität">
+        <GroupBox Header="{{t3}}">
           <StackPanel>
             <CheckBox x:Name="prio_parameter"
-                      ToolTip="Zahlenwert eines Exemplar- oder Typparameters. Elemente ohne Wert nutzen die Priorität ihrer Kategorie.">
-              <TextBlock Text="Priorität aus Parameter:"
+                      ToolTip="{{t18}}">
+              <TextBlock Text="{{t19}}"
                          TextWrapping="Wrap"/>
             </CheckBox>
             <TextBox x:Name="parametername" Padding="3" Margin="18,2,0,6"/>
             <Button x:Name="zuruecksetzen" Padding="8,4"
-                    Content="Prioritäten zurücksetzen"
-                    ToolTip="Alle Kategorien auf die Vorgabewerte setzen (Stützen 500 ... Wände 300, Decken 200 ...)"/>
+                    Content="{{t20}}"
+                    ToolTip="{{t21}}"/>
           </StackPanel>
         </GroupBox>
 
         <CheckBox x:Name="auswaehlen" Margin="2,0,0,0">
-          <TextBlock Text="Bearbeitete Elemente danach auswählen"
+          <TextBlock Text="{{t22}}"
                      TextWrapping="Wrap"/>
         </CheckBox>
       </StackPanel>
@@ -179,16 +261,16 @@ XAML = u"""
         <TextBlock x:Name="anzahl" FontSize="22" FontWeight="SemiBold"/>
         <TextBlock x:Name="anzahl_text" Foreground="#555" Margin="0,0,0,10"
                    TextWrapping="Wrap"/>
-        <Button x:Name="loesen" Content="Verbindung lösen" Padding="8,6"
+        <Button x:Name="loesen" Content="{{t23}}" Padding="8,6"
                 Margin="0,0,0,6"/>
-        <Button x:Name="verbinden" Content="Elemente verbinden"
+        <Button x:Name="verbinden" Content="{{t24}}"
                 FontWeight="Bold" Padding="8,9"/>
       </StackPanel>
     </DockPanel>
 
     <!-- Fußzeile -->
     <DockPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,10,0,0">
-      <Button x:Name="schliessen" Content="Schließen" Width="100"
+      <Button x:Name="schliessen" Content="{{t25}}" Width="100"
               DockPanel.Dock="Right" IsCancel="True"/>
       <TextBlock x:Name="status" VerticalAlignment="Center" Foreground="#555"
                  TextTrimming="CharacterEllipsis"/>
@@ -225,7 +307,7 @@ def sicher(besitzer_liefern, funktion):
             try:
                 meldung(besitzer_liefern(), u"%s%s" % (
                     dlg.fehlertext(fehler),
-                    u"\n\nTechnische Details: %s" % pfad if pfad else u""),
+                    t(u"\n\nTechnische Details: %s", u"\n\nTechnical details: %s", u"\n\nDetalles técnicos: %s") % pfad if pfad else u""),
                     warnung=True)
             except Exception:
                 pass
@@ -279,7 +361,7 @@ class JoinMultipleFenster(object):
                              for k, (_b, n)
                              in rv.standard_kategorien().items())
 
-        f = self.fenster = dlg.lade_xaml(XAML)
+        f = self.fenster = dlg.lade_xaml(uebersetze_xaml(XAML, XAML_TEXTE))
         try:
             dlg.setze_besitzer(f, handle=uiapp.MainWindowHandle)
         except Exception:
@@ -314,7 +396,7 @@ class JoinMultipleFenster(object):
         else:
             self.bereich_ansicht.IsChecked = True
         if not hat_auswahl:
-            self.bereich_auswahl.Content = u"Ausgewählte Elemente (keine)"
+            self.bereich_auswahl.Content = t(u"Ausgewählte Elemente (keine)", u"Selected elements (none)", u"Elementos seleccionados (ninguno)")
 
         self._verdrahte()
         self.lade()
@@ -332,7 +414,7 @@ class JoinMultipleFenster(object):
         klick("alle", lambda: self.markiere(True))
         klick("keine", lambda: self.markiere(False))
         klick("zuruecksetzen", self.setze_zurueck)
-        klick("verbinden", self.verbinde)
+        klick(t("verbinden", u"join", u"unir"), self.verbinde)
         klick("loesen", self.loese)
         klick("schliessen", f.Close)
         for box in (self.bereich_auswahl, self.bereich_ansicht,
@@ -471,7 +553,7 @@ class JoinMultipleFenster(object):
         self.anzahl.Text = u"%d" % elemente
         self.anzahl_text.Text = BEREICH_TEXT[self.bereich()] + (
             u"" if len(self.markierte()) == len(self.kategorien)
-            else u" (markierte Kategorien)")
+            else t(u" (markierte Kategorien)", u" (checked categories)", u" (categorías marcadas)"))
 
     def markiere(self, zustand):
         for kategorie in self.kategorien:
@@ -483,14 +565,14 @@ class JoinMultipleFenster(object):
         self.aktualisiere_anzahl()
 
     def setze_zurueck(self):
-        if not dlg.frage(self.fenster, u"Die Prioritäten aller Kategorien "
-                         u"auf die Vorgabewerte zurücksetzen?", titel=TITEL):
+        if not dlg.frage(self.fenster, t(u"Die Prioritäten aller Kategorien "
+                         u"auf die Vorgabewerte zurücksetzen?", u"Reset the priorities of all categories to the default values?", u"¿Restablecer las prioridades de todas las categorías a los valores por defecto?"), titel=TITEL):
             return
         self.prioritaeten = {}
         for kategorie in self.kategorien:
             kategorie.prio_feld.Text = u"%s" % self.vorgaben.get(
                 kategorie.schluessel, 0)
-        self.status.Text = u"Prioritäten zurückgesetzt."
+        self.status.Text = t(u"Prioritäten zurückgesetzt.", u"Priorities reset.", u"Prioridades restablecidas.")
 
     # --- Ausführen --------------------------------------------------------
     def _vorbereiten(self, aktion):
@@ -498,8 +580,8 @@ class JoinMultipleFenster(object):
         kategorien = self.markierte()
         elemente = [e for k in kategorien for e in k.elemente]
         if not elemente:
-            meldung(self.fenster, u"Keine Elemente in markierten "
-                    u"Kategorien.")
+            meldung(self.fenster, t(u"Keine Elemente in markierten "
+                    u"Kategorien.", u"No elements in checked categories.", u"No hay elementos en las categorías marcadas."))
             return None
         prios = {}
         for kategorie in kategorien:
@@ -516,8 +598,8 @@ class JoinMultipleFenster(object):
         if self.prio_parameter.IsChecked:
             parameter = (self.parametername.Text or u"").strip()
             if not parameter:
-                meldung(self.fenster, u"Bitte den Namen des Parameters für "
-                        u"die Priorität eingeben.", warnung=True)
+                meldung(self.fenster, t(u"Bitte den Namen des Parameters für "
+                        u"die Priorität eingeben.", u"Please enter the name of the priority parameter.", u"Introduzca el nombre del parámetro de prioridad."), warnung=True)
                 return None
 
         def prioritaet(element):
@@ -528,14 +610,14 @@ class JoinMultipleFenster(object):
             return prios[str(rv.kategorie_schluessel(element))]
 
         if self.bereich() == rv.MODELL and len(elemente) > 2000:
-            if not dlg.frage(self.fenster, u"%d Elemente im ganzen Modell "
-                             u"%s? Das kann einige Minuten dauern."
+            if not dlg.frage(self.fenster, t(u"%d Elemente im ganzen Modell "
+                             u"%s? Das kann einige Minuten dauern.", u"%d elements in the whole model - %s? This can take a few minutes.", u"%d elementos en todo el modelo - ¿%s? Puede tardar unos minutos.")
                              % (len(elemente), aktion), titel=TITEL):
                 return None
         return elemente, prioritaet
 
     def verbinde(self):
-        vorbereitet = self._vorbereiten(u"verbinden")
+        vorbereitet = self._vorbereiten(t(u"verbinden", u"join", u"unir"))
         if vorbereitet is None:
             return
         elemente, prioritaet = vorbereitet
@@ -545,41 +627,41 @@ class JoinMultipleFenster(object):
             gleiche_kategorie=bool(self.gleiche_kategorie.IsChecked),
             bestehende_anpassen=bool(self.bestehende_anpassen.IsChecked))
         n = ergebnis.anzahl
-        zeilen = [u"Neu verbunden: %d" % n[lg.NEU],
-                  u"Bereits verbunden: %d" % n[lg.BEREITS]]
+        zeilen = [t(u"Neu verbunden: %d", u"Newly joined: %d", u"Unidos nuevos: %d") % n[lg.NEU],
+                  t(u"Bereits verbunden: %d", u"Already joined: %d", u"Ya unidos: %d") % n[lg.BEREITS]]
         if self.nur_bei_schnitt.IsChecked:
-            zeilen.append(u"Übersprungen, schneiden sich nicht: %d"
+            zeilen.append(t(u"Übersprungen, schneiden sich nicht: %d", u"Skipped, do not intersect: %d", u"Omitidos, no se intersecan: %d")
                           % n[lg.UEBERSPRUNGEN])
         zeilen += [u"",
-                   u"Schnittreihenfolge nach Priorität:",
-                   u"  umgekehrt: %d" % n[lg.UMGEDREHT],
-                   u"  stimmte bereits: %d" % n[lg.RICHTIG]]
+                   t(u"Schnittreihenfolge nach Priorität:", u"Cut order by priority:", u"Orden de corte por prioridad:"),
+                   t(u"  umgekehrt: %d", u"  switched: %d", u"  invertidos: %d") % n[lg.UMGEDREHT],
+                   t(u"  stimmte bereits: %d", u"  already correct: %d", u"  ya correctos: %d") % n[lg.RICHTIG]]
         if n[lg.GLEICH]:
-            zeilen.append(u"  gleiche Priorität, unverändert: %d"
+            zeilen.append(t(u"  gleiche Priorität, unverändert: %d", u"  same priority, unchanged: %d", u"  misma prioridad, sin cambios: %d")
                           % n[lg.GLEICH])
         if n[lg.NICHT_GEPRUEFT]:
             zeilen.append(
-                u"  NICHT geprüft: %d bereits verbundene Paare - dafür "
-                u"'Bereits verbundene nach Priorität anpassen' einschalten"
+                t(u"  NICHT geprüft: %d bereits verbundene Paare - dafür "
+                u"'Bereits verbundene nach Priorität anpassen' einschalten", u"  NOT checked: %d already joined pairs - enable 'Adjust already joined by priority'", u"  NO comprobados: %d pares ya unidos - active 'Ajustar los ya unidos por prioridad'")
                 % n[lg.NICHT_GEPRUEFT])
         if n[lg.ABGELEHNT]:
-            zeilen.append(u"  von Revit nicht übernommen: %d"
+            zeilen.append(t(u"  von Revit nicht übernommen: %d", u"  not accepted by Revit: %d", u"  no aceptados por Revit: %d")
                           % n[lg.ABGELEHNT])
-            zeilen.extend(u"    " + t for t in ergebnis.abgelehnt[:10])
+            zeilen.extend(u"    " + text for text in ergebnis.abgelehnt[:10])
         if ergebnis.falsch_nach_speichern:
-            zeilen.append(u"  nach dem Speichern FALSCH: %d"
+            zeilen.append(t(u"  nach dem Speichern FALSCH: %d", u"  WRONG after saving: %d", u"  INCORRECTOS después de guardar: %d")
                           % len(ergebnis.falsch_nach_speichern))
-            zeilen.extend(u"    " + t
-                          for t in ergebnis.falsch_nach_speichern[:10])
+            zeilen.extend(u"    " + text
+                          for text in ergebnis.falsch_nach_speichern[:10])
         else:
-            zeilen.append(u"  nach dem Speichern kontrolliert: alles richtig")
-        zeilen += [u"", u"Protokoll: %s" % rv.PROTOKOLL]
+            zeilen.append(t(u"  nach dem Speichern kontrolliert: alles richtig", u"  checked after saving: all correct", u"  comprobado después de guardar: todo correcto"))
+        zeilen += [u"", t(u"Protokoll: %s", u"Log: %s", u"Registro: %s") % rv.PROTOKOLL]
         self._abschluss(elemente, ergebnis, zeilen,
-                        u"%d verbunden, %d umgekehrt" % (
+                        t(u"%d verbunden, %d umgekehrt", u"%d joined, %d switched", u"%d unidos, %d invertidos") % (
                             n[lg.NEU], n[lg.UMGEDREHT]))
 
     def loese(self):
-        vorbereitet = self._vorbereiten(u"lösen")
+        vorbereitet = self._vorbereiten(t(u"lösen", u"unjoin", u"desunir"))
         if vorbereitet is None:
             return
         elemente, _prioritaet = vorbereitet
@@ -587,19 +669,19 @@ class JoinMultipleFenster(object):
             self.doc, elemente,
             gleiche_kategorie=bool(self.gleiche_kategorie.IsChecked))
         self._abschluss(elemente, ergebnis,
-                        [u"Verbindungen gelöst: %d" % ergebnis.geloest],
-                        u"%d Verbindungen gelöst" % ergebnis.geloest)
+                        [t(u"Verbindungen gelöst: %d", u"Joins removed: %d", u"Uniones eliminadas: %d") % ergebnis.geloest],
+                        t(u"%d Verbindungen gelöst", u"%d joins removed", u"%d uniones eliminadas") % ergebnis.geloest)
 
     def _abschluss(self, elemente, ergebnis, zeilen, kurz, maximal=10):
         if self.auswaehlen.IsChecked and ergebnis.bearbeitet:
             rv.waehle_aus(self.uidoc, elemente, ergebnis.bearbeitet)
         if ergebnis.fehler:
-            zeilen.append(u"\nFehlgeschlagen: %d" % len(ergebnis.fehler))
-            zeilen.extend(u"  " + t for t in ergebnis.fehler[:maximal])
+            zeilen.append(t(u"\nFehlgeschlagen: %d", u"\nFailed: %d", u"\nFallidos: %d") % len(ergebnis.fehler))
+            zeilen.extend(u"  " + text for text in ergebnis.fehler[:maximal])
             if len(ergebnis.fehler) > maximal:
-                zeilen.append(u"  ... und %d weitere"
+                zeilen.append(t(u"  ... und %d weitere", u"  ... and %d more", u"  ... y %d más")
                               % (len(ergebnis.fehler) - maximal))
-        self.status.Text = kurz + (u", %d fehlgeschlagen"
+        self.status.Text = kurz + (t(u", %d fehlgeschlagen", u", %d failed", u", %d fallidos")
                                    % len(ergebnis.fehler)
                                    if ergebnis.fehler else u"")
         meldung(self.fenster, u"\n".join(zeilen),

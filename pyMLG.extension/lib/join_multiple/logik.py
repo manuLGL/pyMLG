@@ -7,6 +7,8 @@ niedrigeren. Bei gleicher Priorität bleibt die Reihenfolge, die Revit wählt.
 
 import re
 
+from mlg_sprache import t
+
 # Vorgaben je BuiltInCategory-Name. Nur diese Kategorien lassen sich
 # zuverlässig mit "Geometrie verbinden" bearbeiten.
 STANDARD_PRIORITAETEN = (
@@ -48,7 +50,7 @@ def lies_prioritaet(text):
     if not text:
         return 0
     if not re.match(r"^[+-]?\d+$", text):
-        raise ValueError(u"'%s' ist keine ganze Zahl." % text)
+        raise ValueError(t(u"'%s' ist keine ganze Zahl.", u"'%s' is not a whole number.", u"'%s' no es un número entero.") % text)
     return int(text)
 
 

@@ -24,6 +24,7 @@ from Autodesk.Revit.DB import (  # noqa: E402
 )
 
 from filter_more import baum as bm  # noqa: E402
+from mlg_sprache import t  # noqa: E402
 
 AUSWAHL = 0
 ANSICHT = 1
@@ -44,9 +45,9 @@ ABHAENGIGE = "abhaengige"
 MIT_DURCHLAUF = (GLEICHE_KATEGORIE, GLEICHE_FAMILIE, GLEICHER_TYP,
                  GLEICHES_WORKSET, GEHOSTETE)
 
-OHNE_KATEGORIE = u"(ohne Kategorie)"
-OHNE_FAMILIE = u"(ohne Familie)"
-OHNE_TYP = u"(ohne Typ)"
+OHNE_KATEGORIE = t(u"(ohne Kategorie)", u"(no category)", u"(sin categoría)")
+OHNE_FAMILIE = t(u"(ohne Familie)", u"(no family)", u"(sin familia)")
+OHNE_TYP = t(u"(ohne Typ)", u"(no type)", u"(sin tipo)")
 
 
 def id_wert(element_id):
@@ -183,7 +184,8 @@ def datensatz(namen, element):
 
 def baue_baum(doc, elemente):
     namen = Namen(doc)
-    return bm.baue([datensatz(namen, e) for e in elemente])
+    return bm.baue([datensatz(namen, e) for e in elemente],
+                   t(u"Alle", u"All", u"Todo"))
 
 
 # ---------------------------------------------------------------------------

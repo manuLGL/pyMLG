@@ -1,0 +1,12 @@
+title:
+  de_de: "Ansichtsnamen\nverwalten"
+  en_us: "View Name\nManager"
+  es_es: "Nombres\nde vistas"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Benennt ausgewählte Ansichten um: Präfix, Suffix oder Muster mit {name} - mit Vorschau.
+  en_us: >-
+    Renames selected views: prefix, suffix or pattern with {name} - with preview.
+  es_es: >-
+    Renombra las vistas seleccionadas: prefijo, sufijo o patrón con {name}, con vista previa.
