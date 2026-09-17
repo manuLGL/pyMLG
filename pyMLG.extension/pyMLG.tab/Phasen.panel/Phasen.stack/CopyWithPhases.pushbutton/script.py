@@ -1,65 +1,74 @@
 # -*- coding: utf-8 -*-
-"""Copy With Phases"""
+"""Kopiert Elemente von einem Basispunkt zu einem Zielpunkt und behält
+"Phase erstellt" und "Phase abgebrochen" der Originale bei (Revit setzt bei
+Kopien sonst die Phase der aktiven Ansicht). Abhängige Elemente wie Türen
+und Fenster werden mit übernommen."""
 
-__title__ = "Copy With\nPhases"
+__title__ = "Copy With Phases"
 __author__ = "Manuel"
 
-from Autodesk.Revit.DB import *
+from Autodesk.Revit.DB import Transaction
+from Autodesk.Revit.Exceptions import (InvalidOperationException,
+                                       OperationCanceledException)
 from Autodesk.Revit.UI.Selection import ObjectType
-from pyrevit import revit
-from System.Collections.Generic import List
+from pyrevit import forms, revit
 
-doc = revit.doc
-uidoc = revit.uidoc
+from phasen import revit_kopie as rk
 
-selected_ids = uidoc.Selection.GetElementIds()
+TITEL = u"Copy With Phases"
 
-if not selected_ids or selected_ids.Count == 0:
-    print("Keine Elemente ausgewählt!")
-else:
-    original_phases = {}
-    for elem_id in selected_ids:
-        elem = doc.GetElement(elem_id)
-        if elem:
-            phase_created = elem.get_Parameter(BuiltInParameter.PHASE_CREATED)
-            phase_demolished = elem.get_Parameter(BuiltInParameter.PHASE_DEMOLISHED)
-            original_phases[elem_id.IntegerValue] = {
-                'created': phase_created.AsElementId() if phase_created else None,
-                'demolished': phase_demolished.AsElementId() if phase_demolished else None
-            }
 
-    t = None
+def auswahl(uidoc):
+    ids = list(uidoc.Selection.GetElementIds())
+    if ids:
+        return ids
+    refs = uidoc.Selection.PickObjects(ObjectType.Element,
+                                       u"Elemente zum Kopieren wählen")
+    return [r.ElementId for r in refs]
+
+
+def main():
+    doc, uidoc = revit.doc, revit.uidoc
     try:
-        print("Wähle Basispunkt...")
-        base_point = uidoc.Selection.PickPoint("Basispunkt wählen")
-        print("Wähle Zielpunkt...")
-        target_point = uidoc.Selection.PickPoint("Zielpunkt wählen")
-        translation = target_point - base_point
+        ids, uebersprungen = rk.modell_elemente(doc, auswahl(uidoc))
+        if not ids:
+            forms.alert(u"Keine Modellelemente ausgewählt.", title=TITEL)
+            return
+        basis = uidoc.Selection.PickPoint(u"Basispunkt wählen")
+        ziel = uidoc.Selection.PickPoint(u"Zielpunkt wählen")
+    except OperationCanceledException:
+        return
+    except InvalidOperationException:
+        forms.alert(u"In dieser Ansicht kann kein Punkt gewählt werden "
+                    u"(keine Arbeitsebene). Bitte in einem Grundriss starten "
+                    u"oder eine Arbeitsebene festlegen.", title=TITEL)
+        return
 
-        t = Transaction(doc, "Copy with Phases")
-        t.Start()
-
-        element_ids_list = List[ElementId](selected_ids)
-        copied_ids = ElementTransformUtils.CopyElements(doc, element_ids_list, translation)
-
-        for i, copied_id in enumerate(copied_ids):
-            original_id = list(selected_ids)[i]
-            copied_elem = doc.GetElement(copied_id)
-            if original_id.IntegerValue in original_phases:
-                phase_info = original_phases[original_id.IntegerValue]
-                if phase_info['created']:
-                    param = copied_elem.get_Parameter(BuiltInParameter.PHASE_CREATED)
-                    if param and not param.IsReadOnly:
-                        param.Set(phase_info['created'])
-                if phase_info['demolished']:
-                    param = copied_elem.get_Parameter(BuiltInParameter.PHASE_DEMOLISHED)
-                    if param and not param.IsReadOnly:
-                        param.Set(phase_info['demolished'])
-
-        uidoc.Selection.SetElementIds(copied_ids)
+    t = Transaction(doc, TITEL)
+    t.Start()
+    try:
+        neue_ids, paare, ohne_original = rk.kopieren(doc, ids, ziel - basis)
+        for kopie, original in paare:
+            rk.phasen_uebertragen(kopie, original)
         t.Commit()
-
-    except:
-        if t and t.HasStarted():
+    except Exception as fehler:
+        if t.HasStarted() and not t.HasEnded():
             t.RollBack()
-        print("Abgebrochen")
+        forms.alert(u"Kopieren fehlgeschlagen, nichts wurde geändert.",
+                    sub_msg=u"{}".format(fehler), title=TITEL)
+        return
+
+    rk.auswahl_setzen(uidoc, neue_ids)
+    hinweise = []
+    if ohne_original:
+        hinweise.append(u"{} Kopie(n) konnte kein Original zugeordnet werden - "
+                        u"deren Phasen bitte prüfen.".format(ohne_original))
+    if uebersprungen:
+        hinweise.append(u"{} ansichtsspezifische(s) Element(e) (Beschriftungen, "
+                        u"Detaillinien ...) wurden nicht kopiert.".format(uebersprungen))
+    if hinweise:
+        forms.alert(u"{} Element(e) kopiert.".format(len(neue_ids)),
+                    sub_msg=u"\n".join(hinweise), title=TITEL)
+
+
+main()

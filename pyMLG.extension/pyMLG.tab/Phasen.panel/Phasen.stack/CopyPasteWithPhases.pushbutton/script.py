@@ -1,105 +1,103 @@
 # -*- coding: utf-8 -*-
-"""Paste Aligned to Current View With Phases
-Fügt Elemente ausgerichtet zur aktuellen Ansicht ein mit Phase-Beibehaltung
-"""
+"""Fügt die ausgewählten Elemente an gleicher Grundrissposition auf der Ebene
+der aktiven Ansicht ein (wie "Ausgerichtet an aktueller Ansicht einfügen")
+und behält "Phase erstellt" und "Phase abgebrochen" der Originale bei.
 
-__title__ = "Paste Aligned\nView"
+Elemente von verschiedenen Ebenen behalten ihren Höhenabstand zueinander.
+Versätze zur Ebene bleiben erhalten; obere Abhängigkeiten (z.B. Wand bis
+Ebene 2) werden auf die entsprechend höhere Ebene gesetzt - gibt es die
+nicht, wird eine Wand "nicht verbunden" mit gleicher Höhe."""
+
+__title__ = "Paste Aligned View"
 __author__ = "Manuel"
 
-from Autodesk.Revit.DB import *
-from pyrevit import revit
-from System.Collections.Generic import List
+from Autodesk.Revit.DB import Transaction, XYZ
+from pyrevit import forms, revit
 
-doc = revit.doc
-uidoc = revit.uidoc
+from phasen import revit_kopie as rk
 
-selected_ids = uidoc.Selection.GetElementIds()
+TITEL = u"Paste Aligned View (mit Phasen)"
 
-if not selected_ids or selected_ids.Count == 0:
-    print("Keine Elemente ausgewählt!")
-else:
-    active_view = doc.ActiveView
 
-    if not hasattr(active_view, 'GenLevel') or not active_view.GenLevel:
-        print("Aktive Ansicht hat kein zugeordnetes Level!")
-    else:
-        target_level = active_view.GenLevel
+def gruppieren(doc, ids, ziel_ebene):
+    """{Höhenunterschied: [Ids]} je Ausgangsebene.
 
-        # Speichere Original-Phasen und ermittle Basis-Level
-        original_phases = {}
-        base_level = None
+    Elemente ohne erkennbare Ebene kommen zur grössten Gruppe.
+    """
+    gruppen, ohne_ebene = {}, []
+    for eid in ids:
+        ebene = rk.basis_ebene(doc, doc.GetElement(eid))
+        if ebene is None:
+            ohne_ebene.append(eid)
+            continue
+        delta = round(ziel_ebene.Elevation - ebene.Elevation, 6)
+        gruppen.setdefault(delta, []).append(eid)
+    if ohne_ebene and gruppen:
+        groesste = max(gruppen, key=lambda d: len(gruppen[d]))
+        gruppen[groesste].extend(ohne_ebene)
+    return gruppen
 
-        for elem_id in selected_ids:
-            elem = doc.GetElement(elem_id)
-            if elem:
-                phase_created = elem.get_Parameter(BuiltInParameter.PHASE_CREATED)
-                phase_demolished = elem.get_Parameter(BuiltInParameter.PHASE_DEMOLISHED)
-                original_phases[elem_id.IntegerValue] = {
-                    'created': phase_created.AsElementId() if phase_created else None,
-                    'demolished': phase_demolished.AsElementId() if phase_demolished else None
-                }
 
-                if not base_level:
-                    level_param = elem.get_Parameter(BuiltInParameter.LEVEL_PARAM)
-                    if level_param:
-                        base_level = doc.GetElement(level_param.AsElementId())
+def main():
+    doc, uidoc = revit.doc, revit.uidoc
+    ids, uebersprungen = rk.modell_elemente(doc, uidoc.Selection.GetElementIds())
+    if not ids:
+        forms.alert(u"Keine Modellelemente ausgewählt.\n\nElemente auswählen, "
+                    u"in den Grundriss der Zielebene wechseln und das Werkzeug "
+                    u"starten.", title=TITEL)
+        return
 
-        # Berechne Z-Offset
-        if base_level:
-            z_offset = target_level.Elevation - base_level.Elevation
-        else:
-            z_offset = 0
+    ziel_ebene = getattr(doc.ActiveView, "GenLevel", None)
+    if ziel_ebene is None:
+        forms.alert(u"Die aktive Ansicht hat keine Ebene. Bitte einen Grundriss "
+                    u"der Zielebene öffnen.", title=TITEL)
+        return
 
-        translation = XYZ(0, 0, z_offset)
+    gruppen = gruppieren(doc, ids, ziel_ebene)
+    if not gruppen:
+        forms.alert(u"Für die Auswahl ließ sich keine Ebene ermitteln.", title=TITEL)
+        return
+    if all(abs(d) < rk.HOEHEN_TOLERANZ for d in gruppen):
+        forms.alert(u"Die Elemente liegen bereits auf '{}'.".format(ziel_ebene.Name),
+                    title=TITEL)
+        return
 
-        t = None
-        try:
-            t = Transaction(doc, "Paste Aligned to View")
-            t.Start()
+    alle_ebenen = rk.ebenen(doc)
+    alle_neuen, hinweise, ohne_original = [], [], 0
 
-            element_ids_list = List[ElementId](selected_ids)
-            copied_ids = ElementTransformUtils.CopyElements(doc, element_ids_list, translation)
+    t = Transaction(doc, TITEL)
+    t.Start()
+    try:
+        for delta, gruppe in gruppen.items():
+            neue_ids, paare, ohne = rk.kopieren(doc, gruppe, XYZ(0, 0, delta))
+            alle_neuen.extend(neue_ids)
+            ohne_original += ohne
+            for kopie, original in paare:
+                for text in rk.ebenen_anpassen(doc, kopie, original, delta, alle_ebenen):
+                    hinweise.append(u"{} ({}): {}".format(
+                        kopie.Name, rk.id_wert(kopie.Id), text))
+            rk.hoehen_korrigieren(doc, paare, delta)
+            for kopie, original in paare:
+                rk.phasen_uebertragen(kopie, original)
+        t.Commit()
+    except Exception as fehler:
+        if t.HasStarted() and not t.HasEnded():
+            t.RollBack()
+        forms.alert(u"Einfügen fehlgeschlagen, nichts wurde geändert.",
+                    sub_msg=u"{}".format(fehler), title=TITEL)
+        return
 
-            # WICHTIG: Erst Level setzen, dann Phasen
-            for i, copied_id in enumerate(copied_ids):
-                original_id = list(selected_ids)[i]
-                copied_elem = doc.GetElement(copied_id)
+    rk.auswahl_setzen(uidoc, alle_neuen)
+    if ohne_original:
+        hinweise.insert(0, u"{} Kopie(n) konnte kein Original zugeordnet werden - "
+                           u"deren Phasen bitte prüfen.".format(ohne_original))
+    if uebersprungen:
+        hinweise.insert(0, u"{} ansichtsspezifische(s) Element(e) wurden nicht "
+                           u"kopiert.".format(uebersprungen))
+    if hinweise:
+        forms.alert(u"{} Element(e) auf '{}' eingefügt.".format(
+                        len(alle_neuen), ziel_ebene.Name),
+                    sub_msg=u"\n".join(hinweise[:15]), title=TITEL)
 
-                # 1. LEVEL SETZEN (wichtigster Schritt!)
-                level_param = copied_elem.get_Parameter(BuiltInParameter.LEVEL_PARAM)
-                if level_param and not level_param.IsReadOnly:
-                    level_param.Set(target_level.Id)
 
-                # Für Wände: Base Constraint und Top Constraint
-                base_constraint = copied_elem.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT)
-                if base_constraint and not base_constraint.IsReadOnly:
-                    base_constraint.Set(target_level.Id)
-
-                # Base Offset auf 0 setzen damit es wirklich auf dem Level sitzt
-                base_offset = copied_elem.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET)
-                if base_offset and not base_offset.IsReadOnly:
-                    original_elem = doc.GetElement(original_id)
-                    original_offset = original_elem.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET)
-                    if original_offset:
-                        base_offset.Set(original_offset.AsDouble())
-
-                # 2. PHASEN SETZEN
-                if original_id.IntegerValue in original_phases:
-                    phase_info = original_phases[original_id.IntegerValue]
-                    if phase_info['created']:
-                        param = copied_elem.get_Parameter(BuiltInParameter.PHASE_CREATED)
-                        if param and not param.IsReadOnly:
-                            param.Set(phase_info['created'])
-                    if phase_info['demolished']:
-                        param = copied_elem.get_Parameter(BuiltInParameter.PHASE_DEMOLISHED)
-                        if param and not param.IsReadOnly:
-                            param.Set(phase_info['demolished'])
-
-            uidoc.Selection.SetElementIds(copied_ids)
-            t.Commit()
-            print("{} Element(e) auf Level '{}' eingefuegt".format(copied_ids.Count, target_level.Name))
-
-        except Exception as e:
-            if t and t.HasStarted():
-                t.RollBack()
-            print("Fehler: {}".format(str(e)))
+main()
