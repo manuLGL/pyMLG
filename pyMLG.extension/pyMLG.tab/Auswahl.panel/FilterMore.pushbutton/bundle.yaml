@@ -1,0 +1,12 @@
+title: "Filter\nMore"
+author: pyMLG
+tooltip: >-
+  Auswahl bis auf Familie, Typ und einzelnes Element filtern - wie der
+  Revit-Filter, aber eine Ebene tiefer.
+
+  Baum Kategorie > Familie > Typ > Element aus der aktuellen Auswahl, der
+  Ansicht oder dem ganzen Modell. Markierte Elemente erweitern (gleiche
+  Kategorie/Familie/Typ/Workset, Host, gehostete, verschachtelte,
+  verbundene, übergeordnete, abhängige Elemente) oder mit einem
+  Anzeigefilter eingrenzen. "Auswahl übernehmen" wählt die markierten
+  Elemente in Revit aus. Benötigt die CPython3-Engine.

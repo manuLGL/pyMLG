@@ -316,6 +316,47 @@ def workset_reverse(b):
     pfeil(b, (12, 64), (12, 24), 9, 15, DUNKEL)
 
 
+def workset_creator(b):
+    """Workset-Ebenen mit gruenem Plus: Worksets erstellen."""
+    _workset_ebenen(b, (BLAU, BLAU, BLAU))
+    kreis(b, 74, 74, 20, WEISS)
+    kreis(b, 74, 74, 16, GRUEN)
+    rect(b, 71, 63, 77, 85, WEISS)
+    rect(b, 63, 71, 85, 77, WEISS)
+
+
+def join_multiple(b):
+    """Stuetze schneidet Decke, Decke schneidet Wand: Rangfolge verbinden."""
+    rect(b, 6, 40, 90, 56, DUNKEL)       # Decke
+    rect(b, 10, 44, 86, 52, LINIE)
+    rect(b, 18, 54, 38, 92, DUNKEL)      # Wand unter der Decke
+    rect(b, 22, 54, 34, 88, LINIE)
+    rect(b, 58, 4, 80, 92, DUNKEL)       # Stuetze durch die Decke
+    rect(b, 62, 8, 76, 88, BLAU)
+    kreis(b, 26, 20, 15, WEISS)
+    kreis(b, 26, 20, 12, GRUEN)
+    rect(b, 24, 12, 28, 28, WEISS)
+    rect(b, 18, 18, 34, 22, WEISS)
+
+
+def filter_more(b):
+    """Baum mit Haken, darueber ein Trichter: Auswahl tiefer filtern."""
+    polygon(b, [(40, 4), (92, 4), (73, 26), (59, 26)], DUNKEL)
+    polygon(b, [(47, 8), (85, 8), (70, 23), (62, 23)], BLAU)
+    rect(b, 59, 26, 73, 42, DUNKEL)
+    rect(b, 63, 26, 69, 38, BLAU)
+    rect(b, 12, 22, 16, 84, DUNKEL)           # Baumlinie
+    for i, (x, farbe) in enumerate(((6, GRUEN), (24, GRUEN), (24, LINIE),
+                                    (42, GRUEN))):
+        y = 16 + i * 20
+        if i:
+            rect(b, 14, y + 6, x, y + 10, DUNKEL)
+        rect(b, x, y, x + 16, y + 16, DUNKEL)
+        rect(b, x + 3, y + 3, x + 13, y + 13, farbe if farbe != LINIE
+             else WEISS)
+        rect(b, x + 22, y + 5, min(x + 60, 92), y + 11, LINIE)
+
+
 def room_center(b):
     """L-foermiger Raum, Punkt wandert von der Ecke in die Mitte."""
     rect(b, 8, 8, 52, 88, DUNKEL)
@@ -343,22 +384,25 @@ def filter_manager(b):
 
 
 SYMBOLE = {
-    "BrowserManager.panel/TabManager.pushbutton": tab_manager,
-    "FastTools.panel/DuplicatePlan.pushbutton": duplicate_plan,
-    "FastTools.panel/DuplicateView.pushbutton": duplicate_view,
-    "FastTools.panel/PassFilterOverrides.pushbutton": pass_filter_overrides,
-    "FastTools.panel/RoomCenter.pushbutton": room_center,
-    "FastTools.panel/TagDistance.pushbutton": tag_distance,
-    "FastTools.panel/ViewIdVisible.pushbutton": view_id_visible,
-    "FastTools.panel/ViewNameManager.pushbutton": view_name_manager,
-    "FastTools.panel/ViewToSheet.pushbutton": view_to_sheet,
-    "FastTools.panel/WallLegend.pushbutton": wall_legend,
-    "FilterManager.panel/FilterManager.pushbutton": filter_manager,
-    "PhaseManager.panel/CopyWithPhases.pushbutton": copy_with_phases,
-    "PhaseManager.panel/CopyPasteWithPhases.pushbutton": copy_paste_with_phases,
-    "WorksetManager.panel/WorksetON.pushbutton": workset_on,
-    "WorksetManager.panel/WorksetOFF.pushbutton": workset_off,
-    "WorksetManager.panel/WorksetREVERSE.pushbutton": workset_reverse,
+    "Oberflaeche.panel/TabManager.pushbutton": tab_manager,
+    "Ansichten.panel/Duplizieren.stack/DuplicatePlan.pushbutton": duplicate_plan,
+    "Ansichten.panel/Duplizieren.stack/DuplicateView.pushbutton": duplicate_view,
+    "Filter.panel/PassFilterOverrides.pushbutton": pass_filter_overrides,
+    "Raeume.panel/Beschriftung.stack/RoomCenter.pushbutton": room_center,
+    "Raeume.panel/Beschriftung.stack/TagDistance.pushbutton": tag_distance,
+    "Ansichten.panel/Hilfen.stack/ViewIdVisible.pushbutton": view_id_visible,
+    "Ansichten.panel/ViewNameManager.pushbutton": view_name_manager,
+    "Ansichten.panel/Duplizieren.stack/ViewToSheet.pushbutton": view_to_sheet,
+    "Ansichten.panel/Hilfen.stack/WallLegend.pushbutton": wall_legend,
+    "Filter.panel/FilterManager.pushbutton": filter_manager,
+    "Phasen.panel/Phasen.stack/CopyWithPhases.pushbutton": copy_with_phases,
+    "Phasen.panel/Phasen.stack/CopyPasteWithPhases.pushbutton": copy_paste_with_phases,
+    "Worksets.panel/Worksets.stack/WorksetON.pushbutton": workset_on,
+    "Worksets.panel/Worksets.stack/WorksetOFF.pushbutton": workset_off,
+    "Worksets.panel/Worksets.stack/WorksetREVERSE.pushbutton": workset_reverse,
+    "Worksets.panel/WorksetCreator.pushbutton": workset_creator,
+    "Geometrie.panel/JoinMultiple.pushbutton": join_multiple,
+    "Auswahl.panel/FilterMore.pushbutton": filter_more,
 }
 
 
