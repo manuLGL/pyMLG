@@ -622,8 +622,16 @@ class FilterManagerFenster(object):
             else:
                 name = (self.aufloeser.parametername(element.parameter)
                         if element.parameter is not None else u"?")
+                anzeige = element.wert
+                if element.parameter is not None and self.aufloeser.info(
+                        element.parameter).bearbeitungsbereich:
+                    try:
+                        anzeige = self.aufloeser.workset_name(
+                            int(element.wert))
+                    except (TypeError, ValueError):
+                        pass
                 wert = u"" if element.operator in mo.OHNE_WERT \
-                    else u" „%s“" % element.wert
+                    else u" „%s“" % anzeige
                 teile.append(u"%s %s%s" % (
                     name, mo.OPERATOR_TEXT[element.operator], wert))
         return (u" ODER " if satz.oder else u" UND ").join(teile) or u"-"
@@ -822,6 +830,9 @@ class FilterManagerFenster(object):
     def _wert_ui(self, regel, info):
         art = info.speicherart if info is not None else None
 
+        if info is not None and info.bearbeitungsbereich:
+            return self._workset_ui(regel)
+
         if art == StorageType.Integer and ist_ja_nein(info.spec):
             box = ComboBox()
             for text in (u"Ja", u"Nein"):
@@ -911,6 +922,41 @@ class FilterManagerFenster(object):
             regel.wert = box.Text or u""
         box.DropDownOpened += self._h(beim_aufklappen_text)
         self._leser.append((regel, lies_text))
+        return box
+
+    def _workset_ui(self, regel):
+        """Bearbeitungsbereich: Revit speichert die WorksetId als Ganzzahl,
+        gewählt wird wie im nativen Dialog der Name."""
+        box = ComboBox()
+        try:
+            aktuell = int((regel.wert or u"").strip())
+        except ValueError:
+            aktuell = None
+        eintraege = self.aufloeser.benutzer_worksets()
+        if aktuell is not None and aktuell not in set(w for _n, w
+                                                      in eintraege):
+            item = ComboBoxItem()
+            item.Content = self.aufloeser.workset_name(aktuell)
+            item.Tag = aktuell
+            item.Foreground = ROT
+            box.Items.Add(item)
+            box.SelectedItem = item
+        for name, wert in eintraege:
+            item = ComboBoxItem()
+            item.Content = name
+            item.Tag = wert
+            box.Items.Add(item)
+            if wert == aktuell:
+                box.SelectedItem = item
+        if not eintraege:
+            box.ToolTip = u"Das Projekt hat keine Teamarbeit (Worksets)"
+
+        def lies():
+            if box.SelectedItem is not None:
+                regel.wert = u"%d" % box.SelectedItem.Tag
+        self._leser.append((regel, lies))
+        box.SelectionChanged += self._h(
+            lambda s, a: None if self._still else self._lies_eingaben())
         return box
 
     def _spaeter_neu_aufbauen(self):

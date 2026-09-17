@@ -127,14 +127,19 @@ def fehlertext(fehler):
 
 class Regel(object):
     def __init__(self, parameter=None, operator="gleich", wert=u"",
-                 wert_id=None):
+                 wert_id=None, original=None):
         self.parameter = parameter      # Zahlenwert der Parameter-Id
         self.operator = operator        # Schlüssel aus OPERATOR_TEXTE
         self.wert = wert                # Texteingabe (Projekteinheiten)
         self.wert_id = wert_id          # Zahlenwert einer ElementId
+        # Nur Double-Regeln aus Revit: (Parameter, angezeigter Text,
+        # interner Wert, Epsilon). Solange Parameter und Text unverändert
+        # sind, wird exakt der ursprüngliche Wert zurückgeschrieben.
+        self.original = original
 
     def kopie(self):
-        return Regel(self.parameter, self.operator, self.wert, self.wert_id)
+        return Regel(self.parameter, self.operator, self.wert, self.wert_id,
+                     self.original)
 
 
 class Satz(object):
@@ -157,6 +162,9 @@ def operatoren_fuer(info):
     art = info.speicherart
     if art == StorageType.String:
         return [k for k, _t in OPERATOR_TEXTE]
+    if getattr(info, "bearbeitungsbereich", False):
+        # Wie im nativen Dialog: Auswahl eines Worksets
+        return ["gleich", "ungleich"]
     if art == StorageType.Integer and ist_ja_nein(info.spec):
         return ["gleich", "ungleich", "hat_wert", "hat_keinen_wert"]
     if art in (StorageType.Integer, StorageType.Double, StorageType.ElementId):
@@ -200,6 +208,8 @@ def _regel_aus_knoten(knoten, aufloeser):
     elif knoten.regeltyp == "FilterDoubleRule":
         regel.wert = aufloeser.zahl(knoten.parameter_id, knoten.rohwert,
                                     zum_bearbeiten=True)
+        regel.original = (knoten.parameter_id, regel.wert, knoten.rohwert,
+                          knoten.epsilon)
     elif knoten.regeltyp == "FilterIntegerRule":
         regel.wert = u"%d" % knoten.rohwert
     elif knoten.regeltyp == "FilterElementIdRule":
@@ -250,6 +260,23 @@ def _regel_beschreibung(regel, aufloeser):
                           regel.wert or u"")
 
 
+def double_wert(regel, aufloeser):
+    """(interner Wert, Epsilon) einer Double-Regel.
+
+    Unveränderte Regeln aus Revit behalten Wert und Toleranz exakt - sonst
+    würde jedes Speichern eines Filters die Zahlen auf die Genauigkeit der
+    Projekteinheiten runden und die Toleranz ersetzen. Wurde nur der Wert
+    geändert, bleibt die ursprüngliche Toleranz erhalten."""
+    text = (regel.wert or u"").strip()
+    original = regel.original
+    if original is not None and original[0] == regel.parameter:
+        _param, alter_text, alter_wert, epsilon = original
+        if text == (alter_text or u"").strip():
+            return alter_wert, epsilon or EPSILON
+        return aufloeser.zahl_lesen(regel.parameter, text), epsilon or EPSILON
+    return aufloeser.zahl_lesen(regel.parameter, text), EPSILON
+
+
 def baue_regel(regel, aufloeser):
     """Regel -> FilterRule. Wirft FilterFehler mit verständlicher Meldung."""
     if regel.parameter is None:
@@ -270,13 +297,15 @@ def baue_regel(regel, aufloeser):
     text = (regel.wert or u"").strip()
     try:
         if art == StorageType.Double:
-            return methode(param_id, aufloeser.zahl_lesen(regel.parameter,
-                                                          text), EPSILON)
+            wert, epsilon = double_wert(regel, aufloeser)
+            return methode(param_id, wert, epsilon)
         if art == StorageType.Integer:
             if ist_ja_nein(info.spec):
                 wert = {u"ja": 1, u"nein": 0}.get(text.lower())
                 if wert is None:
                     raise ValueError(u"Bitte \"Ja\" oder \"Nein\" wählen.")
+            elif not text:
+                raise ValueError(u"Bitte einen Wert eingeben bzw. wählen.")
             else:
                 wert = int(text)
             return methode(param_id, wert)

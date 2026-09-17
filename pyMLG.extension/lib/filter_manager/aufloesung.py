@@ -12,6 +12,15 @@ Parameter-Ids in Filterregeln (FilterRule.GetRuleParameter()):
                GlobalParameter         (nur bei Verknüpfungsregeln)
                Name: ParameterElement.GetDefinition().Name
 
+Sonderfall "Bearbeitungsbereich" (ELEM_PARTITION_PARAM): Revit speichert ihn
+als Ganzzahl = WorksetId. Angezeigt und ausgewählt wird der Workset-Name wie
+im nativen Dialog.
+
+Zahlen: Die Projekteinheiten runden (z.B. 1,125 m -> "1,12 m"). Lässt sich
+der gerundete Text nicht wieder exakt einlesen, wird mit feinerer Genauigkeit
+formatiert - sonst würde der gerundete Wert beim Speichern in den Filter
+zurückgeschrieben.
+
 Für eingebaute Parameter wird einmalig eine Tabelle Zahlenwert -> Name aus
 ParameterUtils.GetAllBuiltInParameters() aufgebaut. Der Schlüssel entsteht
 über ElementId(BuiltInParameter).Value - so ist keine Umwandlung
@@ -25,15 +34,20 @@ Filterkategorien ermittelt - große Modelle werden nicht durchsucht.
 """
 
 from Autodesk.Revit.DB import (
+    BuiltInParameter,
     Category,
     ElementId,
     ElementMulticategoryFilter,
     FilteredElementCollector,
+    FilteredWorksetCollector,
+    FormatOptions,
+    FormatValueOptions,
     LabelUtils,
     ParameterUtils,
     StorageType,
     UnitFormatUtils,
     UnitUtils,
+    WorksetKind,
 )
 from System.Collections.Generic import List
 
@@ -65,6 +79,12 @@ def id_liste(ids):
     for eid in ids:
         liste.Add(eid if not isinstance(eid, int) else ElementId(eid))
     return liste
+
+
+BEARBEITUNGSBEREICH = id_wert(ElementId(BuiltInParameter.ELEM_PARTITION_PARAM))
+
+# Toleranz (Fuß), ab der ein formatierter Wert als verlustfrei gilt
+TOLERANZ_FORMAT = 1e-9
 
 
 def speicherart_aus_spec(spec):
@@ -112,6 +132,7 @@ class ParameterInfo(object):
         self.speicherart = speicherart  # StorageType oder None
         self.spec = spec                # ForgeTypeId oder None
         self.forge_id = forge_id        # nur eingebaute Parameter
+        self.bearbeitungsbereich = wert == BEARBEITUNGSBEREICH
 
     def __repr__(self):
         return u"<Parameter %s '%s' (%s)>" % (self.wert, self.name, self.quelle)
@@ -127,6 +148,7 @@ class RevitAufloeser(object):
         self._spec_gesucht = set()      # (Parameter, Kategorien) schon gesucht
         self._kontext = []              # Kategorie-Ids des aktuellen Filters
         self._kategorien = {}           # int -> Name
+        self._worksets = None           # int -> Name
 
     # -- Kontext ------------------------------------------------------------
 
@@ -277,19 +299,92 @@ class RevitAufloeser(object):
         except Exception:
             return u"<Id %s>" % wert
 
+    # -- Bearbeitungsbereiche ----------------------------------------------
+
+    def worksets(self):
+        """{WorksetId-Zahl: Name} aller Worksets (leer ohne Teamarbeit)."""
+        if self._worksets is None:
+            self._worksets = {}
+            try:
+                if self.doc.IsWorkshared:
+                    for ws in FilteredWorksetCollector(self.doc):
+                        self._worksets[int(ws.Id.IntegerValue)] = ws.Name
+            except Exception:
+                pass
+        return self._worksets
+
+    def benutzer_worksets(self):
+        """[(Name, WorksetId-Zahl)] der Benutzer-Worksets, sortiert."""
+        eintraege = []
+        try:
+            if self.doc.IsWorkshared:
+                for ws in FilteredWorksetCollector(self.doc).OfKind(
+                        WorksetKind.UserWorkset):
+                    eintraege.append((ws.Name, int(ws.Id.IntegerValue)))
+        except Exception:
+            pass
+        return sorted(eintraege, key=lambda e: e[0].lower())
+
+    def workset_name(self, wert):
+        name = self.worksets().get(int(wert))
+        return name if name is not None else \
+            u"<Bearbeitungsbereich %d nicht vorhanden>" % int(wert)
+
     # -- Werte --------------------------------------------------------------
 
+    def _verlustfrei(self, units, spec, text, wert):
+        try:
+            ergebnis = UnitFormatUtils.TryParse(units, spec, text)
+            if isinstance(ergebnis, tuple) and ergebnis[0]:
+                return abs(float(ergebnis[1]) - wert) <= TOLERANZ_FORMAT
+        except Exception:
+            pass
+        return False
+
     def zahl(self, param_id, wert, zum_bearbeiten=False):
-        """Double-Regelwert (interne Einheit) in Projekteinheiten."""
+        """Double-Regelwert (interne Einheit) in Projekteinheiten - bei
+        Bedarf genauer als die Projekteinheiten, damit nichts verloren geht."""
         spec = self.info_mit_spec(param_id).spec
+        wert = float(wert)
         try:
             if spec is not None and UnitUtils.IsMeasurableSpec(spec):
-                return UnitFormatUtils.Format(self.doc.GetUnits(), spec,
-                                              float(wert), zum_bearbeiten)
+                units = self.doc.GetUnits()
+                text = UnitFormatUtils.Format(units, spec, wert,
+                                              zum_bearbeiten)
+                if self._verlustfrei(units, spec, text, wert):
+                    return text
+                genau = self._zahl_genau(units, spec, wert, zum_bearbeiten)
+                return genau if genau is not None else text
         except Exception:
             pass
         text = u"%g" % wert
         return text if zum_bearbeiten else text + u" (intern)"
+
+    def _zahl_genau(self, units, spec, wert, zum_bearbeiten):
+        """Mit steigender Nachkommastellenzahl formatieren, bis der Text den
+        Wert exakt wiedergibt. None, wenn die Einheit das nicht erlaubt
+        (z.B. Fuß und Zoll mit Brüchen)."""
+        basis = units.GetFormatOptions(spec)
+        einheit = basis.GetUnitTypeId()
+        for stellen in range(1, 10):
+            genauigkeit = 10.0 ** -stellen
+            try:
+                if not FormatOptions.IsValidAccuracy(einheit, genauigkeit):
+                    continue
+                optionen = FormatOptions(basis)
+                optionen.UseDefault = False
+                optionen.Accuracy = genauigkeit
+                if optionen.CanSuppressTrailingZeros():
+                    optionen.SuppressTrailingZeros = True
+                wertoptionen = FormatValueOptions()
+                wertoptionen.SetFormatOptions(optionen)
+                text = UnitFormatUtils.Format(units, spec, wert,
+                                              zum_bearbeiten, wertoptionen)
+            except Exception:
+                continue
+            if self._verlustfrei(units, spec, text, wert):
+                return text
+        return None
 
     def zahl_lesen(self, param_id, text):
         """Eingabe in Projekteinheiten -> interner Wert. ValueError bei Fehler."""
@@ -318,6 +413,9 @@ class RevitAufloeser(object):
             raise ValueError(u"'%s' ist keine Zahl." % text)
 
     def ganzzahl(self, param_id, wert):
-        if ist_ja_nein(self.info_mit_spec(param_id).spec):
+        info = self.info_mit_spec(param_id)
+        if info.bearbeitungsbereich:
+            return self.workset_name(wert)
+        if ist_ja_nein(info.spec):
             return u"Ja" if wert else u"Nein"
         return u"%d" % wert

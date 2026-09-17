@@ -101,6 +101,7 @@ class Knoten(object):
     wert           Vergleichswert als Anzeigetext oder None
     rohwert        Vergleichswert unformatiert (str, float, int oder
                    Zahlenwert der ElementId) - für den Regeleditor
+    epsilon        Toleranz einer FilterDoubleRule (interne Einheit) oder None
     """
 
     def __init__(self, art, **werte):
@@ -115,6 +116,7 @@ class Knoten(object):
         self.text_operator = None
         self.wert = None
         self.rohwert = None
+        self.epsilon = None
         for name, wert in werte.items():
             setattr(self, name, wert)
 
@@ -256,6 +258,8 @@ def _zerlege_regel(regel, typ, aufloeser, negiert):
             knoten.wert = u"„%s“" % regel.RuleString
         elif typ == "FilterDoubleRule":
             knoten.rohwert = float(regel.RuleValue)
+            knoten.epsilon = float(getattr(regel, "Epsilon", 0.0) or 0.0) \
+                or None
             knoten.wert = aufloeser.zahl(regel.GetRuleParameter(),
                                          regel.RuleValue)
         elif typ == "FilterIntegerRule":
