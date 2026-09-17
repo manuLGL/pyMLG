@@ -3,174 +3,139 @@ __title__ = "Tab\nManager"
 __doc__ = "Verwalte sichtbare Ribbon-Tabs"
 __author__ = "Manuel"
 
-import clr
-import sys
-import os
 import json
+import os
 
-try:
-    clr.AddReference('AdWindows')
-    from Autodesk.Windows import ComponentManager
-except Exception as e:
-    print("FEHLER beim Laden von AdWindows:")
-    print(str(e))
-    sys.exit()
+import clr
 
-from pyrevit import forms
+clr.AddReference('AdWindows')
+from Autodesk.Windows import ComponentManager  # noqa: E402
 
-config_file = os.path.join(
-    os.getenv('APPDATA'),
-    'pyRevit',
-    'ribbon_settings.json'
-)
+from pyrevit import forms  # noqa: E402
 
+TITEL = u"Tab Manager"
+
+config_file = os.path.join(os.getenv('APPDATA'), 'pyRevit', 'ribbon_settings.json')
+
+# Gespeichert wird je Tab die interne Id, nicht der angezeigte Titel: der
+# Titel hängt von der Revit-Sprache ab ("Architektur" / "Architecture"),
+# die Id nicht. Geschützte Tabs werden über Id oder Titel erkannt (bei
+# Add-in-Tabs sind beide gleich).
 PROTECTED_TABS = ["pyMLG", "pyRevit"]
 
 
+class TabGruppe(object):
+    """Alle Ribbon-Tabs mit derselben Id (Revit legt manche doppelt an)."""
+
+    def __init__(self, tab_id):
+        self.tab_id = tab_id
+        self.tabs = []
+        self.name = u""
+
+    @property
+    def titel(self):
+        for tab in self.tabs:
+            if tab.Title:
+                return tab.Title
+        return self.tab_id
+
+    @property
+    def sichtbar(self):
+        return any(tab.IsVisible for tab in self.tabs)
+
+
 def load_settings():
-    if os.path.exists(config_file):
-        try:
-            with open(config_file, 'r') as f:
-                settings = json.load(f)
-                print("✓ Settings geladen aus: " + config_file)
-                return settings
-        except Exception as e:
-            print("⚠ Fehler beim Laden: " + str(e))
-            return {}
-    print("→ Keine Settings-Datei gefunden")
-    return {}
+    if not os.path.exists(config_file):
+        return {}
+    try:
+        with open(config_file, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        forms.alert(u"Einstellungen konnten nicht geladen werden.",
+                    sub_msg=str(e), title=TITEL)
+        return {}
 
 
 def save_settings(settings):
     try:
-        os.makedirs(os.path.dirname(config_file), exist_ok=True)
+        ordner = os.path.dirname(config_file)
+        if not os.path.isdir(ordner):
+            os.makedirs(ordner)
         with open(config_file, 'w') as f:
             json.dump(settings, f, indent=2)
-        print("✓ Settings gespeichert")
     except Exception as e:
-        print("⚠ Fehler beim Speichern: " + str(e))
+        forms.alert(u"Einstellungen konnten nicht gespeichert werden.",
+                    sub_msg=str(e), title=TITEL)
 
 
-try:
-    ribbon = ComponentManager.Ribbon
-except Exception as e:
-    print("FEHLER: Kann Ribbon nicht laden!")
-    print(str(e))
-    sys.exit()
+def tab_gruppen():
+    gruppen = {}
+    for tab in ComponentManager.Ribbon.Tabs:
+        # Kontextabhängige Tabs ("Ändern | Wände") blendet Revit selbst ein
+        if getattr(tab, "IsContextualTab", False):
+            continue
+        tab_id = tab.Id or tab.Title
+        if not tab_id:
+            continue
+        gruppen.setdefault(tab_id, TabGruppe(tab_id)).tabs.append(tab)
 
-tab_groups = {}
-for tab in ribbon.Tabs:
-    title = tab.Title
-    if title not in tab_groups:
-        tab_groups[title] = []
-    tab_groups[title].append(tab)
-
-all_tab_names = sorted(tab_groups.keys())
-selectable_tab_names = [name for name in all_tab_names if name not in PROTECTED_TABS]
-
-print("\n=== DEBUG INFO ===")
-print("Alle Tabs: " + str(len(all_tab_names)))
-print("Wählbare Tabs: " + str(len(selectable_tab_names)))
-print("Geschützte Tabs: " + str(PROTECTED_TABS))
-
-saved_settings = load_settings()
-
-print("\n=== GESPEICHERTE SETTINGS ===")
-if saved_settings:
-    for name, visible in saved_settings.items():
-        if visible:
-            print("  ✓ " + name)
-else:
-    print("  (keine)")
-
-preselected = []
-
-if saved_settings:
-    print("\n=== NUTZE GESPEICHERTE SETTINGS ===")
-    for tab_name in selectable_tab_names:
-        if saved_settings.get(tab_name, False):
-            preselected.append(tab_name)
-            print("  → Vorauswahl: " + tab_name)
-else:
-    print("\n=== NUTZE AKTUELLEN STATUS ===")
-    for tab_name in selectable_tab_names:
-        is_visible = any(tab.IsVisible for tab in tab_groups[tab_name])
-        if is_visible:
-            preselected.append(tab_name)
-            print("  → Vorauswahl: " + tab_name + " (aktuell sichtbar)")
-
-print("\n=== VORAUSWAHL FINAL ===")
-print("Anzahl: " + str(len(preselected)))
-for name in preselected:
-    print("  ✓ " + name)
-
-print("\n→ Öffne GUI...")
-
-# Alternative: Liste mit Checkboxen erstellen
-from pyrevit import forms
+    # Anzeigename = Titel; bei gleichem Titel verschiedener Tabs die Id anhängen
+    anzahl = {}
+    for gruppe in gruppen.values():
+        anzahl[gruppe.titel] = anzahl.get(gruppe.titel, 0) + 1
+    for gruppe in gruppen.values():
+        gruppe.name = gruppe.titel
+        if anzahl[gruppe.titel] > 1:
+            gruppe.name = u"{} ({})".format(gruppe.titel, gruppe.tab_id)
+    return gruppen
 
 
-class TabItem:
-    def __init__(self, name, checked=False):
-        self.name = name
-        self.checked = checked
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return self.name
+def ist_geschuetzt(gruppe):
+    return gruppe.tab_id in PROTECTED_TABS or gruppe.titel in PROTECTED_TABS
 
 
-# Items erstellen mit Vorauswahl
-tab_items = []
-for tab_name in selectable_tab_names:
-    is_checked = tab_name in preselected
-    item = TabItem(tab_name, is_checked)
-    tab_items.append(item)
-    if is_checked:
-        print("  PRE-CHECK: " + tab_name)
+def gespeichert_sichtbar(settings, gruppe):
+    """True/False aus den Einstellungen, None wenn der Tab dort fehlt.
 
-# Alte Methode (funktioniert nicht immer)
-# selected_tabs = forms.SelectFromList.show(...)
+    Ältere Einstellungsdateien sind noch nach Titel gespeichert.
+    """
+    if gruppe.tab_id in settings:
+        return settings[gruppe.tab_id]
+    return settings.get(gruppe.titel)
 
-# Neue Methode mit CommandSwitchWindow
-from pyrevit.forms import SelectFromList
 
-selected_tabs = SelectFromList.show(
-    context=tab_items,
-    title='Wähle sichtbare Ribbon-Tabs',
-    width=500,
-    height=600,
-    button_name='Anwenden',
-    multiselect=True
-)
+def main():
+    gruppen = tab_gruppen()
+    waehlbar = sorted((g for g in gruppen.values() if not ist_geschuetzt(g)),
+                      key=lambda g: g.name.lower())
+    settings = load_settings()
 
-# Konvertiere zurück zu Namen
-if selected_tabs:
-    selected_tabs = [item.name for item in selected_tabs]
+    eintraege = []
+    for gruppe in waehlbar:
+        sichtbar = gespeichert_sichtbar(settings, gruppe)
+        if sichtbar is None:
+            sichtbar = gruppe.sichtbar
+        eintraege.append(forms.TemplateListItem(gruppe, checked=bool(sichtbar)))
 
-print("\n=== USER AUSWAHL ===")
-if selected_tabs is not None:
-    print("Ausgewählt: " + str(len(selected_tabs)))
-    for name in selected_tabs:
-        print("  ✓ " + name)
+    auswahl = forms.SelectFromList.show(
+        eintraege,
+        title=u"Wähle sichtbare Ribbon-Tabs",
+        width=500,
+        height=600,
+        button_name=u"Anwenden",
+        multiselect=True,
+    )
+    if auswahl is None:
+        return
 
-    new_settings = {}
-    for name in selectable_tab_names:
-        new_settings[name] = (name in selected_tabs)
+    gewaehlt = set(g.tab_id for g in auswahl)
+    neue_settings = {}
+    for gruppe in gruppen.values():
+        sichtbar = ist_geschuetzt(gruppe) or gruppe.tab_id in gewaehlt
+        neue_settings[gruppe.tab_id] = sichtbar
+        for tab in gruppe.tabs:
+            tab.IsVisible = sichtbar
+    save_settings(neue_settings)
 
-    for protected in PROTECTED_TABS:
-        if protected in tab_groups:
-            new_settings[protected] = True
 
-    for tab_name in all_tab_names:
-        should_be_visible = new_settings.get(tab_name, True)
-        for tab in tab_groups[tab_name]:
-            tab.IsVisible = should_be_visible
-
-    save_settings(new_settings)
-
-    print("\n✓ FERTIG!")
-else:
-    print("→ Abgebrochen")
+main()
