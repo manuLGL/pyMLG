@@ -1,0 +1,12 @@
+title: "Workset\nCreator"
+author: pyMLG
+tooltip: >-
+  Worksets (Bearbeitungsbereiche) sammeln und in einem Schritt erstellen.
+
+  Namen übernehmen aus einem geöffneten Projekt, direkt aus einer .rvt-Datei
+  (ohne sie zu öffnen), aus der Zwischenablage (z.B. Excel-Spalte) oder per
+  Eingabe. Vorhandene Worksets in die Zwischenablage kopieren.
+
+  Existiert ein Name schon: nicht erstellen oder mit Nummer umbenennen.
+  Beide Listen mit Filter (Suchwörter oder Regex). Benötigt die
+  CPython3-Engine.
