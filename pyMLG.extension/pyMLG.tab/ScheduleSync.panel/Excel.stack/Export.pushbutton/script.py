@@ -23,8 +23,9 @@ import traceback
 # Der lib-Ordner der Extension wird von pyRevit automatisch in sys.path gelegt.
 # Die folgende Zeile ist nur eine Absicherung, falls das Skript aus einem
 # ungewöhnlichen Kontext gestartet wird.
-_EXT = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__)))))
+_EXT = os.path.dirname(os.path.abspath(__file__))
+while not _EXT.endswith(".extension") and os.path.dirname(_EXT) != _EXT:
+    _EXT = os.path.dirname(_EXT)
 if os.path.join(_EXT, "lib") not in sys.path:
     sys.path.append(os.path.join(_EXT, "lib"))
 

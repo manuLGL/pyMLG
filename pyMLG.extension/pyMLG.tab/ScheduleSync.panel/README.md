@@ -267,8 +267,9 @@ pyMLG.extension/
 │  ├─ excel_io.py              Excel schreiben und lesen
 │  └─ importer.py              Rückimport: Analyse und Anwendung
 └─ pyMLG.tab/ScheduleSync.panel/
-   ├─ Export.pushbutton/       script.py, bundle.yaml, icon.png
-   └─ Import.pushbutton/       script.py, bundle.yaml, icon.png
+   └─ Excel.stack/
+      ├─ Export.pushbutton/    script.py, bundle.yaml, icon.png
+      └─ Import.pushbutton/    script.py, bundle.yaml, icon.png
 ```
 
 Der Ordner `lib` wird von pyRevit automatisch in den Suchpfad gelegt, beide

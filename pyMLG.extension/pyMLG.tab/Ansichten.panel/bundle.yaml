@@ -1,0 +1,5 @@
+title: Ansichten
+layout:
+  - ViewNameManager
+  - Duplizieren
+  - Hilfen

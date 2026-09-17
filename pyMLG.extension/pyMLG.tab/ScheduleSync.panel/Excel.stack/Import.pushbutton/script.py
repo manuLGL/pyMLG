@@ -21,8 +21,9 @@ import sys
 import traceback
 
 # Absicherung, falls pyRevit den lib-Ordner nicht bereits in sys.path gelegt hat
-_EXT = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__)))))
+_EXT = os.path.dirname(os.path.abspath(__file__))
+while not _EXT.endswith(".extension") and os.path.dirname(_EXT) != _EXT:
+    _EXT = os.path.dirname(_EXT)
 if os.path.join(_EXT, "lib") not in sys.path:
     sys.path.append(os.path.join(_EXT, "lib"))
 

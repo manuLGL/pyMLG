@@ -47,8 +47,9 @@ import os
 import sys
 import traceback
 
-_EXT = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__)))))
+_EXT = os.path.dirname(os.path.abspath(__file__))
+while not _EXT.endswith(".extension") and os.path.dirname(_EXT) != _EXT:
+    _EXT = os.path.dirname(_EXT)
 if os.path.join(_EXT, "lib") not in sys.path:
     sys.path.append(os.path.join(_EXT, "lib"))
 

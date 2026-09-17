@@ -1,0 +1,4 @@
+title: Filter
+layout:
+  - FilterManager
+  - PassFilterOverrides
