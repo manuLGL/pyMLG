@@ -55,6 +55,7 @@ from System import Action
 from System.Windows.Media import Color, FontFamily, SolidColorBrush
 from System.Windows.Threading import DispatcherPriority
 
+from filter_manager import darstellung as ds
 from filter_manager import dialoge as dlg
 from filter_manager import modell as mo
 from filter_manager import regelbaum as rb
@@ -1291,14 +1292,26 @@ class FilterManagerFenster(object):
         except Exception:
             return None
 
-    def _sichtbarkeit_waehlen(self, titel, text):
-        """True/False, "unveraendert" oder None bei Abbruch."""
-        return dlg.waehle(
-            self.fenster, titel, text,
-            [(t(u"Sichtbar", u"Visible", u"Visible"), True), (t(u"Unsichtbar", u"Hidden", u"Oculto"), False),
-             (t(u"Sichtbarkeit nicht ändern (nur hinzufügen)", u"Do not change visibility (add only)", u"No cambiar la visibilidad (solo añadir)"), "unveraendert")])
+    def _darstellung_waehlen(self, titel, text, ansicht=None):
+        """Dialog Sichtbarkeit/Grafiken. Rückgabe ds.Darstellung oder None.
 
-    def _anwenden_auf(self, ansichten, sichtbarkeit):
+        Ist genau ein Filter markiert und in der Ansicht schon angewendet,
+        zeigt der Dialog dessen aktuelle Sichtbarkeit und Überschreibungen.
+        """
+        vorbelegung, sichtbar = None, True
+        eintrag = self._aktuell()
+        if ansicht is not None and eintrag is not None:
+            fid = eintrag["element"].Id
+            try:
+                if ansicht.IsFilterApplied(fid):
+                    vorbelegung = ansicht.GetFilterOverrides(fid)
+                    sichtbar = ansicht.GetFilterVisibility(fid)
+            except Exception:
+                pass
+        return ds.frage_darstellung(self.fenster, self.doc, titel, text,
+                                    vorbelegung, sichtbar)
+
+    def _anwenden_auf(self, ansichten, darstellung):
         """Rückgabe: (Anzahl ok, [(Ansicht, Filter, Grund)])"""
         markiert = self._markierte_eintraege()
         fehler = []
@@ -1317,8 +1330,7 @@ class FilterManagerFenster(object):
                     try:
                         if not ansicht.IsFilterApplied(fid):
                             ansicht.AddFilter(fid)
-                        if sichtbarkeit is not None:
-                            ansicht.SetFilterVisibility(fid, sichtbarkeit)
+                        darstellung.anwenden(ansicht, fid, self.doc)
                         zaehler += 1
                     except Exception as ausnahme:
                         fehler.append((ansicht.Name, eintrag["name"],
@@ -1354,15 +1366,13 @@ class FilterManagerFenster(object):
                              % vorlage.Name):
                 return
             ansicht = vorlage
-        sichtbarkeit = self._sichtbarkeit_waehlen(
+        darstellung = self._darstellung_waehlen(
             t(u"Auf aktive Ansicht anwenden", u"Apply to active view", u"Aplicar a la vista activa"),
-            t(u"%d Filter auf \"%s\" anwenden - Elemente des Filters sollen sein:", u"Apply %d filters to \"%s\" - filter elements should be:", u"Aplicar %d filtros a \"%s\" - los elementos del filtro deben estar:")
-            % (len(self.ausgewaehlt), ansicht.Name))
-        if sichtbarkeit is None:
+            t(u"%d Filter auf \"%s\" anwenden - Sichtbarkeit und Grafiken wie in Sichtbarkeit/Grafiken:", u"Apply %d filters to \"%s\" - visibility and graphics as in Visibility/Graphics:", u"Aplicar %d filtros a \"%s\" - visibilidad y gráficos como en Visibilidad/Gráficos:")
+            % (len(self.ausgewaehlt), ansicht.Name), ansicht)
+        if darstellung is None:
             return
-        erfolgreich, fehler = self._anwenden_auf(
-            [ansicht], None if sichtbarkeit == "unveraendert"
-            else sichtbarkeit)
+        erfolgreich, fehler = self._anwenden_auf([ansicht], darstellung)
         self._bericht(erfolgreich, fehler, t(u"angewendet", u"applied", u"aplicadas"))
         self._zeige_ansichtstatus()
 
@@ -1386,16 +1396,18 @@ class FilterManagerFenster(object):
             u"angewendet werden sollen. Ansichten, deren Filter von einer "
             u"Vorlage gesteuert werden, werden übersprungen - dann die Vorlage "
             u"wählen.", u"Choose the views and view templates to apply %d filters to. Views whose filters are controlled by a template are skipped - choose the template instead.", u"Elija las vistas y plantillas de vista a las que aplicar %d filtros. Se omiten las vistas cuyos filtros controla una plantilla: elija entonces la plantilla.") % len(self.ausgewaehlt),
-            eintraege, mehrfach=True,
-            optionen=(t(u"Elemente des Filters:", u"Filter elements:", u"Elementos del filtro:"),
-                      [t(u"Sichtbar", u"Visible", u"Visible"), t(u"Unsichtbar", u"Hidden", u"Oculto"),
-                       t(u"Sichtbarkeit nicht ändern (nur hinzufügen)", u"Do not change visibility (add only)", u"No cambiar la visibilidad (solo añadir)")], 0))
+            eintraege, mehrfach=True)
         if ergebnis is None:
             return
-        ids, option = ergebnis
-        sichtbarkeit = {0: True, 1: False}.get(option)
-        ansichten = [self.doc.GetElement(ElementId(i)) for i in ids]
-        erfolgreich, fehler = self._anwenden_auf(ansichten, sichtbarkeit)
+        ansichten = [self.doc.GetElement(ElementId(i)) for i in ergebnis]
+        darstellung = self._darstellung_waehlen(
+            t(u"Auf Ansichten anwenden", u"Apply to views", u"Aplicar a vistas"),
+            t(u"%d Filter auf %d Ansicht(en) anwenden - Sichtbarkeit und Grafiken:", u"Apply %d filters to %d view(s) - visibility and graphics:", u"Aplicar %d filtros a %d vista(s) - visibilidad y gráficos:")
+            % (len(self.ausgewaehlt), len(ansichten)),
+            ansichten[0] if len(ansichten) == 1 else None)
+        if darstellung is None:
+            return
+        erfolgreich, fehler = self._anwenden_auf(ansichten, darstellung)
         self._bericht(erfolgreich, fehler, t(u"angewendet", u"applied", u"aplicadas"))
         self._zeige_ansichtstatus()
 
