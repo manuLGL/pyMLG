@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Fügt die ausgewählten Elemente an gleicher Grundrissposition auf der Ebene
-der aktiven Ansicht ein (wie "Ausgerichtet an aktueller Ansicht einfügen")
-und behält "Phase erstellt" und "Phase abgebrochen" der Originale bei.
-
-Elemente von verschiedenen Ebenen behalten ihren Höhenabstand zueinander.
-Versätze zur Ebene bleiben erhalten; obere Abhängigkeiten (z.B. Wand bis
-Ebene 2) werden auf die entsprechend höhere Ebene gesetzt - gibt es die
-nicht, wird eine Wand "nicht verbunden" mit gleicher Höhe."""
+# Fügt die ausgewählten Elemente an gleicher Grundrissposition auf der Ebene
+# der aktiven Ansicht ein (wie "Ausgerichtet an aktueller Ansicht einfügen")
+# und behält "Phase erstellt" und "Phase abgebrochen" der Originale bei.
+#
+# Elemente von verschiedenen Ebenen behalten ihren Höhenabstand zueinander.
+# Versätze zur Ebene bleiben erhalten; obere Abhängigkeiten (z.B. Wand bis
+# Ebene 2) werden auf die entsprechend höhere Ebene gesetzt - gibt es die
+# nicht, wird eine Wand "nicht verbunden" mit gleicher Höhe.
+# (Kommentar statt Docstring: pyRevit liest unter IronPython den
+#  Docstring als Tooltip und scheitert dabei an Umlauten.)
 
 __title__ = "Paste Aligned View"
 __author__ = "Manuel"

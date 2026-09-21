@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Kopiert Elemente von einem Basispunkt zu einem Zielpunkt und behält
-"Phase erstellt" und "Phase abgebrochen" der Originale bei (Revit setzt bei
-Kopien sonst die Phase der aktiven Ansicht). Abhängige Elemente wie Türen
-und Fenster werden mit übernommen."""
+# Kopiert Elemente von einem Basispunkt zu einem Zielpunkt und behält
+# "Phase erstellt" und "Phase abgebrochen" der Originale bei (Revit setzt bei
+# Kopien sonst die Phase der aktiven Ansicht). Abhängige Elemente wie Türen
+# und Fenster werden mit übernommen.
+# (Kommentar statt Docstring: pyRevit liest unter IronPython den
+#  Docstring als Tooltip und scheitert dabei an Umlauten.)
 
 __title__ = "Copy With Phases"
 __author__ = "Manuel"
