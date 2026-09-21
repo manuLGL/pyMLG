@@ -4,3 +4,4 @@ title:
   es_es: "Selección"
 layout:
   - FilterMore
+  - LinkedIds

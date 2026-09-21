@@ -1,0 +1,40 @@
+title:
+  de_de: "Transfer\nSingle"
+  en_us: "Transfer\nSingle"
+  es_es: "Transferir\nelementos"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Einzelne Elemente von einem Projekt (oder einer Verknüpfung) in andere
+    geöffnete Projekte übertragen.
+
+    Baum aller übertragbaren Elemente: Typen, Ansichtsvorlagen, Pläne,
+    Zeichenansichten, Legenden, Bauteillisten, Filter, Materialien, Muster und
+    wahlweise Modellelemente. Doppelte Typnamen: Zieltypen verwenden,
+    abbrechen oder nachfragen. Markierte Elemente in der Quelle löschen oder
+    umbenennen (Präfix, Suffix, Suchen/Ersetzen, Groß-/Kleinschreibung).
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Transfer individual elements from one project (or a link) to other open
+    projects.
+
+    Tree of all transferable elements: types, view templates, sheets, drafting
+    views, legends, schedules, filters, materials, patterns and optionally
+    model elements. Duplicate type names: use destination types, abort or ask.
+    Delete or rename checked elements in the source (prefix, suffix, find and
+    replace, upper/lower case).
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Transfiere elementos individuales de un proyecto (o un vínculo) a otros
+    proyectos abiertos.
+
+    Árbol de todos los elementos transferibles: tipos, plantillas de vista,
+    planos, vistas de diseño, leyendas, tablas, filtros, materiales, patrones
+    y, opcionalmente, elementos de modelo. Nombres de tipo duplicados: usar
+    los tipos del destino, cancelar o preguntar. Eliminar o renombrar los
+    elementos marcados en el origen (prefijo, sufijo, buscar y reemplazar,
+    mayúsculas/minúsculas).
+
+    Requiere el motor CPython3.

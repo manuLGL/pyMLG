@@ -368,6 +368,15 @@ def level_auto_set(b):
     pfeil(b, (82, 70), (82, 30), 7, 13, GRUEN)        # Ebene wechselt
 
 
+def transfer_single(b):
+    """Zwei Projektblätter, ein Element wandert per Pfeil hinüber."""
+    blattform(b, 4, 10, 44, 62, BLAU, 8)
+    blattform(b, 52, 34, 92, 86, GRUEN, 8)
+    rect(b, 12, 30, 26, 44, ORANGE)             # Element in der Quelle
+    rect(b, 66, 54, 80, 68, ORANGE)             # übertragene Kopie
+    pfeil(b, (28, 50), (62, 62), 7, 13, DUNKEL)
+
+
 def room_center(b):
     """L-foermiger Raum, Punkt wandert von der Ecke in die Mitte."""
     rect(b, 8, 8, 52, 88, DUNKEL)
@@ -394,6 +403,22 @@ def filter_manager(b):
         rect(b, 64, 51 + i * 12, 86, 55 + i * 12, LINIE)
 
 
+def linked_ids(b):
+    """Kettenglieder ueber dem verknuepften Modell, davor ein Schild mit der Id."""
+    blattform(b, 4, 4, 60, 58, BLAU, 8)          # verknuepftes Modell
+    rect(b, 10, 28, 54, 44, DUNKEL)              # Rohr in der Verknuepfung
+    rect(b, 13, 32, 51, 40, ORANGE)
+    kreis(b, 23, 17, 9, DUNKEL)                  # Kettenglieder = Verknuepfung
+    kreis(b, 23, 17, 5, WEISS)
+    kreis(b, 36, 17, 9, DUNKEL)
+    kreis(b, 36, 17, 5, WEISS)
+    polygon(b, [(30, 78), (48, 56), (92, 56), (92, 92), (48, 92)], DUNKEL)
+    polygon(b, [(38, 78), (52, 61), (87, 61), (87, 87), (52, 87)], WEISS)
+    kreis(b, 58, 74, 4, DUNKEL)                  # Loch im Schild
+    rect(b, 66, 66, 84, 72, GRUEN)               # Id-Zeilen
+    rect(b, 66, 76, 78, 82, GRUEN)
+
+
 SYMBOLE = {
     "Oberflaeche.panel/TabManager.pushbutton": tab_manager,
     "Ansichten.panel/Duplizieren.stack/DuplicatePlan.pushbutton": duplicate_plan,
@@ -414,7 +439,9 @@ SYMBOLE = {
     "Worksets.panel/WorksetCreator.pushbutton": workset_creator,
     "Geometrie.panel/JoinMultiple.pushbutton": join_multiple,
     "Auswahl.panel/FilterMore.pushbutton": filter_more,
+    "Auswahl.panel/LinkedIds.pushbutton": linked_ids,
     "Geometrie.panel/LevelAutoSet.pushbutton": level_auto_set,
+    "Projekt.panel/TransferSingle.pushbutton": transfer_single,
 }
 
 

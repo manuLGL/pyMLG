@@ -1,0 +1,41 @@
+title:
+  de_de: "Linked\nIDs"
+  en_us: "Linked\nIDs"
+  es_es: "IDs de\nvínculos"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Die ID eines Elements aus einer Verknüpfung ermitteln - die ID, die im
+    verknüpften Modell gilt.
+
+    Element in der Verknüpfung mit Tab antippen und das Werkzeug starten;
+    ohne Auswahl fragt es nach den Elementen. Die Liste zeigt Dokument,
+    Verknüpfung, Kategorie, Typ und ID, auch bei verschachtelten
+    Verknüpfungen und für Elemente des eigenen Modells. Die IDs gehen mit
+    Komma getrennt in die Zwischenablage - für "Auswählen nach ID" im
+    verknüpften Modell oder für den Kollisionsbericht.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Find the id of an element inside a link - the id that is valid in the
+    linked model.
+
+    Tab onto the element inside the link and start the tool; without a
+    selection it asks for the elements. The list shows document, link,
+    category, type and id, including nested links and elements of your own
+    model. The ids go to the clipboard separated by commas - ready for
+    "Select by ID" in the linked model or for the clash report.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Obtiene el ID de un elemento de un vínculo: el ID que vale dentro del
+    modelo vinculado.
+
+    Señale el elemento del vínculo con el tabulador e inicie la herramienta;
+    sin selección, le pide los elementos. La lista muestra documento,
+    vínculo, categoría, tipo e ID, también en vínculos anidados y para
+    elementos del propio modelo. Los ID pasan al portapapeles separados por
+    comas, listos para "Seleccionar por ID" en el modelo vinculado o para el
+    informe de interferencias.
+
+    Requiere el motor CPython3.
