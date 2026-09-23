@@ -143,6 +143,15 @@ def _aufloesen(doc, referenz):
     return aktuell, None, -1, kette
 
 
+def aufloesen(doc, referenz):
+    """Referenz -> (dokument, element, id_wert, kette der Verknüpfungen).
+
+    Oeffentlicher Zugang zu _aufloesen - SectionBox rechnet aus der Kette die
+    Lage des Elements im Wirtsmodell aus.
+    """
+    return _aufloesen(doc, referenz)
+
+
 def eintrag_aus_referenz(doc, referenz):
     """Referenz -> Eintrag, oder None, wenn nichts Brauchbares dahinter steht."""
     dokument, element, wert, kette = _aufloesen(doc, referenz)

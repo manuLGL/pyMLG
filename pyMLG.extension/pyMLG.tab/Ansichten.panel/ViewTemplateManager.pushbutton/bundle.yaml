@@ -1,0 +1,48 @@
+title:
+  de_de: "Vorlagen\nManager"
+  en_us: "Template\nManager"
+  es_es: "Gestor\nplantillas"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Ansichtsvorlagen verwalten wie im Dialog "Ansichtsvorlagen" - mit Suchfeld und Mehrfachauswahl.
+
+    Suche nach Vorlagenname oder zusätzlich nach Parameterwerten, gefiltert nach Disziplin und Ansichtstyp. Mehrere Vorlagen zugleich markieren und deren gemeinsame Parameter in einem Zug ändern: Werte setzen und die "Einschließen"-Haken sammelweise an- oder abwählen.
+
+    "Auf andere Vorlagen kopieren…" überträgt einzelne Einstellungen von einer Vorlage auf beliebig viele andere: eine Liste zum Abhaken, Zeile für Zeile - ein Parameter, eine einzelne Kategorie samt Überschreibungen, ein einzelner Filter, ein Bearbeitungsbereich, eine Ebene des Ansichtsbereichs. "Unterschiede suchen" vergleicht die Zielvorlagen und hakt an, was abweicht. Alles Nicht-Abgehakte bleibt in den Zielen unangetastet. Dieselbe Liste gibt es unter "Von anderer Vorlage holen…" aus der Gegenrichtung.
+
+    Die Einstellungen hinter "Bearbeiten…" haben eigene Editoren, die ebenfalls auf alle markierten Vorlagen schreiben: Sichtbarkeit und Grafiküberschreibungen der Modell-, Beschriftungs- und analytischen Kategorien, die Filter der Vorlage, die Bearbeitungsbereiche und der Ansichtsbereich. Was die Revit-API nicht freigibt (Modelldarstellung, Schatten, Skizzenlinien, Beleuchtung, Fotobelichtung), lässt sich nur übertragen, nicht bearbeiten.
+
+    Außerdem: Vorlage aus einer Ansicht erzeugen, duplizieren, umbenennen, löschen sowie Vorlagen mehreren Ansichten zuweisen oder die Zuweisung lösen.
+
+    OK übernimmt alle Änderungen (ein Rückgängig-Schritt), Abbrechen verwirft sie.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Manage view templates like in the "View Templates" dialog - with a search box and multi-selection.
+
+    Search by template name or also by parameter values, narrowed down by discipline and view type. Select several templates at once and change their common parameters in one go: set values and check or uncheck the "Include" boxes in bulk.
+
+    "Copy to other templates…" transfers individual settings from one template to any number of others: a list to tick off, row by row - one parameter, one single category including its overrides, one single filter, one workset, one plane of the view range. "Find differences" compares the target templates and ticks what differs. Anything not ticked stays untouched in the targets. The same list is available from the other direction under "Get from another template…".
+
+    The settings behind "Edit…" have their own editors that also write to all selected templates: visibility and graphic overrides of the model, annotation and analytical categories, the filters of the template, the worksets and the view range. What the Revit API does not expose (model display, shadows, sketchy lines, lighting, photographic exposure) can only be transferred, not edited.
+
+    Also: create a template from a view, duplicate, rename and delete templates, assign a template to several views or remove the assignment.
+
+    OK applies all changes (one undo step), Cancel discards them.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Gestiona las plantillas de vista como en el cuadro de diálogo "Plantillas de vista", con cuadro de búsqueda y selección múltiple.
+
+    Busca por nombre de plantilla o también por valores de parámetros, filtrando por disciplina y tipo de vista. Selecciona varias plantillas a la vez y cambia sus parámetros comunes de una sola vez: establece valores y marca o desmarca las casillas "Incluir" en bloque.
+
+    "Copiar a otras plantillas…" transfiere ajustes individuales de una plantilla a tantas otras como quiera: una lista para marcar, fila por fila: un parámetro, una sola categoría con sus modificaciones, un solo filtro, un subproyecto, un plano del rango de vista. "Buscar diferencias" compara las plantillas de destino y marca lo que difiere. Lo que no se marca queda intacto en los destinos. La misma lista está disponible en sentido contrario en "Traer de otra plantilla…".
+
+    Los ajustes que aparecen como "Editar…" tienen sus propios editores, que también escriben en todas las plantillas seleccionadas: visibilidad y modificaciones gráficas de las categorías de modelo, anotación y analíticas, los filtros de la plantilla, los subproyectos y el rango de vista. Lo que la API de Revit no permite editar (visualización de modelo, sombras, líneas de croquis, iluminación, exposición fotográfica) solo se puede transferir, no editar.
+
+    Además: crear una plantilla a partir de una vista, duplicar, renombrar y eliminar plantillas, asignar una plantilla a varias vistas o quitar la asignación.
+
+    Aceptar aplica todos los cambios (un paso de deshacer), Cancelar los descarta.
+
+    Requiere el motor CPython3.

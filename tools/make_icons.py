@@ -391,6 +391,17 @@ def room_center(b):
 
 
 
+def view_template_manager(b):
+    """Zwei Vorlagenblaetter uebereinander, Zeilen mit Einschliessen-Haken."""
+    blattform(b, 4, 6, 58, 60, BLAU, 8)          # weitere Vorlage dahinter
+    blattform(b, 24, 26, 92, 92, BLAU, 10)       # markierte Vorlage
+    for y in (50, 66, 82):
+        rect(b, 30, y - 2, 62, y + 2, LINIE)     # Parameterzeile
+        rahmen(b, 70, y - 7, 84, y + 7, 2, DUNKEL)
+        linie(b, (73, y + 1), (76, y + 4), 3, GRUEN)
+        linie(b, (76, y + 4), (82, y - 4), 3, GRUEN)
+
+
 def filter_manager(b):
     """Filtertrichter neben Regelzeilen: Filter und ihre Regeln verwalten."""
     polygon(b, [(4, 14), (54, 14), (36, 40), (22, 40)], DUNKEL)
@@ -419,6 +430,59 @@ def linked_ids(b):
     rect(b, 66, 76, 78, 82, GRUEN)
 
 
+def _schnittkasten(b, akzent):
+    """Wuerfel in Isometrie - die Schnittbox."""
+    polygon(b, [(28, 28), (52, 44), (28, 60), (4, 44)], WEISS)   # Deckel
+    polygon(b, [(4, 44), (28, 60), (28, 82), (4, 66)], LINIE)    # linke Wange
+    polygon(b, [(52, 44), (28, 60), (28, 82), (52, 66)], akzent)  # rechte
+    kanten = [((28, 28), (52, 44)), ((52, 44), (28, 60)),
+              ((28, 60), (4, 44)), ((4, 44), (28, 28)),
+              ((4, 44), (4, 66)), ((52, 44), (52, 66)),
+              ((28, 60), (28, 82)), ((4, 66), (28, 82)),
+              ((28, 82), (52, 66))]
+    for p0, p1 in kanten:
+        linie(b, p0, p1, 3, DUNKEL)
+
+
+def section_box_copy(b):
+    """Schnittbox, ein Pfeil traegt sie als Text auf ein Blatt."""
+    _schnittkasten(b, BLAU)
+    blattform(b, 60, 6, 92, 48, GRUEN, 7)        # Text in der Zwischenablage
+    rect(b, 64, 24, 88, 28, LINIE)
+    rect(b, 64, 32, 80, 36, LINIE)
+    pfeil(b, (40, 34), (60, 22), 6, 12, GRUEN)
+
+
+def section_box_paste(b):
+    """Blatt mit der Box, ein Pfeil setzt sie ins zweite Modell."""
+    blattform(b, 60, 6, 92, 48, ORANGE, 7)
+    rect(b, 64, 24, 88, 28, LINIE)
+    rect(b, 64, 32, 80, 36, LINIE)
+    _schnittkasten(b, ORANGE)
+    pfeil(b, (60, 22), (40, 34), 6, 12, ORANGE)
+
+
+def section_box_selection(b):
+    """Schnittbox um ein markiertes Element, daneben die Kette der
+    Verknuepfung."""
+    polygon(b, [(28, 28), (52, 44), (28, 60), (4, 44)], WEISS)
+    polygon(b, [(4, 44), (28, 60), (28, 82), (4, 66)], LINIE)
+    polygon(b, [(52, 44), (28, 60), (28, 82), (52, 66)], BLAU)
+    rect(b, 16, 48, 42, 72, DUNKEL)              # Element in der Box
+    rect(b, 19, 51, 39, 69, ORANGE)
+    kanten = [((28, 28), (52, 44)), ((52, 44), (28, 60)),
+              ((28, 60), (4, 44)), ((4, 44), (28, 28)),
+              ((4, 44), (4, 66)), ((52, 44), (52, 66)),
+              ((28, 60), (28, 82)), ((4, 66), (28, 82)),
+              ((28, 82), (52, 66))]
+    for p0, p1 in kanten:
+        linie(b, p0, p1, 3, DUNKEL)
+    kreis(b, 69, 17, 10, DUNKEL)                 # Kette = Verknuepfung
+    kreis(b, 69, 17, 6, WEISS)
+    kreis(b, 81, 29, 10, DUNKEL)
+    kreis(b, 81, 29, 6, WEISS)
+
+
 SYMBOLE = {
     "Oberflaeche.panel/TabManager.pushbutton": tab_manager,
     "Ansichten.panel/Duplizieren.stack/DuplicatePlan.pushbutton": duplicate_plan,
@@ -442,6 +506,10 @@ SYMBOLE = {
     "Auswahl.panel/LinkedIds.pushbutton": linked_ids,
     "Geometrie.panel/LevelAutoSet.pushbutton": level_auto_set,
     "Projekt.panel/TransferSingle.pushbutton": transfer_single,
+    "Ansichten.panel/ViewTemplateManager.pushbutton": view_template_manager,
+    "Ansichten.panel/SectionBox.stack/SectionBoxCopy.pushbutton": section_box_copy,
+    "Ansichten.panel/SectionBox.stack/SectionBoxPaste.pushbutton": section_box_paste,
+    "Ansichten.panel/SectionBox.stack/SectionBoxSelection.pushbutton": section_box_selection,
 }
 
 

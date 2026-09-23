@@ -1,0 +1,36 @@
+title:
+  de_de: "Box\nkopieren"
+  en_us: "Copy\nBox"
+  es_es: "Copiar\ncaja"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Kopiert die Schnittbox der aktiven 3D-Ansicht als Text in die
+    Zwischenablage.
+
+    Gespeichert werden Lage, Drehung und Größe der Box - in gemeinsamen
+    Koordinaten und zusätzlich in Projektkoordinaten. Mit "Box einfügen"
+    sitzt sie in einem anderen geöffneten Projekt an derselben Stelle: was
+    im Koordinationsmodell auffällt, ist im Bearbeitungsmodell sofort im
+    Bild.
+
+    Der Text ist lesbar und lässt sich auch per Mail oder Chat weitergeben.
+  en_us: >-
+    Copies the section box of the active 3D view to the clipboard as text.
+
+    Position, rotation and size are stored - in shared coordinates and also
+    in project coordinates. With "Paste Box" the box lands at the very same
+    spot in another open project: what you spot in the coordination model is
+    right in front of you in the working model.
+
+    The text is readable and can be passed on by mail or chat.
+  es_es: >-
+    Copia la caja de sección de la vista 3D activa al portapapeles como
+    texto.
+
+    Se guardan posición, giro y tamaño, en coordenadas compartidas y también
+    en coordenadas del proyecto. Con "Pegar caja" aparece en el mismo sitio
+    en otro proyecto abierto: lo que se ve en el modelo de coordinación está
+    delante en el modelo de trabajo.
+
+    El texto es legible y se puede enviar por correo o chat.

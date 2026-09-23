@@ -1,0 +1,39 @@
+title:
+  de_de: "Box um\nAuswahl"
+  en_us: "Box around\nSelection"
+  es_es: "Caja por\nselección"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Legt die Schnittbox der 3D-Ansicht um die gewählten Elemente, mit einem
+    halben Meter Luft ringsum.
+
+    Elemente aus Verknüpfungen zählen mit: mit Tab antippen, auch in
+    verschachtelten Verknüpfungen. Ist nichts ausgewählt, fragt das Werkzeug
+    nach den Elementen in der Verknüpfung; eigene Elemente wählt man vorher
+    aus. Ist keine 3D-Ansicht offen, wird die Standard-3D-Ansicht geöffnet.
+
+    Die Box liegt achsparallel zum Projekt. Mit "Box kopieren" geht sie von
+    dort ins nächste Modell.
+  en_us: >-
+    Sets the section box of the 3D view around the selected elements, with
+    half a metre of air all round.
+
+    Elements from links count too: tab onto them, nested links included. With
+    nothing selected the tool asks for the elements inside the link; your own
+    elements are selected beforehand. If no 3D view is open, the default 3D
+    view is opened.
+
+    The box is aligned to the project axes. "Copy Box" takes it from there to
+    the next model.
+  es_es: >-
+    Ajusta la caja de sección de la vista 3D a los elementos seleccionados,
+    con medio metro de holgura alrededor.
+
+    Los elementos de vínculos cuentan: señálelos con Tab, también en vínculos
+    anidados. Sin selección, la herramienta pide los elementos del vínculo;
+    los propios se seleccionan antes. Si no hay ninguna vista 3D abierta, se
+    abre la vista 3D predeterminada.
+
+    La caja queda paralela a los ejes del proyecto. Con "Copiar caja" pasa al
+    siguiente modelo.

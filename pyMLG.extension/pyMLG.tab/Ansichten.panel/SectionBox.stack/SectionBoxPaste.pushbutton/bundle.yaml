@@ -1,0 +1,39 @@
+title:
+  de_de: "Box\neinfügen"
+  en_us: "Paste\nBox"
+  es_es: "Pegar\ncaja"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Setzt die Schnittbox aus der Zwischenablage in die aktive 3D-Ansicht und
+    zoomt darauf.
+
+    Die Box kommt an dieselbe Stelle wie im Herkunftsprojekt, samt Drehung.
+    Sind die beiden Projekte unterschiedlich verortet, fragt das Werkzeug,
+    ob nach gemeinsamen Koordinaten (Vermessungspunkt) oder nach
+    Projektkoordinaten (Ursprung auf Ursprung) eingefügt werden soll.
+
+    War die Schnittbox der Ansicht aus, schaltet sie sich ein. Steuert eine
+    Ansichtsvorlage die Schnittbox, muss sie dort freigegeben sein.
+  en_us: >-
+    Applies the section box from the clipboard to the active 3D view and
+    zooms to it.
+
+    The box lands at the same spot as in the source project, rotation
+    included. If the two projects are positioned differently, the tool asks
+    whether to use shared coordinates (survey point) or project coordinates
+    (origin to origin).
+
+    If the view had no section box, it is switched on. If a view template
+    controls the section box, it has to be released there.
+  es_es: >-
+    Aplica la caja de sección del portapapeles a la vista 3D activa y hace
+    zoom sobre ella.
+
+    La caja queda en el mismo sitio que en el proyecto de origen, con su
+    giro. Si los dos proyectos están ubicados de forma distinta, la
+    herramienta pregunta si usar coordenadas compartidas (punto de
+    topografía) o coordenadas del proyecto (origen con origen).
+
+    Si la vista no tenía caja de sección, se activa. Si una plantilla de
+    vista la controla, hay que liberarla allí.

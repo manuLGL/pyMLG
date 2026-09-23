@@ -3,6 +3,8 @@ title:
   en_us: "Views"
   es_es: "Vistas"
 layout:
+  - ViewTemplateManager
   - ViewNameManager
   - Duplizieren
+  - SectionBox
   - Hilfen
