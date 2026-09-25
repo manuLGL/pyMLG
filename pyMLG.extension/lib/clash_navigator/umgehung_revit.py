@@ -44,6 +44,7 @@ from mlg_sprache import t
 from clash_navigator import logik as lg
 from clash_navigator import revit as rv
 from clash_navigator import umgehung as ug
+from clash_navigator import vorrang as vr
 
 clr.AddReference("System")
 from System.Collections.Generic import List  # noqa: E402
@@ -91,8 +92,9 @@ class Leitungsdaten(object):
     Übernehmen."""
 
     def __init__(self, kennung, element_id, text, start, ende, querschnitt,
-                 anschluesse_, hindernis_text):
-        self.kennung = kennung              # "A" oder "B"
+                 anschluesse_, hindernis_text, gewerk=vr.SONSTIGE):
+        self.kennung = kennung              # "A" weicht zuerst aus, dann "B"
+        self.gewerk = gewerk
         self.element_id = element_id
         self.text = text
         self.start = start
@@ -473,10 +475,15 @@ def analysiere(uiapp, clash, optionen):
                           u"No se encontró el segundo elemento del "
                           u"conflicto; sin obstáculo no hay desvío."))
 
-    # Kleinere Leitung zuerst - sie heisst "A"
-    beweglich.sort(key=lambda f: querschnitt(doc, f.element).groesste)
+    # Wer nach den Vorrangregeln ausweichen soll, kommt zuerst und heisst
+    # "A"; bei gleichem Gewerk die kleinere Leitung
+    liste_vorrang = vr.reihenfolge(optionen.get(u"vorrang"))
+    gewerke = dict((id(f), gewerk_von(f.element)) for f in funde)
+    beweglich.sort(key=lambda f: (-vr.rang(gewerke[id(f)], liste_vorrang),
+                                  querschnitt(doc, f.element).groesste))
     analyse = Analyse()
     analyse.doc_titel = doc.Title
+    _vorrang_hinweis(analyse, funde, beweglich, gewerke, liste_vorrang)
     soll = float(optionen.get(u"abstand_cm", 5)) / 100.0
     winkel = optionen.get(u"winkel") or (45, 90)
     # Gesamtfrist für alle Prüfungen - Revit darf nicht hängen
@@ -486,8 +493,14 @@ def analysiere(uiapp, clash, optionen):
     rechner = []
     for kennung, fund in zip((u"A", u"B"), beweglich):
         hindernis = [f for f in funde if f is not fund][0]
+        # Hat diese Leitung Vorrang vor der anderen (die auch ausweichen
+        # könnte), rutschen ihre Varianten nach hinten
+        aufschlag = 0.0
+        if len(beweglich) == 2 and vr.weicht_aus(
+                gewerke[id(hindernis)], gewerke[id(fund)], liste_vorrang):
+            aufschlag = AUFSCHLAG_VORRANG
         rechner.append(_Rechner(doc, kennung, fund, hindernis, vorrat,
-                                winkel, soll))
+                                winkel, soll, gewerke[id(fund)], aufschlag))
     analyse.leitungen = [r.daten for r in rechner]
 
     je_leitung = []
@@ -523,12 +536,93 @@ def analysiere(uiapp, clash, optionen):
 # Gesamtzeit für alle Kollisionsprüfungen einer Berechnung (Sekunden)
 ZEITLIMIT = 25
 
+# Aufschlag in der Bewertung für Varianten des Gewerks mit Vorrang - sie
+# bleiben sichtbar, stehen aber hinter denen des ausweichenden Gewerks
+AUFSCHLAG_VORRANG = 1.0
+
+
+def _kategorie_name(element):
+    try:
+        return u"%s" % element.Category.BuiltInCategory       # Revit 2023+
+    except Exception:
+        pass
+    try:
+        wert = int(rv.id_wert_text(element.Category.Id))
+        for name in (u"OST_DuctCurves", u"OST_DuctFitting",
+                     u"OST_CableTray", u"OST_Conduit", u"OST_Walls",
+                     u"OST_Floors", u"OST_StructuralFraming",
+                     u"OST_StructuralColumns", u"OST_Sprinklers"):
+            if int(getattr(BuiltInCategory, name)) == wert:
+                return name
+    except Exception:
+        pass
+    return u""
+
+
+def gewerk_von(element):
+    """Gewerk eines Elements (auch aus einer Verknüpfung) - über Kategorie,
+    Name des Rohrsystems und Systemklassifizierung."""
+    klassifizierung = u""
+    namen = []
+    for verbinder in _verbinder(element):
+        try:
+            system = verbinder.MEPSystem
+        except Exception:
+            system = None
+        if system is None:
+            continue
+        try:
+            klassifizierung = u"%s" % system.SystemType
+        except Exception:
+            pass
+        try:
+            namen.append(system.Name or u"")
+            typ = system.Document.GetElement(system.GetTypeId())
+            if typ is not None:
+                namen.append(typ.Name or u"")
+        except Exception:
+            pass
+        break
+    for parameter in (BuiltInParameter.RBS_PIPING_SYSTEM_TYPE_PARAM,
+                      BuiltInParameter.RBS_SYSTEM_NAME_PARAM):
+        try:
+            wert = element.get_Parameter(parameter)
+            if wert is not None and wert.HasValue:
+                namen.append(wert.AsValueString() or wert.AsString() or u"")
+        except Exception:
+            continue
+    return vr.gewerk(_kategorie_name(element), klassifizierung,
+                     u" ".join(n for n in namen if n))
+
+
+def _vorrang_hinweis(analyse, funde, beweglich, gewerke, liste_vorrang):
+    """Nur eine Leitung ist verlegbar, nach Vorrang müsste aber das andere
+    Element ausweichen - dann ein Hinweis (z.B. Elektro im Link)."""
+    if len(beweglich) != 1:
+        return
+    eigene = beweglich[0]
+    for anderes in funde:
+        if anderes is eigene:
+            continue
+        code = gewerke[id(anderes)]
+        if code != vr.BAU and vr.weicht_aus(code, gewerke[id(eigene)],
+                                             liste_vorrang):
+            analyse.hinweise.append(t(
+                u"Nach Vorrang müsste %s ausweichen - liegt aber nicht als "
+                u"Leitung im aktiven Modell.",
+                u"By priority %s should give way - but it is not a segment "
+                u"of the active model.",
+                u"Por prioridad debería desviarse %s, pero no es un tramo "
+                u"del modelo activo.") % vr.text(code))
+
 
 class _Rechner(object):
     """Varianten für eine Leitung rechnen und prüfen."""
 
-    def __init__(self, doc, kennung, fund, hindernis, vorrat, winkel, soll):
+    def __init__(self, doc, kennung, fund, hindernis, vorrat, winkel, soll,
+                 gewerk=vr.SONSTIGE, aufschlag=0.0):
         element = fund.element
+        self.aufschlag = aufschlag
         self.hindernis = hindernis
         self.vorrat = vorrat
         self.winkel = winkel
@@ -538,8 +632,10 @@ class _Rechner(object):
         self.nachbarn, anschluesse_ = anschluesse(element)
         self.daten = Leitungsdaten(
             kennung, element.Id,
-            u"%s · %s" % (_beschreibung(fund), quer.text()),
-            start, ende, quer, anschluesse_, _beschreibung(hindernis))
+            u"%s · %s · %s" % (_beschreibung(fund), quer.text(),
+                               vr.text(gewerk)),
+            start, ende, quer, anschluesse_, _beschreibung(hindernis),
+            gewerk)
         self.achse = ug.einheit(ug.minus(ende, start))
         self.ausschluss = _ausschluss(doc, element)
         for anschluss in anschluesse_:
@@ -557,6 +653,7 @@ class _Rechner(object):
                              soll_abstand=self.soll)
         for variante in runde:
             variante.leitung = d
+            variante.aufschlag += self.aufschlag
         paare = [(v, koerper(v, d.querschnitt, self.achse))
                  for v in runde if v.gueltig]
         fertig = pruefe_varianten(self.vorrat, paare,

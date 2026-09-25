@@ -42,7 +42,7 @@ from System.Windows import (CornerRadius, FontWeights,  # noqa: E402
                             MessageBoxButton, MessageBoxImage, MessageBoxResult,
                             RoutedEventHandler, Thickness, Visibility)
 from System.Windows.Controls import (Border, Canvas, ComboBoxItem,  # noqa: E402,E501
-                                     GridViewColumnHeader,
+                                     GridViewColumnHeader, ListBoxItem,
                                      Orientation, StackPanel, TextBlock,
                                      TreeViewItem)
 from System.Windows.Documents import Run  # noqa: E402
@@ -62,6 +62,7 @@ from clash_navigator import PANEL_ID  # noqa: E402
 from clash_navigator import bericht as br  # noqa: E402
 from clash_navigator import logik as lg  # noqa: E402
 from clash_navigator import speicher as sp  # noqa: E402
+from clash_navigator import vorrang as vr  # noqa: E402
 
 TITEL = u"Clash Navigator"
 
@@ -164,6 +165,18 @@ XAML_TEXTE = {
                         u"Revit lo deshace."),
     "vorschau_weg": (u"Vorschau entfernen", u"Remove preview",
                      u"Quitar vista previa"),
+    "vorrang": (u"Vorrang (wer weicht aus?)", u"Priority (who gives way?)",
+                u"Prioridad (¿quién se desvía?)"),
+    "vorrang_hinweis": (u"Oben bleibt liegen, unten weicht aus. Erkannt wird "
+                        u"das Gewerk am Namen des Rohrsystems, sonst an der "
+                        u"Systemklassifizierung.",
+                        u"Top stays, bottom gives way. The trade is taken "
+                        u"from the pipe system name, otherwise from the "
+                        u"system classification.",
+                        u"Arriba se queda, abajo se desvía. El oficio se "
+                        u"reconoce por el nombre del sistema de tuberías o, "
+                        u"si no, por su clasificación."),
+    "standard": (u"Standard", u"Default", u"Por defecto"),
     "rueckgaengig": (u"Rückgängig", u"Undo", u"Deshacer"),
     "daten": (u"Daten", u"Data", u"Datos"),
     "laden": (u"Bericht laden...", u"Load report...", u"Cargar informe..."),
@@ -467,6 +480,23 @@ XAML = u"""<Grid %s Background="#F3F3F3" TextElement.FontFamily="Segoe UI"
       </Border>
 
       <Border Style="{StaticResource karte}">
+        <Expander Header="{{vorrang}}">
+          <StackPanel Margin="0,4,0,0">
+            <TextBlock Text="{{vorrang_hinweis}}"
+                       Style="{StaticResource klein}" Margin="0,0,0,4"/>
+            <ListBox x:Name="vorrang_liste" Height="170"/>
+            <WrapPanel Margin="0,5,0,0">
+              <Button x:Name="vorrang_hoch" Content="&#x25B2;"
+                      Padding="8,3,8,3"/>
+              <Button x:Name="vorrang_runter" Content="&#x25BC;"
+                      Padding="8,3,8,3"/>
+              <Button x:Name="vorrang_standard" Content="{{standard}}"/>
+            </WrapPanel>
+          </StackPanel>
+        </Expander>
+      </Border>
+
+      <Border Style="{StaticResource karte}">
         <Expander Header="{{rueckgaengig}}" IsExpanded="True">
           <StackPanel Margin="0,2,0,0">
             <TextBlock x:Name="undo_titel" FontWeight="SemiBold"
@@ -681,7 +711,7 @@ class ClashPanel(forms.WPFPanel):
                      "ebene2", "protokoll", "anwenden", "wie_vorher",
                      "winkel45", "winkel90", "abstand",
                      "loesen_info", "karten", "uebernehmen", "vorschau_weg",
-                     "berechnen"):
+                     "berechnen", "vorrang_liste"):
             setattr(self, "_" + name, self.inhalt.FindName(name))
 
         self._fuelle_auswahllisten()
@@ -739,6 +769,37 @@ class ClashPanel(forms.WPFPanel):
             for code, texte in lg.GRUPPIERUNGEN:
                 liste.Items.Add(self._eintrag(tt(texte), code))
         self._fuelle_klassen()
+        self._fuelle_vorrang()
+
+    def _fuelle_vorrang(self, gewaehlt=None):
+        liste = vr.reihenfolge(self.einstellungen.get(u"vorrang"))
+        self._vorrang_liste.Items.Clear()
+        for nummer, code in enumerate(liste):
+            eintrag = ListBoxItem()
+            eintrag.Content = u"%d.  %s" % (nummer + 1, vr.text(code))
+            eintrag.Tag = code
+            self._vorrang_liste.Items.Add(eintrag)
+            if code == gewaehlt:
+                self._vorrang_liste.SelectedItem = eintrag
+
+    def vorrang_schieben(self, richtung):
+        eintrag = self._vorrang_liste.SelectedItem
+        if eintrag is None:
+            return
+        liste = vr.reihenfolge(self.einstellungen.get(u"vorrang"))
+        alt = liste.index(eintrag.Tag)
+        neu = alt + richtung
+        if not 0 <= neu < len(liste):
+            return
+        liste[alt], liste[neu] = liste[neu], liste[alt]
+        self.einstellungen[u"vorrang"] = liste
+        self._speichere_einstellungen()
+        self._fuelle_vorrang(gewaehlt=eintrag.Tag)
+
+    def vorrang_standard(self):
+        self.einstellungen[u"vorrang"] = []
+        self._speichere_einstellungen()
+        self._fuelle_vorrang()
 
     def _fuelle_klassen(self):
         text = self._klasse.Text
@@ -856,6 +917,11 @@ class ClashPanel(forms.WPFPanel):
             box.Checked += s(nur_speichern)
             box.Unchecked += s(nur_speichern)
         self._berechnen.Click += s(lambda _s, _a: self.berechne())
+        f("vorrang_hoch").Click += s(lambda _s, _a: self.vorrang_schieben(-1))
+        f("vorrang_runter").Click += s(
+            lambda _s, _a: self.vorrang_schieben(1))
+        f("vorrang_standard").Click += s(
+            lambda _s, _a: self.vorrang_standard())
         self._uebernehmen.Click += s(lambda _s, _a: self.uebernehme())
         self._vorschau_weg.Click += s(lambda _s, _a: self.entferne_vorschau())
         self._koordinaten.SelectionChanged += s(nur_speichern)

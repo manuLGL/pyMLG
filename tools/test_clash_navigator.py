@@ -19,6 +19,7 @@ from clash_navigator import bericht as br  # noqa: E402
 from clash_navigator import logik as lg  # noqa: E402
 from clash_navigator import speicher as sp  # noqa: E402
 from clash_navigator import umgehung as ug  # noqa: E402
+from clash_navigator import vorrang as vr  # noqa: E402
 
 XML = u"""<?xml version="1.0" encoding="UTF-8"?>
 <exchange xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -532,6 +533,47 @@ def test_umgehung_kanal_und_steigleitung():
     assert sorted(set(v.richtung for v in alle)) == [
         u"seite1", u"seite2", u"seite3", u"seite4"]
     assert all(v.gueltig for v in alle if v.winkel == 45)
+
+
+# --- Vorrang ----------------------------------------------------------------
+
+def test_gewerk_erkennung():
+    g = vr.gewerk
+    # Kategorie schlägt alles
+    assert g(u"OST_DuctCurves", u"Sanitary", u"ABWASSER") == vr.LUEFTUNG
+    assert g(u"OST_CableTray") == vr.ELEKTRO
+    assert g(u"OST_StructuralFraming") == vr.BAU
+    # Systemname vor Klassifizierung (Screenshot: "REFRIG_Retorno",
+    # klassifiziert als Rücklauf Heizung)
+    assert g(u"OST_PipeCurves", u"ReturnHydronic",
+             u"REFRIG_Retorno 1") == vr.KAELTE
+    assert g(u"OST_PipeCurves", u"ReturnHydronic", u"") == vr.HEIZUNG
+    assert g(u"OST_PipeCurves", u"DomesticColdWater", u"") == vr.TRINKWASSER
+    assert g(u"OST_PipeCurves", u"Sanitary", u"") == vr.ABWASSER
+    assert g(u"OST_PipeCurves", u"OtherPipe", u"") == vr.SONSTIGE
+    # Kaltwasser ist Trinkwasser, nicht Kälte
+    assert g(u"OST_PipeCurves", u"", u"Kaltwasser TWK") == vr.TRINKWASSER
+    assert g(u"OST_PipeCurves", u"", u"Kälte Vorlauf") == vr.KAELTE
+    # Kürzel nur als eigenes Wort: "ACS" ja, "PLACAS" nein
+    assert g(u"OST_PipeCurves", u"", u"ACS Impulsión") == vr.TRINKWASSER
+    assert g(u"OST_PipeCurves", u"", u"PLACAS") == vr.SONSTIGE
+    # "ventilación" ist kein Abwasser-Lüfter
+    assert g(u"OST_PipeCurves", u"", u"Ventilación") == vr.SONSTIGE
+    assert g(u"OST_PipeCurves", u"", u"Saneamiento fecales") == vr.ABWASSER
+
+
+def test_vorrang_reihenfolge():
+    liste = vr.reihenfolge(None)
+    assert liste == list(vr.STANDARD)
+    assert vr.weicht_aus(vr.KAELTE, vr.LUEFTUNG, liste)      # Kälte weicht
+    assert not vr.weicht_aus(vr.ABWASSER, vr.HEIZUNG, liste)
+    assert not vr.weicht_aus(vr.HEIZUNG, vr.HEIZUNG, liste)
+    # gespeicherte Reihenfolge: Unbekanntes fliegt raus, Fehlendes kommt
+    # hinten dazu
+    eigene = vr.reihenfolge([vr.HEIZUNG, u"gibtsnicht", vr.ABWASSER])
+    assert eigene[:2] == [vr.HEIZUNG, vr.ABWASSER]
+    assert sorted(eigene) == sorted(vr.STANDARD)
+    assert vr.weicht_aus(vr.ABWASSER, vr.HEIZUNG, eigene)
 
 
 # --- Speicher ---------------------------------------------------------------

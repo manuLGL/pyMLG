@@ -200,6 +200,7 @@ VORGABEN = {
     u"abstand_cm": 5,
     u"winkel45": True,
     u"winkel90": True,
+    u"vorrang": [],                 # leer = Standard aus vorrang.py
 }
 
 
