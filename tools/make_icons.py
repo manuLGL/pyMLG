@@ -483,7 +483,19 @@ def section_box_selection(b):
     kreis(b, 81, 29, 6, WEISS)
 
 
+def clash_navigator(b):
+    """Rohr kreuzt Träger, rote Kollision, darum die Schnittbox."""
+    rahmen(b, 10, 10, 86, 86, 4, BLAU)                 # Schnittbox
+    polygon(b, [(4, 20), (20, 4), (92, 76), (76, 92)], DUNKEL)   # Träger
+    polygon(b, [(10, 20), (20, 10), (86, 76), (76, 86)], ORANGE)
+    polygon(b, [(4, 76), (76, 4), (92, 20), (20, 92)], DUNKEL)   # Rohr
+    polygon(b, [(10, 76), (76, 10), (86, 20), (20, 86)], LINIE)
+    kreis(b, 48, 48, 13, DUNKEL)                       # Kollision
+    kreis(b, 48, 48, 9, ROT)
+
+
 SYMBOLE = {
+    "Koordination.panel/ClashNavigator.pushbutton": clash_navigator,
     "Oberflaeche.panel/TabManager.pushbutton": tab_manager,
     "Ansichten.panel/Duplizieren.stack/DuplicatePlan.pushbutton": duplicate_plan,
     "Ansichten.panel/Duplizieren.stack/DuplicateView.pushbutton": duplicate_view,

@@ -1,0 +1,37 @@
+title:
+  de_de: "Clash\nNavigator"
+  en_us: "Clash\nNavigator"
+  es_es: "Clash\nNavigator"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Kollisionen aus Navisworks in Revit abarbeiten - in einem andockbaren
+    Panel.
+
+    Bericht aus dem Clash Detective als XML (empfohlen, mit Element-ID) oder
+    CSV laden. Ein Klick auf eine Kollision legt eine Schnittbox um die
+    beteiligten Elemente, auch in Verknüpfungen, und wählt sie aus.
+    Status, Klassifizierung und Kommentar werden neben dem Bericht als
+    .pymlg.json gespeichert - das Revit-Modell bleibt unberührt.
+
+    NWD/NWF/NWC lassen sich ohne Navisworks nicht lesen.
+  en_us: >-
+    Work through Navisworks clashes in Revit - in a dockable panel.
+
+    Load a Clash Detective report as XML (recommended, with element id) or
+    CSV. Clicking a clash sets a section box around the elements involved,
+    links included, and selects them. Status, classification and comment
+    are saved next to the report as .pymlg.json - the Revit model stays
+    untouched.
+
+    NWD/NWF/NWC cannot be read without Navisworks.
+  es_es: >-
+    Revise los conflictos de Navisworks en Revit, en un panel acoplable.
+
+    Cargue un informe de Clash Detective en XML (recomendado, con ID de
+    elemento) o CSV. Un clic en un conflicto ajusta una caja de sección a
+    los elementos implicados, también en vínculos, y los selecciona. Estado,
+    clasificación y comentario se guardan junto al informe como
+    .pymlg.json; el modelo de Revit no se modifica.
+
+    Los archivos NWD/NWF/NWC no se pueden leer sin Navisworks.
