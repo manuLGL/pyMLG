@@ -54,6 +54,21 @@
             </StackPanel>
         </Grid>
 
+        <GroupBox Header="{{vorbild_titel}}" Margin="0,0,0,10" Padding="6">
+            <StackPanel>
+                <CheckBox x:Name="cb_wie_plan" Content="{{wie_plan}}" Margin="0,0,0,6"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="cb_vorbild" Grid.Column="0"/>
+                    <ComboBox x:Name="cb_vorbild_art" Grid.Column="2"/>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+
         <GroupBox Header="{{position}}" Margin="0,0,0,10" Padding="6">
             <StackPanel>
                 <RadioButton x:Name="rb_mitte" Content="{{mitte}}" Margin="0,0,0,4"/>

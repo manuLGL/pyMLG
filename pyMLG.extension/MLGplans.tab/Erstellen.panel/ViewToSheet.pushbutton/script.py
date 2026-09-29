@@ -18,6 +18,7 @@ from Autodesk.Revit.DB import (FilteredElementCollector, Transaction,
                                Viewport)
 from pyrevit import forms, revit, script
 
+from mlg_plaene import ausrichten as ar
 from mlg_plaene import logik as lg
 from mlg_plaene import revit as rv
 from mlg_plaene import vorschau
@@ -61,6 +62,11 @@ XAML_TEXTE = {
     "deckung": (u"Deckungsgleich wie die erste Ansicht (gleiche Lage im Modell)",
                 u"Matching the first view (same position in the model)",
                 u"Coincidente con la primera vista (misma posición en el modelo)"),
+    "vorbild_titel": (u"Wie ein vorhandener Plan", u"Like an existing sheet",
+                      u"Como un plano existente"),
+    "wie_plan": (u"Ausrichtung von diesem Plan übernehmen (Lage, Titel, Typ)",
+                 u"Take the layout from this sheet (position, title, type)",
+                 u"Tomar la disposición de este plano (posición, título, tipo)"),
     "position": (u"Position", u"Position", u"Posición"),
     "mitte": (u"Mitte der Zeichenfläche", u"Centre of the drawing area",
               u"Centro del área de dibujo"),
@@ -157,6 +163,15 @@ class ViewToSheetDialog(forms.WPFWindow):
                       cfg.get_option("planfamilie", ""))
         self._auswahl(self.cb_vptyp, [STANDARD_TYP] + sorted(fenstertypen),
                       cfg.get_option("fenstertyp", STANDARD_TYP))
+        if plaene:
+            self._auswahl(self.cb_vorbild, plaene, cfg.get_option("vorbild", u""))
+        self._auswahl(self.cb_vorbild_art, [text for text, _ in ar.art_texte()],
+                      cfg.get_option("vorbild_art_text", u""))
+        if cfg.get_option("vorbild_art", ar.GEBAEUDE) == ar.FENSTER:
+            self.cb_vorbild_art.SelectedIndex = 1
+        self.cb_wie_plan.IsChecked = (cfg.get_option("wie_plan", "nein") == "ja"
+                                      and bool(plaene))
+        self.cb_wie_plan.IsEnabled = bool(plaene)
         self._auswahl(self.cb_bereich, [KEINE_BEGRENZUNG] + sorted(begrenzungen),
                       cfg.get_option("bereich", KEINE_BEGRENZUNG))
         self._auswahl(self.cb_bereich_modus, [MANUELLE_BEHALTEN, ALLE_UEBERSCHREIBEN],
@@ -188,6 +203,8 @@ class ViewToSheetDialog(forms.WPFWindow):
             element.Checked += self.aktualisieren
         self.cb_ziel.SelectionChanged += self.aktualisieren
         self.cb_bereich.SelectionChanged += self.aktualisieren
+        self.cb_wie_plan.Checked += self.aktualisieren
+        self.cb_wie_plan.Unchecked += self.aktualisieren
         self.btn_ok.Click += self.ok_click
         self.btn_cancel.Click += self.cancel_click
         self.aktualisieren(None, None)
@@ -206,8 +223,12 @@ class ViewToSheetDialog(forms.WPFWindow):
         self.rb_einzeln.IsEnabled = neu
         einzeln = bool(self.rb_einzeln.IsChecked)
         xy = einzeln and bool(self.rb_xy.IsChecked)
+        wie_plan = bool(self.cb_wie_plan.IsChecked)
+        self.cb_vorbild.IsEnabled = self.cb_vorbild_art.IsEnabled = wie_plan
+        # "Wie Plan" bestimmt die Lage - die Position gilt dann nur noch für
+        # Ansichten ohne Gegenstück auf dem Vorbild
         self.rb_mitte.IsEnabled = self.rb_xy.IsEnabled = einzeln
-        self.rb_deckung.IsEnabled = einzeln
+        self.rb_deckung.IsEnabled = einzeln and not wie_plan
         self.cb_bereich_modus.IsEnabled = self.cb_bereich.SelectedIndex > 0
         self.tb_x.IsEnabled = self.tb_y.IsEnabled = xy
         self.tb_rand.IsEnabled = self.tb_rechts.IsEnabled = not xy
@@ -251,6 +272,9 @@ class ViewToSheetDialog(forms.WPFWindow):
             "xy": bool(self.rb_xy.IsChecked),
             "deckung": bool(self.rb_deckung.IsChecked),
             "bereich": self.cb_bereich.SelectedItem,
+            "wie_plan": bool(self.cb_wie_plan.IsChecked) and self.cb_vorbild.SelectedItem is not None,
+            "vorbild": self.cb_vorbild.SelectedItem,
+            "vorbild_art": dict(ar.art_texte()).get(self.cb_vorbild_art.SelectedItem, ar.GEBAEUDE),
             "bereich_alle": self.cb_bereich_modus.SelectedItem == ALLE_UEBERSCHREIBEN,
             "x_cm": werte[0], "y_cm": werte[1], "rand_cm": werte[2],
             "rechts_cm": werte[3], "abstand_cm": werte[4],
@@ -271,6 +295,9 @@ def einstellungen_speichern(cfg, wahl):
     cfg.fenstertyp = wahl["fenstertyp"]
     cfg.position = "xy" if wahl["xy"] else ("deckung" if wahl["deckung"] else "mitte")
     cfg.bereich = wahl["bereich"]
+    cfg.wie_plan = "ja" if wahl["wie_plan"] else "nein"
+    cfg.vorbild = wahl["vorbild"] or u""
+    cfg.vorbild_art = wahl["vorbild_art"]
     cfg.bereich_modus = "alle" if wahl["bereich_alle"] else "behalten"
     for schluessel in ("x_cm", "y_cm", "rand_cm", "rechts_cm", "abstand_cm"):
         setattr(cfg, schluessel, str(wahl[schluessel]))
@@ -286,8 +313,13 @@ def einstellungen_speichern(cfg, wahl):
 class Erstellung(object):
     """Setzt Ansichten auf Pläne - läuft in einer offenen Transaktion."""
 
-    def __init__(self, doc, wahl, vorlage, kopf, typ, zielplan, begrenzung=None):
+    def __init__(self, doc, wahl, vorlage, kopf, typ, zielplan, begrenzung=None,
+                 vorbild=None):
         self.doc = doc
+        # Ansichtsfenster des Vorbild-Plans ("Wie Plan ausrichten")
+        self.vorbild = vorbild
+        self.vorbild_fenster = ([doc.GetElement(i) for i in vorbild.GetAllViewports()]
+                                if vorbild is not None else [])
         self.begrenzung = begrenzung
         self.zuschnitte = []
         # erste Ansicht bei "deckungsgleich": (Lage des Ursprungs, Ansicht)
@@ -431,6 +463,29 @@ class Erstellung(object):
                 u"origen").format(ansicht.Name, bezug_ansicht.Name, ansicht.Scale,
                                   bezug_ansicht.Scale))
 
+    def wie_vorbild(self):
+        """Alle neu gesetzten Ansichten wie auf dem Vorbild-Plan ausrichten,
+        je Plan für sich. Die Umrisse für die Vorschau werden neu gemessen."""
+        if not self.vorbild_fenster:
+            return
+        plaene, je_plan = [], {}
+        for index, (plan, fenster, _) in enumerate(self.gesetzt):
+            schluessel = rv.id_wert(plan.Id)
+            if schluessel not in je_plan:
+                je_plan[schluessel] = []
+                plaene.append(plan)
+            je_plan[schluessel].append(index)
+        for plan in plaene:
+            indizes = je_plan[rv.id_wert(plan.Id)]
+            fenster = [self.gesetzt[i][1] for i in indizes]
+            _, hinweise = ar.wie_vorbild(self.doc, self.vorbild_fenster, fenster,
+                                         self.wahl["vorbild_art"],
+                                         typ=self.typ is None, melden="ziele")
+            self.hinweise.extend(u"{}: {}".format(plan.SheetNumber, h) for h in hinweise)
+        self.doc.Regenerate()
+        self.gesetzt = [(plan, fenster, rv.fenster_rechteck(fenster, self.doc))
+                        for plan, fenster, _ in self.gesetzt]
+
     def schon_platziert(self, ansicht):
         self.hinweise.append(t(u"{}: bereits auf einem Plan platziert",
                                u"{}: already placed on a sheet",
@@ -493,8 +548,9 @@ class Erstellung(object):
                     ziel = (rv.fuss(self.wahl["x_cm"]), rv.fuss(self.wahl["y_cm"]))
                 else:
                     ziel = self.flaeche(plan)
-                fenster, _ = rv.platzieren(self.doc, plan, ansicht, ziel, self.typ)
-                if self.wahl["deckung"]:
+                fenster, umriss = rv.platzieren(self.doc, plan, ansicht, ziel, self.typ)
+                self.gesetzt.append((plan, fenster, umriss))
+                if self.wahl["deckung"] and not self.vorbild_fenster:
                     self.deckungsgleich(fenster, ansicht)
                 self.benennen(plan, ansicht)
                 self.platziert += 1
@@ -671,7 +727,8 @@ def main():
                             koepfe[wahl["planfamilie"]],
                             fenstertypen.get(wahl["fenstertyp"]),
                             plaene.get(wahl["ziel"]),
-                            begrenzungen.get(wahl["bereich"]))
+                            begrenzungen.get(wahl["bereich"]),
+                            plaene.get(wahl["vorbild"]) if wahl["wie_plan"] else None)
     # Eine Gruppe: vorläufig platzieren, in der Vorschau verschieben, dann
     # übernehmen - "Abbrechen" in der Vorschau nimmt alles zurück
     gruppe = TransactionGroup(doc, TITEL)
@@ -683,6 +740,7 @@ def main():
             erstellung.zusammen(views)
         else:
             erstellung.einzeln(views)
+        erstellung.wie_vorbild()
         erstellung.aufraeumen()
         transaktion.Commit()
 
