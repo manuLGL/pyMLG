@@ -1,0 +1,42 @@
+title:
+  de_de: "Link als\nAllg. Modell"
+  en_us: "Link to\nGeneric"
+  es_es: "Vínculo a\ngenérico"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Elemente einer Verknüpfung als Allgemeines Modell (Volumenkörper) im
+    Hauptmodell nachbauen - damit lassen sich eigene Elemente mit ihnen
+    verschneiden.
+
+    Entweder alle Elemente der markierten Kategorien einer Verknüpfung oder
+    einzeln gewählte Elemente (auch die aktuelle Auswahl, mit Tab
+    angetippt). Jedes Element wird eine eigene Familie an seiner Position.
+    Beim erneuten Ausführen bleiben unveränderte Körper samt
+    Verschneidungen stehen; hat sich die Lage eines Elements geändert, wird
+    nur sein Körper nachgeführt. Es wird nichts automatisch verschnitten.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Rebuild elements of a link as Generic Model solids in the host model -
+    so that your own elements can be cut with them.
+
+    Either all elements of the checked categories of a link, or single
+    picked elements (also the current selection, reached with Tab). Each
+    element becomes its own family at its position. When run again,
+    unchanged bodies stay in place with their cuts; only bodies whose
+    element has moved are updated. Nothing is cut automatically.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Reconstruye elementos de un vínculo como sólidos de Modelo genérico en
+    el modelo principal, para poder cortar con ellos elementos propios.
+
+    Todos los elementos de las categorías marcadas de un vínculo o
+    elementos elegidos uno a uno (también la selección actual, señalada con
+    Tab). Cada elemento se convierte en su propia familia en su posición.
+    Al volver a ejecutarla, los cuerpos sin cambios se conservan con sus
+    cortes; solo se actualizan los cuerpos cuyo elemento se ha movido. No
+    se corta nada automáticamente.
+
+    Requiere el motor CPython3.

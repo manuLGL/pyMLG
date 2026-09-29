@@ -494,6 +494,28 @@ def clash_navigator(b):
     kreis(b, 48, 48, 9, ROT)
 
 
+def link_to_generic_model(b):
+    """Rohr in der Verknuepfung, ein Pfeil macht daraus einen Volumenkoerper
+    im Hauptmodell."""
+    blattform(b, 4, 4, 52, 50, BLAU, 8)          # verknuepftes Modell
+    rect(b, 9, 26, 47, 40, DUNKEL)               # Rohr in der Verknuepfung
+    rect(b, 12, 29, 44, 37, LINIE)
+    kreis(b, 20, 15, 7, DUNKEL)                  # Kettenglieder
+    kreis(b, 20, 15, 4, WEISS)
+    kreis(b, 31, 15, 7, DUNKEL)
+    kreis(b, 31, 15, 4, WEISS)
+    pfeil(b, (30, 56), (44, 70), 6, 12, GRUEN)
+    # Volumenkoerper (Allgemeines Modell) in Isometrie
+    polygon(b, [(70, 44), (92, 56), (70, 68), (48, 56)], WEISS)   # Deckel
+    polygon(b, [(48, 56), (70, 68), (70, 92), (48, 80)], LINIE)
+    polygon(b, [(92, 56), (70, 68), (70, 92), (92, 80)], ORANGE)
+    kanten = [((70, 44), (92, 56)), ((92, 56), (70, 68)),
+              ((70, 68), (48, 56)), ((48, 56), (70, 44)),
+              ((48, 56), (48, 80)), ((92, 56), (92, 80)),
+              ((70, 68), (70, 92)), ((48, 80), (70, 92)),
+              ((70, 92), (92, 80))]
+    for p0, p1 in kanten:
+        linie(b, p0, p1, 3, DUNKEL)
 
 
 # --- Reiter MLGplans -------------------------------------------------------
@@ -554,6 +576,7 @@ def arrange_sheet(b):
 
 SYMBOLE = {
     "Koordination.panel/ClashNavigator.pushbutton": clash_navigator,
+    "Koordination.panel/LinkToGenericModel.pushbutton": link_to_generic_model,
     "Oberflaeche.panel/TabManager.pushbutton": tab_manager,
     "Ansichten.panel/Duplizieren.stack/DuplicatePlan.pushbutton": duplicate_plan,
     "Ansichten.panel/Duplizieren.stack/DuplicateView.pushbutton": duplicate_view,
