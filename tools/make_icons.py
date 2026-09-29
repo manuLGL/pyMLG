@@ -249,13 +249,29 @@ def view_name_manager(b):
     polygon(b, [(78, 54), (84, 48), (90, 54), (84, 60)], LINIE)
 
 
+def _grundriss(b, x0, y0, x1, y1, dicke=3):
+    """Kleiner Grundriss: Aussenwand mit zwei Innenwänden."""
+    rahmen(b, x0, y0, x1, y1, dicke, DUNKEL)
+    xm = x0 + (x1 - x0) * 0.55
+    ym = y0 + (y1 - y0) * 0.5
+    rect(b, xm, y0, xm + dicke - 1, ym + 2, DUNKEL)
+    rect(b, x0, ym, x0 + (x1 - x0) * 0.35, ym + dicke - 1, DUNKEL)
+
+
 def view_to_sheet(b):
-    """Ansicht wird auf einem Plan platziert."""
-    blattform(b, 12, 10, 88, 86)
-    rect(b, 62, 68, 84, 82, BLAU)           # Schriftfeld
-    rahmen(b, 20, 20, 58, 58, 3, BLAU)      # platzierte Ansicht
-    rect(b, 24, 24, 54, 54, (222, 238, 248))
-    pfeil(b, (34, 74), (34, 62), 6, 10, GRUEN)
+    """Ansicht mit Grundriss senkt sich in einen gestrichelten Platz auf dem Plan."""
+    blattform(b, 8, 18, 88, 88)
+    rect(b, 62, 74, 84, 84, BLAU)                 # Schriftfeld
+    for x in range(16, 56, 8):                    # gestrichelter Platz
+        rect(b, x, 36, x + 4, 38, LINIE)
+        rect(b, x, 68, x + 4, 70, LINIE)
+    for y in range(36, 70, 8):
+        rect(b, 16, y, 18, y + 4, LINIE)
+        rect(b, 54, y, 56, y + 4, LINIE)
+    rect(b, 22, 6, 62, 44, BLAU)                  # Ansicht
+    rect(b, 25, 9, 59, 41, WEISS)
+    _grundriss(b, 30, 14, 54, 36)
+    pfeil(b, (72, 24), (72, 58), 6, 12, GRUEN)
 
 
 def wall_legend(b):
