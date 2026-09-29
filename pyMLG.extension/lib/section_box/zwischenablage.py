@@ -10,11 +10,34 @@ clr.AddReference("PresentationFramework")
 clr.AddReference("PresentationCore")
 clr.AddReference("WindowsBase")
 
+import time  # noqa: E402
+
 from System.Windows import Clipboard  # noqa: E402
+
+VERSUCHE = 10
+PAUSE = 0.1
 
 
 def schreibe(text):
-    Clipboard.SetText(text)
+    # Andere Programme (Zwischenablage-Verlauf, OneDrive, Teams, RDP ...)
+    # halten die Zwischenablage oft kurz offen - dann scheitert OpenClipboard
+    # mit CLIPBRD_E_CANT_OPEN. WPF versucht es nicht erneut, also selbst.
+    # SetText ruft intern Flush(); scheitert nur das, bleibt als letzter
+    # Versuch SetDataObject ohne Flush (Text gilt, solange Revit laeuft).
+    # Gibt False zurueck, wenn es gar nicht geklappt hat.
+    for _ in range(VERSUCHE):
+        try:
+            Clipboard.SetText(text)
+            return True
+        except Exception:
+            time.sleep(PAUSE)
+    for _ in range(VERSUCHE):
+        try:
+            Clipboard.SetDataObject(text, False)
+            return True
+        except Exception:
+            time.sleep(PAUSE)
+    return False
 
 
 def lies():

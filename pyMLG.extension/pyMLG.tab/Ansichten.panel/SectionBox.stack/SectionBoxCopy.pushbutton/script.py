@@ -44,7 +44,14 @@ def main():
     quelle = u"%s | %s | %s" % (doc.Title, ansicht.Name,
                                 datetime.now().strftime("%Y-%m-%d %H:%M"))
     box = sb.lies_box(doc, ansicht, quelle=quelle)
-    zwischenablage.schreibe(lg.erzeuge_text(box))
+    if not zwischenablage.schreibe(lg.erzeuge_text(box)):
+        forms.alert(t(u"Die Zwischenablage ist gerade von einem anderen "
+                      u"Programm belegt. Bitte gleich noch einmal versuchen.",
+                      u"The clipboard is currently locked by another "
+                      u"program. Please try again in a moment.",
+                      u"Otro programa está usando el portapapeles. Vuelva a "
+                      u"intentarlo en un momento."),
+                    title=TITEL, exitscript=True)
 
     forms.alert(t(u"Die Schnittbox liegt als Text in der Zwischenablage.\n\n"
                   u"Größe: %s\n\n"
