@@ -38,9 +38,26 @@
             </StackPanel>
         </Grid>
 
+        <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="{{bereich}}" Margin="0,0,0,3"/>
+                <ComboBox x:Name="cb_bereich"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="{{bereich_modus}}" Margin="0,0,0,3"/>
+                <ComboBox x:Name="cb_bereich_modus"/>
+            </StackPanel>
+        </Grid>
+
         <GroupBox Header="{{position}}" Margin="0,0,0,10" Padding="6">
             <StackPanel>
                 <RadioButton x:Name="rb_mitte" Content="{{mitte}}" Margin="0,0,0,4"/>
+                <RadioButton x:Name="rb_deckung" Content="{{deckung}}" Margin="0,0,0,4"/>
                 <RadioButton x:Name="rb_xy" Content="{{xy}}" Margin="0,0,0,6"/>
                 <Grid>
                     <Grid.ColumnDefinitions>

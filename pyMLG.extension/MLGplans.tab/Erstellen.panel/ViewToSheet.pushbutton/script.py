@@ -12,6 +12,7 @@ __author__ = "Manuel"
 import io
 import os
 
+from Autodesk.Revit.DB import BuiltInParameter as BIP
 from Autodesk.Revit.DB import (FilteredElementCollector, Transaction,
                                TransactionGroup, View, ViewSheet, ViewType,
                                Viewport)
@@ -29,6 +30,12 @@ KEINE_VORLAGE = t(u"<Keine Vorlage – Ansicht unverändert>",
 NEUER_PLAN = t(u"<Neue Pläne erstellen>", u"<Create new sheets>",
                u"<Crear planos nuevos>")
 STANDARD_TYP = t(u"<Standard>", u"<Default>", u"<Predeterminado>")
+KEINE_BEGRENZUNG = t(u"<Keine – Zuschnitt unverändert>", u"<None – crop unchanged>",
+                     u"<Ninguno – recorte sin cambios>")
+MANUELLE_BEHALTEN = t(u"Manuelle Zuschnitte behalten", u"Keep manual crops",
+                      u"Conservar recortes manuales")
+ALLE_UEBERSCHREIBEN = t(u"Alle überschreiben", u"Overwrite all", u"Sobrescribir todos")
+OHNE_BEGRENZUNG = (ViewType.Legend, ViewType.DraftingView, ViewType.DrawingSheet)
 
 XAML_TEXTE = {
     "titel": (u"Ansichten auf Pläne", u"Views to Sheets", u"Vistas a planos"),
@@ -47,6 +54,13 @@ XAML_TEXTE = {
     "vorlage": (u"Ansichtsvorlage", u"View template", u"Plantilla de vista"),
     "fenstertyp": (u"Ansichtsfenster-Typ", u"Viewport type",
                    u"Tipo de ventana gráfica"),
+    "bereich": (u"Bereichsbegrenzung zuweisen", u"Assign scope box",
+                u"Asignar caja de referencia"),
+    "bereich_modus": (u"Vorhandene Zuschnitte", u"Existing crops",
+                      u"Recortes existentes"),
+    "deckung": (u"Deckungsgleich wie die erste Ansicht (gleiche Lage im Modell)",
+                u"Matching the first view (same position in the model)",
+                u"Coincidente con la primera vista (misma posición en el modelo)"),
     "position": (u"Position", u"Position", u"Posición"),
     "mitte": (u"Mitte der Zeichenfläche", u"Centre of the drawing area",
               u"Centro del área de dibujo"),
@@ -125,7 +139,8 @@ def ansichtsvorlagen(doc):
 #_________________________________________________________________________
 
 class ViewToSheetDialog(forms.WPFWindow):
-    def __init__(self, anzahl, plaene, vorlagen, koepfe, fenstertypen, cfg):
+    def __init__(self, anzahl, plaene, vorlagen, koepfe, fenstertypen,
+                 begrenzungen, cfg):
         pfad = os.path.join(os.path.dirname(__file__), "ui.xaml")
         with io.open(pfad, encoding="utf-8") as datei:
             xaml = uebersetze_xaml(datei.read(), XAML_TEXTE)
@@ -142,14 +157,20 @@ class ViewToSheetDialog(forms.WPFWindow):
                       cfg.get_option("planfamilie", ""))
         self._auswahl(self.cb_vptyp, [STANDARD_TYP] + sorted(fenstertypen),
                       cfg.get_option("fenstertyp", STANDARD_TYP))
+        self._auswahl(self.cb_bereich, [KEINE_BEGRENZUNG] + sorted(begrenzungen),
+                      cfg.get_option("bereich", KEINE_BEGRENZUNG))
+        self._auswahl(self.cb_bereich_modus, [MANUELLE_BEHALTEN, ALLE_UEBERSCHREIBEN],
+                      ALLE_UEBERSCHREIBEN if cfg.get_option("bereich_modus", "")
+                      == "alle" else MANUELLE_BEHALTEN)
 
         zusammen = cfg.get_option("anordnung", "einzeln") == "zusammen"
         self.rb_zusammen.IsChecked = zusammen
         self.rb_einzeln.IsChecked = not zusammen
         self.cb_ueberlappen.IsChecked = cfg.get_option("ueberlappen", "nein") == "ja"
-        xy = cfg.get_option("position", "mitte") == "xy"
-        self.rb_xy.IsChecked = xy
-        self.rb_mitte.IsChecked = not xy
+        position = cfg.get_option("position", "mitte")
+        self.rb_xy.IsChecked = position == "xy"
+        self.rb_deckung.IsChecked = position == "deckung"
+        self.rb_mitte.IsChecked = position not in ("xy", "deckung")
 
         self.tb_x.Text = cfg.get_option("x_cm", "-57")
         self.tb_y.Text = cfg.get_option("y_cm", "40")
@@ -162,9 +183,11 @@ class ViewToSheetDialog(forms.WPFWindow):
             "nummer_muster", u"{}-###".format(praefix) if praefix else u"###")
         self.tb_name.Text = cfg.get_option("name_muster", u"{Ansicht}")
 
-        for element in (self.rb_einzeln, self.rb_zusammen, self.rb_mitte, self.rb_xy):
+        for element in (self.rb_einzeln, self.rb_zusammen, self.rb_mitte,
+                        self.rb_deckung, self.rb_xy):
             element.Checked += self.aktualisieren
         self.cb_ziel.SelectionChanged += self.aktualisieren
+        self.cb_bereich.SelectionChanged += self.aktualisieren
         self.btn_ok.Click += self.ok_click
         self.btn_cancel.Click += self.cancel_click
         self.aktualisieren(None, None)
@@ -184,6 +207,8 @@ class ViewToSheetDialog(forms.WPFWindow):
         einzeln = bool(self.rb_einzeln.IsChecked)
         xy = einzeln and bool(self.rb_xy.IsChecked)
         self.rb_mitte.IsEnabled = self.rb_xy.IsEnabled = einzeln
+        self.rb_deckung.IsEnabled = einzeln
+        self.cb_bereich_modus.IsEnabled = self.cb_bereich.SelectedIndex > 0
         self.tb_x.IsEnabled = self.tb_y.IsEnabled = xy
         self.tb_rand.IsEnabled = self.tb_rechts.IsEnabled = not xy
         self.tb_abstand.IsEnabled = not einzeln
@@ -224,6 +249,9 @@ class ViewToSheetDialog(forms.WPFWindow):
             "planfamilie": self.cb_titleblock.SelectedItem,
             "fenstertyp": self.cb_vptyp.SelectedItem,
             "xy": bool(self.rb_xy.IsChecked),
+            "deckung": bool(self.rb_deckung.IsChecked),
+            "bereich": self.cb_bereich.SelectedItem,
+            "bereich_alle": self.cb_bereich_modus.SelectedItem == ALLE_UEBERSCHREIBEN,
             "x_cm": werte[0], "y_cm": werte[1], "rand_cm": werte[2],
             "rechts_cm": werte[3], "abstand_cm": werte[4],
             "nummer_muster": self.tb_nummer.Text.strip(),
@@ -241,7 +269,9 @@ def einstellungen_speichern(cfg, wahl):
     cfg.vorlage = wahl["vorlage"]
     cfg.planfamilie = wahl["planfamilie"]
     cfg.fenstertyp = wahl["fenstertyp"]
-    cfg.position = "xy" if wahl["xy"] else "mitte"
+    cfg.position = "xy" if wahl["xy"] else ("deckung" if wahl["deckung"] else "mitte")
+    cfg.bereich = wahl["bereich"]
+    cfg.bereich_modus = "alle" if wahl["bereich_alle"] else "behalten"
     for schluessel in ("x_cm", "y_cm", "rand_cm", "rechts_cm", "abstand_cm"):
         setattr(cfg, schluessel, str(wahl[schluessel]))
     cfg.nummer_muster = wahl["nummer_muster"]
@@ -256,8 +286,12 @@ def einstellungen_speichern(cfg, wahl):
 class Erstellung(object):
     """Setzt Ansichten auf Pläne - läuft in einer offenen Transaktion."""
 
-    def __init__(self, doc, wahl, vorlage, kopf, typ, zielplan):
+    def __init__(self, doc, wahl, vorlage, kopf, typ, zielplan, begrenzung=None):
         self.doc = doc
+        self.begrenzung = begrenzung
+        self.zuschnitte = []
+        # erste Ansicht bei "deckungsgleich": (Lage des Ursprungs, Ansicht)
+        self.bezug = None
         self.wahl = wahl
         self.vorlage = vorlage
         self.kopf = kopf
@@ -319,6 +353,84 @@ class Erstellung(object):
                 u"{}: plantilla no aplicable, colocada sin plantilla ({})")
                 .format(ansicht.Name, fehler))
 
+    def begrenzung_anwenden(self, ansicht):
+        """Weist die gewählte Bereichsbegrenzung zu und notiert, was geschah.
+        Manuell gezogene Zuschnitte bleiben, ausser "Alle überschreiben"."""
+        begrenzung = self.begrenzung
+        if begrenzung is None or ansicht.ViewType in OHNE_BEGRENZUNG:
+            return
+
+        def notiz(de, en, es, *werte):
+            self.zuschnitte.append(u"{}: {}".format(ansicht.Name,
+                                                    t(de, en, es).format(*werte)))
+
+        param = ansicht.get_Parameter(BIP.VIEWER_VOLUME_OF_INTEREST_CROP)
+        if param is None or param.IsReadOnly:
+            notiz(u"Bereichsbegrenzung nicht zuweisbar (steuert die Ansichtsvorlage "
+                  u"den Zuschnitt?)",
+                  u"scope box cannot be assigned (does the view template control "
+                  u"the crop?)",
+                  u"no se puede asignar la caja (¿la plantilla controla el recorte?)")
+            return
+        aktuell = param.AsElementId()
+        if rv.id_wert(aktuell) == rv.id_wert(begrenzung.Id):
+            notiz(u"hat '{}' schon", u"already has '{}'", u"ya tiene '{}'", begrenzung.Name)
+            return
+        manuell = ansicht.CropBoxActive and rv.id_wert(aktuell) == -1
+        if manuell and not self.wahl["bereich_alle"]:
+            notiz(u"manueller Zuschnitt behalten", u"manual crop kept",
+                  u"recorte manual conservado")
+            return
+        try:
+            gesetzt = param.Set(begrenzung.Id)
+        except Exception:
+            gesetzt = False
+        if not gesetzt:
+            notiz(u"'{}' nicht zuweisbar (schneidet die Ansicht nicht?)",
+                  u"'{}' cannot be assigned (does it not cut the view?)",
+                  u"no se puede asignar '{}' (¿no corta la vista?)", begrenzung.Name)
+            return
+        try:
+            ansicht.CropBoxActive = True
+        except Exception:
+            pass
+        if manuell:
+            notiz(u"'{}' zugewiesen, manueller Zuschnitt ersetzt",
+                  u"'{}' assigned, manual crop replaced",
+                  u"'{}' asignada, recorte manual sustituido", begrenzung.Name)
+        elif rv.id_wert(aktuell) != -1:
+            vorher = self.doc.GetElement(aktuell)
+            notiz(u"'{}' zugewiesen statt '{}'", u"'{}' assigned instead of '{}'",
+                  u"'{}' asignada en lugar de '{}'", begrenzung.Name,
+                  vorher.Name if vorher is not None else u"?")
+        else:
+            notiz(u"'{}' zugewiesen", u"'{}' assigned", u"'{}' asignada", begrenzung.Name)
+
+    def deckungsgleich(self, fenster, ansicht):
+        """Erste Ansicht merken, jede weitere so verschieben, dass das Modell
+        auf dem Plan an derselben Stelle liegt wie bei der ersten."""
+        lage = rv.modell_auf_plan(fenster, ansicht)
+        if lage is None:
+            self.hinweise.append(t(u"{}: keine Modellansicht - mittig statt deckungsgleich",
+                                   u"{}: not a model view - centred instead of matching",
+                                   u"{}: no es vista de modelo: centrada, no coincidente")
+                                 .format(ansicht.Name))
+            return
+        if self.bezug is None:
+            self.bezug = (lage, ansicht)
+            return
+        bezug_lage, bezug_ansicht = self.bezug
+        fenster.SetBoxCenter(fenster.GetBoxCenter() + (bezug_lage - lage))
+        if ansicht.Scale != bezug_ansicht.Scale:
+            self.hinweise.append(t(
+                u"{}: anderer Maßstab als '{}' (1:{} statt 1:{}) - nur der Ursprung "
+                u"liegt gleich",
+                u"{}: different scale than '{}' (1:{} instead of 1:{}) - only the "
+                u"origin matches",
+                u"{}: otra escala que '{}' (1:{} en lugar de 1:{}): sólo coincide el "
+                u"origen").format(ansicht.Name, bezug_ansicht.Name, ansicht.Scale,
+                                  bezug_ansicht.Scale))
+
     def schon_platziert(self, ansicht):
         self.hinweise.append(t(u"{}: bereits auf einem Plan platziert",
                                u"{}: already placed on a sheet",
@@ -371,6 +483,7 @@ class Erstellung(object):
     def einzeln(self, ansichten):
         for ansicht in ansichten:
             self.vorlage_anwenden(ansicht)
+            self.begrenzung_anwenden(ansicht)
             plan = self.neuer_plan()
             try:
                 if not Viewport.CanAddViewToSheet(self.doc, plan.Id, ansicht.Id):
@@ -380,7 +493,9 @@ class Erstellung(object):
                     ziel = (rv.fuss(self.wahl["x_cm"]), rv.fuss(self.wahl["y_cm"]))
                 else:
                     ziel = self.flaeche(plan)
-                rv.platzieren(self.doc, plan, ansicht, ziel, self.typ)
+                fenster, _ = rv.platzieren(self.doc, plan, ansicht, ziel, self.typ)
+                if self.wahl["deckung"]:
+                    self.deckungsgleich(fenster, ansicht)
                 self.benennen(plan, ansicht)
                 self.platziert += 1
             except Exception as fehler:
@@ -396,6 +511,7 @@ class Erstellung(object):
         for ansicht in ansichten:
             try:
                 self.vorlage_anwenden(ansicht)
+                self.begrenzung_anwenden(ansicht)
                 if plan is None:
                     plan = self.neuer_plan()
                     flaeche, belegt = self.flaeche(plan), []
@@ -446,6 +562,7 @@ class Erstellung(object):
         for ansicht in ansichten:
             try:
                 self.vorlage_anwenden(ansicht)
+                self.begrenzung_anwenden(ansicht)
                 if not Viewport.CanAddViewToSheet(self.doc, plan.Id, ansicht.Id):
                     self.schon_platziert(ansicht)
                     continue
@@ -534,14 +651,16 @@ def main():
                       u"No se encontró ninguna familia de cajetín en el proyecto."),
                     title=TITEL)
         return
+    rv.messung_zuruecksetzen()
     vorlagen = ansichtsvorlagen(doc)
     fenstertypen = rv.ansichtsfenster_typen(doc)
+    begrenzungen = rv.bereichsbegrenzungen(doc)
     plaene = {rv.plan_text(p): p for p in rv.plaene(doc)}
     plan_texte = [rv.plan_text(p) for p in rv.plaene(doc)]
 
     cfg = script.get_config()
     dlg = ViewToSheetDialog(len(views), plan_texte, vorlagen, koepfe,
-                            fenstertypen, cfg)
+                            fenstertypen, begrenzungen, cfg)
     dlg.ShowDialog()
     wahl = dlg.ergebnis
     if not wahl:
@@ -551,7 +670,8 @@ def main():
     erstellung = Erstellung(doc, wahl, vorlagen.get(wahl["vorlage"]),
                             koepfe[wahl["planfamilie"]],
                             fenstertypen.get(wahl["fenstertyp"]),
-                            plaene.get(wahl["ziel"]))
+                            plaene.get(wahl["ziel"]),
+                            begrenzungen.get(wahl["bereich"]))
     # Eine Gruppe: vorläufig platzieren, in der Vorschau verschieben, dann
     # übernehmen - "Abbrechen" in der Vorschau nimmt alles zurück
     gruppe = TransactionGroup(doc, TITEL)
@@ -605,6 +725,9 @@ def main():
     if hinweise:
         meldung += t(u"\n\nHinweise:\n", u"\n\nNotes:\n", u"\n\nNotas:\n") \
             + u"\n".join(hinweise[:20])
+    if erstellung.zuschnitte:
+        meldung += t(u"\n\nBereichsbegrenzung:\n", u"\n\nScope box:\n",
+                     u"\n\nCaja de referencia:\n") + u"\n".join(erstellung.zuschnitte[:20])
     if wahl["zusammen"] and erstellung.masse:
         meldung += t(u"\n\nMaße:\n", u"\n\nSizes:\n", u"\n\nMedidas:\n") \
             + u"\n".join(erstellung.masse[:20])

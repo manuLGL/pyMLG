@@ -31,6 +31,7 @@ def main():
                       u"Please open the sheet to arrange.",
                       u"Abra el plano que desea organizar."), title=TITEL)
         return
+    rv.messung_zuruecksetzen()
     alle = [doc.GetElement(i) for i in plan.GetAllViewports()]
     if not alle:
         forms.alert(t(u"Auf diesem Plan liegen keine Ansichten.",

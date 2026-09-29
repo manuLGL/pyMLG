@@ -8,7 +8,6 @@ ElementId.IntegerValue gibt es ab Revit 2026 nicht mehr, daher id_wert().
 from Autodesk.Revit.DB import (
     BuiltInCategory,
     BuiltInParameter as BIP,
-    CategoryType,
     Curve,
     ElementType,
     ElementTypeGroup,
@@ -54,6 +53,13 @@ def zahl(text):
 
 
 # ---------------------------------------------------------------- Pläne
+
+def bereichsbegrenzungen(doc):
+    """{Name: Bereichsbegrenzung} aller Bereichsbegrenzungen (Scope Boxes)."""
+    return dict((b.Name, b) for b in FilteredElementCollector(doc)
+                .OfCategory(BuiltInCategory.OST_VolumeOfInterest)
+                .WhereElementIsNotElementType())
+
 
 def plaene(doc):
     """Alle echten Pläne (keine Platzhalter), natürlich nach Nummer sortiert."""
@@ -232,10 +238,11 @@ def _zuschnitt_projektion(ansicht, zu_projektion):
 def zeichnung_projektion(doc, ansicht):
     """Umriss der Zeichnung in Projektionskoordinaten oder None.
 
-    Gemessen werden die sichtbaren Elemente: Modellelemente und
-    Detailbauteile begrenzt auf den Zuschneidebereich (Revit schneidet sie
-    dort ab), Beschriftungen wie Maße und Texte voll. Achsen, Ebenen und
-    Ansichtsmarken zählen nicht.
+    Mit aktivem Zuschneidebereich ist das genau der Zuschnitt - so sind
+    Ansichten mit derselben Bereichsbegrenzung gleich gross, egal wie weit
+    ihr Inhalt reicht. Ohne Zuschnitt werden die sichtbaren Elemente
+    gemessen; Achsen, Ebenen und Ansichtsmarken zählen dabei nicht, weil
+    sie den Umriss aufblähen.
     """
     schluessel = id_wert(ansicht.Id)
     if schluessel in _ZEICHNUNG:
@@ -246,6 +253,9 @@ def zeichnung_projektion(doc, ansicht):
         if trafos.Count:
             zu_projektion = trafos[0].GetModelToProjectionTransform()
             zuschnitt = _zuschnitt_projektion(ansicht, zu_projektion)
+            if zuschnitt is not None:
+                _ZEICHNUNG[schluessel] = zuschnitt
+                return zuschnitt
             teile = []
             elemente = (FilteredElementCollector(doc, ansicht.Id)
                         .WhereElementIsNotElementType())
@@ -256,13 +266,8 @@ def zeichnung_projektion(doc, ansicht):
                 rahmen = elem.get_BoundingBox(ansicht)
                 if rahmen is None:
                     continue
-                r = _projiziert(zu_projektion, rahmen)
-                if zuschnitt is not None and kategorie.CategoryType != CategoryType.Annotation:
-                    r = _schnitt(r, zuschnitt)
-                    if r is None:
-                        continue
-                teile.append(r)
-            ergebnis = lg.huelle(teile) if teile else zuschnitt
+                teile.append(_projiziert(zu_projektion, rahmen))
+            ergebnis = lg.huelle(teile) if teile else None
     except Exception:
         ergebnis = None
     _ZEICHNUNG[schluessel] = ergebnis
