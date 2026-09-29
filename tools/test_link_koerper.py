@@ -76,6 +76,29 @@ def test_entscheide():
     assert lg.entscheide(u"f", None, u"f", mitte) == lg.ERSETZEN
 
 
+EBENEN = [(u"UG", -3.0), (u"EG", 0.0), (u"OG 1", 3.2), (u"OG 2", 6.4)]
+
+
+def test_ebene_nach_name():
+    # Name gewinnt, auch wenn die Höhe im Link etwas abweicht
+    assert lg.waehle_ebene(EBENEN, u" og 1 ", 3.25, 4.0) == 2
+
+
+def test_ebene_nach_hoehe():
+    # anderer Name, gleiche Höhe (Toleranz 5 cm)
+    assert lg.waehle_ebene(EBENEN, u"1.OG", 3.18, 4.0) == 2
+
+
+def test_ebene_rueckfall():
+    # keine passende Höhe: höchste Ebene unter der Quellebene
+    assert lg.waehle_ebene(EBENEN, u"Zwischen", 4.5, 5.0) == 2
+    # ohne Quellebene: unter dem Körper
+    assert lg.waehle_ebene(EBENEN, None, None, 7.0) == 3
+    # alles unter der untersten Ebene: die unterste
+    assert lg.waehle_ebene(EBENEN, None, None, -9.0) == 0
+    assert lg.waehle_ebene([], u"EG", 0.0, 0.0) is None
+
+
 def test_ergebnis_text():
     ergebnis = lg.Ergebnis()
     ergebnis.zaehle(lg.NEU)

@@ -22,6 +22,7 @@ import uuid
 
 from Autodesk.Revit.DB import (  # noqa: E402
     BuiltInCategory,
+    BuiltInParameter,
     Category,
     CategoryType,
     ElementId,
@@ -40,6 +41,7 @@ from Autodesk.Revit.DB import (  # noqa: E402
     SaveAsOptions,
     Solid,
     SolidUtils,
+    StorageType,
     Transaction,
     TransactionGroup,
     Transform,
@@ -84,6 +86,14 @@ _VORLAGE_NICHT = (u"face", u"line", u"wall", u"ceiling", u"floor", u"roof",
                   u"cara", u"línea", u"linea", u"muro", u"techo", u"suelo",
                   u"cubierta", u"adaptativo", u"patrón", u"basado")
 
+# Parameter, in denen Elemente ihre Ebene führen (nach LevelId geprüft)
+_EBENEN_PARAMETER = (
+    "RBS_START_LEVEL_PARAM", "FAMILY_LEVEL_PARAM",
+    "INSTANCE_REFERENCE_LEVEL_PARAM", "SCHEDULE_LEVEL_PARAM",
+    "WALL_BASE_CONSTRAINT", "FAMILY_BASE_LEVEL_PARAM",
+    "STAIRS_BASE_LEVEL_PARAM", "ROOF_BASE_LEVEL_PARAM", "LEVEL_PARAM",
+)
+
 PROTOKOLL = os.path.join(
     os.environ.get("LOCALAPPDATA") or os.path.expanduser("~"), "pyMLG",
     "LinkKoerper_Protokoll.txt")
@@ -118,6 +128,8 @@ class Quelle(object):
         self.mitte_m = None        # (x, y, z) in Metern
         self.form = None
         self.fehler = None
+        self.ebene_name = None     # Ebene des Elements in der Verknüpfung
+        self.ebene_hoehe_m = None  # ... umgerechnet ins Hauptmodell
 
     @property
     def schluessel(self):
@@ -276,6 +288,47 @@ def _sammle_solids(geometrie, sammlung):
             _sammle_solids(objekt.GetInstanceGeometry(), sammlung)
 
 
+def _quell_ebene(element):
+    """Ebene des Elements in seinem Dokument, oder None.
+
+    Element.LevelId trifft die meisten Elemente; Leitungen, Träger, Wände
+    und Treppen führen ihre Ebene zusätzlich in eigenen Parametern.
+    """
+    dokument = element.Document
+    kandidaten = []
+    try:
+        kandidaten.append(element.LevelId)
+    except Exception:
+        pass
+    for name in _EBENEN_PARAMETER:
+        eingebaut = getattr(BuiltInParameter, name, None)
+        if eingebaut is None:
+            continue
+        try:
+            parameter = element.get_Parameter(eingebaut)
+            if parameter is not None and \
+                    parameter.StorageType == StorageType.ElementId:
+                kandidaten.append(parameter.AsElementId())
+        except Exception:
+            pass
+    for ebene_id in kandidaten:
+        if id_wert(ebene_id) <= 0:
+            continue
+        ebene = dokument.GetElement(ebene_id)
+        if isinstance(ebene, Level):
+            return ebene
+    return None
+
+
+def lies_ebene(quelle):
+    ebene = _quell_ebene(quelle.element)
+    if ebene is None:
+        return
+    quelle.ebene_name = ebene.Name
+    punkt = quelle.transform.OfPoint(XYZ(0.0, 0.0, ebene.ProjectElevation))
+    quelle.ebene_hoehe_m = punkt.Z * M_PRO_FUSS
+
+
 def lies_geometrie(quelle, optionen=None):
     """Körper, Mitte und Formkennung der Quelle bestimmen.
 
@@ -317,6 +370,7 @@ class Vorhanden(object):
         self.instanz = None
         self.form = None
         self.mitte_m = None
+        self.ebene_id = -1
 
 
 def vorhandene(doc):
@@ -344,6 +398,10 @@ def vorhandene(doc):
             continue
         eintrag.instanz = instanz
         eintrag.form = lg.form_aus_typname(symbol.Name)
+        try:
+            eintrag.ebene_id = id_wert(instanz.LevelId)
+        except Exception:
+            eintrag.ebene_id = -1
         punkt = getattr(instanz.Location, "Point", None)
         if punkt is not None:
             eintrag.mitte_m = (punkt.X * M_PRO_FUSS, punkt.Y * M_PRO_FUSS,
@@ -509,21 +567,41 @@ def _baue_familie(app, doc, vorlage, quelle, ordner):
         _loesche_dateien(ordner, name)
 
 
-def _ebenen(doc):
-    ebenen = list(FilteredElementCollector(doc).OfClass(Level))
-    ebenen.sort(key=lambda ebene: ebene.Elevation)
-    return ebenen
+class _Ebenen(object):
+    """Ebenen des Hauptmodells und die Wahl je Körper (logik.waehle_ebene).
+
+    ProjectElevation statt Elevation: Elevation hängt am Parameter
+    "Höhenbezug" (Projektbasispunkt/Vermessungspunkt), ProjectElevation
+    liegt immer in internen Koordinaten - wie die Körper.
+    """
+
+    def __init__(self, doc):
+        self.ebenen = list(FilteredElementCollector(doc).OfClass(Level))
+        self.daten = [(ebene.Name, ebene.ProjectElevation * M_PRO_FUSS)
+                      for ebene in self.ebenen]
+
+    def fuer(self, quelle):
+        index = lg.waehle_ebene(self.daten, quelle.ebene_name,
+                                quelle.ebene_hoehe_m, quelle.mitte_m[2])
+        return None if index is None else self.ebenen[index]
 
 
-def _ebene_unter(ebenen, hoehe):
-    """Höchste Ebene unter hoehe, sonst die unterste."""
-    passend = [ebene for ebene in ebenen if ebene.Elevation <= hoehe + 1e-6]
-    if passend:
-        return passend[-1]
-    return ebenen[0] if ebenen else None
+def _setze_ebene(doc, instanz, ebene, mitte):
+    """Bezugsebene eines vorhandenen Körpers ändern, Lage beibehalten.
+
+    Rückgabe: True, wenn Revit die Ebene angenommen hat.
+    """
+    parameter = instanz.get_Parameter(BuiltInParameter.FAMILY_LEVEL_PARAM)
+    if parameter is None or parameter.IsReadOnly:
+        return False
+    parameter.Set(ebene.Id)
+    doc.Regenerate()
+    # Revit behält den Versatz zur Ebene - die Höhe also zurückholen
+    _verschiebe(doc, instanz, mitte)
+    return True
 
 
-def _platziere(doc, familie, mitte, ebenen):
+def _platziere(doc, familie, mitte, ebene):
     symbol = None
     for symbol_id in familie.GetFamilySymbolIds():
         symbol = doc.GetElement(symbol_id)
@@ -535,7 +613,6 @@ def _platziere(doc, familie, mitte, ebenen):
     if not symbol.IsActive:
         symbol.Activate()
         doc.Regenerate()
-    ebene = _ebene_unter(ebenen, mitte.Z)
     if ebene is not None:
         instanz = doc.Create.NewFamilyInstance(
             mitte, symbol, ebene, StructuralType.NonStructural)
@@ -557,7 +634,9 @@ def _verschiebe(doc, instanz, ziel):
     gepinnt = instanz.Pinned
     if gepinnt:
         instanz.Pinned = False
-    ElementTransformUtils.MoveElement(doc, instanz.Id, ziel.Subtract(punkt))
+    rest = ziel.Subtract(punkt)
+    if rest.GetLength() > 1e-9:
+        ElementTransformUtils.MoveElement(doc, instanz.Id, rest)
     if gepinnt:
         instanz.Pinned = True
 
@@ -569,6 +648,8 @@ def plane(quellen, bestand, ergebnis):
     for quelle in quellen:
         try:
             hat_koerper = lies_geometrie(quelle, optionen)
+            if hat_koerper:
+                lies_ebene(quelle)
         except Exception as fehler:
             ergebnis.fehler.append(u"%s: %s" % (quelle.beschreibung, fehler))
             continue
@@ -598,21 +679,34 @@ def ausfuehren(doc, app, plan, vorlage, ergebnis, fortschritt=None):
 
 
 def _ausfuehren(doc, app, plan, vorlage, ergebnis, fortschritt):
+    ebenen = _Ebenen(doc)
     for quelle, aktion, _alt in plan:
         if aktion == lg.GLEICH:
             ergebnis.zaehle(aktion)
 
-    verschieben = [(q, alt) for q, aktion, alt in plan
-                   if aktion == lg.VERSCHIEBEN]
-    if verschieben:
-        transaktion = _transaktion(doc, u"pyMLG Link: verschieben")
-        for quelle, alt in verschieben:
+    # Vorhandene Körper: verschieben und/oder Ebene angleichen
+    nachfuehren = []
+    for quelle, aktion, alt in plan:
+        if aktion not in (lg.GLEICH, lg.VERSCHIEBEN):
+            continue
+        ebene = ebenen.fuer(quelle)
+        andere_ebene = ebene is not None and             id_wert(ebene.Id) != alt.ebene_id
+        if aktion == lg.VERSCHIEBEN or andere_ebene:
+            nachfuehren.append((quelle, aktion, alt,
+                                ebene if andere_ebene else None))
+    if nachfuehren:
+        transaktion = _transaktion(doc, u"pyMLG Link: nachführen")
+        for quelle, aktion, alt, ebene in nachfuehren:
             try:
-                _verschiebe(doc, alt.instanz, quelle.mitte)
-                ergebnis.zaehle(lg.VERSCHIEBEN)
+                if aktion == lg.VERSCHIEBEN:
+                    _verschiebe(doc, alt.instanz, quelle.mitte)
+                    ergebnis.zaehle(lg.VERSCHIEBEN)
+                if ebene is not None and _setze_ebene(
+                        doc, alt.instanz, ebene, quelle.mitte):
+                    ergebnis.ebene_angepasst += 1
             except Exception as fehler:
                 ergebnis.fehler.append(u"%s: %s" % (quelle.beschreibung,
-                                                    fehler))
+                                                    _fehlertext(fehler)))
         transaktion.Commit()
 
     ersetzen = [alt for _q, aktion, alt in plan if aktion == lg.ERSETZEN]
@@ -628,7 +722,6 @@ def _ausfuehren(doc, app, plan, vorlage, ergebnis, fortschritt):
     if not bauen:
         return
     ordner = _arbeitsordner()
-    ebenen = _ebenen(doc)
     for nummer, (quelle, aktion) in enumerate(bauen):
         if fortschritt is not None:
             fortschritt.aktualisiere(nummer, len(bauen))
@@ -636,7 +729,8 @@ def _ausfuehren(doc, app, plan, vorlage, ergebnis, fortschritt):
             familie = _baue_familie(app, doc, vorlage, quelle, ordner)
             transaktion = _transaktion(doc, u"pyMLG Link: platzieren")
             try:
-                instanz = _platziere(doc, familie, quelle.mitte, ebenen)
+                instanz = _platziere(doc, familie, quelle.mitte,
+                                     ebenen.fuer(quelle))
                 transaktion.Commit()
             except Exception:
                 transaktion.RollBack()

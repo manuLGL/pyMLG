@@ -34,6 +34,8 @@ _VERBOTEN = u'\\/:*?"<>|{}[];`~()'
 
 # Lage und Form werden auf 1 mm verglichen
 TOLERANZ_M = 0.001
+# Ebenen gleicher Höhe in Verknüpfung und Hauptmodell
+TOLERANZ_EBENE_M = 0.05
 
 NEU = "neu"
 GLEICH = "gleich"
@@ -106,6 +108,37 @@ def formkennung(punkte_relativ, volumen_m3):
     return hashlib.md5(text.encode("utf-8")).hexdigest()[:12]
 
 
+def waehle_ebene(ebenen, quell_name, quell_hoehe, koerper_z):
+    """Index der Ebene des Hauptmodells für einen Körper, oder None.
+
+    ebenen       [(Name, Höhe in m), ...] des Hauptmodells
+    quell_name   Name der Ebene des Elements in der Verknüpfung (oder None)
+    quell_hoehe  Höhe dieser Ebene im Hauptmodell in m (oder None)
+    koerper_z    Höhe der Körpermitte in m
+
+    Reihenfolge: gleicher Name, dann gleiche Höhe (TOLERANZ_EBENE_M), dann
+    die höchste Ebene unter der Quellebene bzw. unter dem Körper.
+    """
+    if not ebenen:
+        return None
+    if quell_name:
+        gesucht = quell_name.strip().lower()
+        for index, (name, _hoehe) in enumerate(ebenen):
+            if (name or u"").strip().lower() == gesucht:
+                return index
+    if quell_hoehe is not None:
+        naechste = min(range(len(ebenen)),
+                       key=lambda i: abs(ebenen[i][1] - quell_hoehe))
+        if abs(ebenen[naechste][1] - quell_hoehe) <= TOLERANZ_EBENE_M:
+            return naechste
+    bezug = quell_hoehe if quell_hoehe is not None else koerper_z
+    darunter = [index for index, (_name, hoehe) in enumerate(ebenen)
+                if hoehe <= bezug + 1e-6]
+    if darunter:
+        return max(darunter, key=lambda i: ebenen[i][1])
+    return min(range(len(ebenen)), key=lambda i: ebenen[i][1])
+
+
 def abstand(a, b):
     return sum((a[i] - b[i]) ** 2 for i in range(3)) ** 0.5
 
@@ -133,6 +166,7 @@ class Ergebnis(object):
         self.ohne_geometrie = 0
         self.fehler = []            # Texte
         self.verwaist = 0           # Körper, deren Element im Link fehlt
+        self.ebene_angepasst = 0    # vorhandene Körper auf andere Ebene
         self.neue_ids = []          # ElementIds der erstellten Instanzen
 
     def zaehle(self, aktion):
@@ -152,6 +186,9 @@ class Ergebnis(object):
             t(u"Unverändert: %d", u"Unchanged: %d",
               u"Sin cambios: %d") % self.anzahl[GLEICH],
         ]
+        if self.ebene_angepasst:
+            zeilen.append(t(u"Ebene angepasst: %d", u"Level adjusted: %d",
+                            u"Nivel ajustado: %d") % self.ebene_angepasst)
         if self.ohne_geometrie:
             zeilen.append(t(u"Ohne Volumengeometrie übersprungen: %d",
                             u"Skipped without solid geometry: %d",

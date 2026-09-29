@@ -439,13 +439,13 @@ def starte(uiapp, uidoc):
         if not vorlage:
             return
 
-    if any(aktion != lg.GLEICH for _q, aktion, _a in plan):
+    if zu_bauen:
         with _Fortschritt() as fortschritt:
             rv.ausfuehren(doc, uiapp.Application, plan, vorlage, ergebnis,
                           fortschritt)
-    else:
-        for _q, aktion, _a in plan:
-            ergebnis.zaehle(aktion)
+    elif plan:
+        # Nur verschieben bzw. Ebenen angleichen - ohne Fortschrittsbalken
+        rv.ausfuehren(doc, uiapp.Application, plan, vorlage, ergebnis)
 
     if ergebnis.neue_ids:
         ids = List[ElementId]()
