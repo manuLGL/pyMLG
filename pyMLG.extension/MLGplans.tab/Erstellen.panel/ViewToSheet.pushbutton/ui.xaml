@@ -1,0 +1,108 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{{titel}}"
+        Width="500" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        FontSize="12">
+    <StackPanel Margin="14">
+        <TextBlock x:Name="lbl_info" Margin="0,0,0,10" TextWrapping="Wrap"/>
+
+        <GroupBox Header="{{anordnung}}" Margin="0,0,0,10" Padding="6">
+            <StackPanel>
+                <RadioButton x:Name="rb_einzeln" Content="{{einzeln}}" Margin="0,0,0,4"/>
+                <RadioButton x:Name="rb_zusammen" Content="{{zusammen}}" Margin="0,0,0,4"/>
+                <CheckBox x:Name="cb_ueberlappen" Content="{{ueberlappen}}" Margin="20,0,0,0"/>
+            </StackPanel>
+        </GroupBox>
+
+        <TextBlock Text="{{zielplan}}" Margin="0,0,0,3"/>
+        <ComboBox x:Name="cb_ziel" Margin="0,0,0,10"/>
+
+        <TextBlock Text="{{planfamilie}}" Margin="0,0,0,3"/>
+        <ComboBox x:Name="cb_titleblock" Margin="0,0,0,10"/>
+
+        <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="{{vorlage}}" Margin="0,0,0,3"/>
+                <ComboBox x:Name="cb_template"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="{{fenstertyp}}" Margin="0,0,0,3"/>
+                <ComboBox x:Name="cb_vptyp"/>
+            </StackPanel>
+        </Grid>
+
+        <GroupBox Header="{{position}}" Margin="0,0,0,10" Padding="6">
+            <StackPanel>
+                <RadioButton x:Name="rb_mitte" Content="{{mitte}}" Margin="0,0,0,4"/>
+                <RadioButton x:Name="rb_xy" Content="{{xy}}" Margin="0,0,0,6"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="X [cm]" Margin="0,0,0,3"/>
+                        <TextBox x:Name="tb_x"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Y [cm]" Margin="0,0,0,3"/>
+                        <TextBox x:Name="tb_y"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Text="{{rand}}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="tb_rand"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="6">
+                        <TextBlock Text="{{rechts}}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="tb_rechts"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="8">
+                        <TextBlock Text="{{abstand}}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="tb_abstand"/>
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="{{position_hinweis}}" Foreground="Gray"
+                           TextWrapping="Wrap" Margin="0,6,0,0"/>
+            </StackPanel>
+        </GroupBox>
+
+        <Grid Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="{{nummer}}" Margin="0,0,0,3"/>
+                <TextBox x:Name="tb_nummer"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="{{name}}" Margin="0,0,0,3"/>
+                <TextBox x:Name="tb_name"/>
+            </StackPanel>
+        </Grid>
+        <TextBlock Text="{{muster_hinweis}}" Foreground="Gray"
+                   TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="btn_ok" Content="{{ok}}" Width="120" Height="26"
+                    Margin="0,0,8,0" IsDefault="True"/>
+            <Button x:Name="btn_cancel" Content="{{abbrechen}}" Width="90" Height="26"
+                    IsCancel="True"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

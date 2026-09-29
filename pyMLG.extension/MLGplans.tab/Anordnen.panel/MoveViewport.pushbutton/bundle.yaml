@@ -1,0 +1,12 @@
+title:
+  de_de: "Ansicht\nverschieben"
+  en_us: "Move\nViewport"
+  es_es: "Mover\nvista"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Verschiebt die ausgewählten Ansichtsfenster auf einen anderen Plan - an gleicher Position, mit Typ, Drehung, Titel und Detailnummer.
+  en_us: >-
+    Moves the selected viewports to another sheet - at the same position, keeping type, rotation, title and detail number.
+  es_es: >-
+    Mueve las ventanas gráficas seleccionadas a otro plano, en la misma posición y con tipo, rotación, título y número de detalle.

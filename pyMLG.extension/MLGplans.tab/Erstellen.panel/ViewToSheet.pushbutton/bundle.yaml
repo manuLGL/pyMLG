@@ -1,0 +1,12 @@
+title:
+  de_de: "Ansicht\nauf Plan"
+  en_us: "View\nto Sheet"
+  es_es: "Vista\na plano"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Setzt die ausgewählten Ansichten auf Pläne: ein Plan je Ansicht oder mehrere Ansichten je Plan (weitere Pläne bei Platzmangel), auch auf einen vorhandenen Plan. Plankopf, Vorlage, Ansichtsfenster-Typ, Position und Nummernmuster werden im Dialog gewählt.
+  en_us: >-
+    Places the selected views on sheets: one sheet per view or several views per sheet (more sheets if space runs out), also on an existing sheet. Title block, template, viewport type, position and number pattern are chosen in the dialog.
+  es_es: >-
+    Coloca las vistas seleccionadas en planos: un plano por vista o varias vistas por plano (más planos si falta espacio), también en un plano existente. El cajetín, la plantilla, el tipo de ventana, la posición y el patrón de número se eligen en el cuadro de diálogo.

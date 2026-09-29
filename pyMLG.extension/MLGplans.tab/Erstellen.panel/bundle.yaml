@@ -1,0 +1,7 @@
+title:
+  de_de: "Erstellen"
+  en_us: "Create"
+  es_es: "Crear"
+layout:
+  - ViewToSheet
+  - DuplicateSheet

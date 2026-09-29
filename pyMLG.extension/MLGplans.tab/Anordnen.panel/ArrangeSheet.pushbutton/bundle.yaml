@@ -1,0 +1,12 @@
+title:
+  de_de: "Plan\nanordnen"
+  en_us: "Arrange\nSheet"
+  es_es: "Organizar\nplano"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Zeigt den aktiven Plan verkleinert: Ansichten per Maus verschieben, bündig ausrichten, gleichmäßig verteilen oder automatisch anordnen. Sind Ansichtsfenster markiert, sind nur diese verschiebbar.
+  en_us: >-
+    Shows the active sheet in miniature: move views with the mouse, align, distribute evenly or arrange automatically. If viewports are selected, only those can be moved.
+  es_es: >-
+    Muestra el plano activo en miniatura: mueva las vistas con el ratón, alinéelas, distribúyalas u organícelas automáticamente. Si hay ventanas seleccionadas, sólo esas se pueden mover.

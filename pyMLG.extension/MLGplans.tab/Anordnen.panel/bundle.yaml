@@ -1,0 +1,8 @@
+title:
+  de_de: "Anordnen"
+  en_us: "Arrange"
+  es_es: "Organizar"
+layout:
+  - ArrangeSheet
+  - AlignViewports
+  - MoveViewport

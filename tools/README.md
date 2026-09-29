@@ -9,6 +9,7 @@ Bibliotheken, gezeichnet mit 4x-Supersampling.
 
 ```bat
 python tools\make_icons.py pyMLG.extension\pyMLG.tab
+python tools\make_icons.py pyMLG.extension\MLGplans.tab
 ```
 
 Optional lassen sich einzelne Werkzeuge neu rendern:
@@ -23,4 +24,4 @@ rot = aus, violett = Phasen). Bewusst wenige grosse Formen, damit die Symbole
 im Ribbon bei 32 px lesbar bleiben.
 
 Ein neues Werkzeug bekommt eine Zeichenfunktion und einen Eintrag im Dict
-`SYMBOLE` am Ende der Datei.
+`SYMBOLE` (Reiter pyMLG) bzw. `PLAENE` (Reiter MLGplans) am Ende der Datei.

@@ -1,0 +1,12 @@
+title:
+  de_de: "Plan\nduplizieren"
+  en_us: "Duplicate\nSheet"
+  es_es: "Duplicar\nplano"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Dupliziert die ausgewählten Pläne samt Ansichten (mit oder ohne Detaillierung, oder als abhängige Ansichten) und vergibt die nächste freie Plannummer.
+  en_us: >-
+    Duplicates the selected sheets including their views (with or without detailing, or as dependent views) and assigns the next free sheet number.
+  es_es: >-
+    Duplica los planos seleccionados con sus vistas (con o sin detalles, o como vistas dependientes) y asigna el siguiente número de plano libre.

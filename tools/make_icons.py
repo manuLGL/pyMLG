@@ -494,6 +494,64 @@ def clash_navigator(b):
     kreis(b, 48, 48, 9, ROT)
 
 
+
+
+# --- Reiter MLGplans -------------------------------------------------------
+def duplicate_sheet(b):
+    """Zwei versetzte Pläne, der vordere mit Ansicht und Plus."""
+    blattform(b, 26, 8, 88, 70)
+    rect(b, 66, 56, 84, 66, BLAU)
+    blattform(b, 8, 26, 70, 88)
+    rect(b, 48, 74, 66, 84, BLAU)                 # Schriftfeld
+    rahmen(b, 16, 34, 44, 62, 3, BLAU)            # Ansicht
+    rect(b, 20, 38, 40, 58, (222, 238, 248))
+    rect(b, 72, 12, 80, 36, GRUEN)                # Plus
+    rect(b, 64, 20, 88, 28, GRUEN)
+
+
+def align_viewports(b):
+    """Zwei Pläne übereinander, Ansichten auf gleicher Höhe, Hilfslinie."""
+    blattform(b, 6, 14, 46, 82)
+    blattform(b, 50, 14, 90, 82)
+    for x0 in (12, 56):
+        rahmen(b, x0, 30, x0 + 28, 58, 3, BLAU)
+        rect(b, x0 + 4, 34, x0 + 24, 54, (222, 238, 248))
+    linie(b, (4, 30), (92, 30), 3, ORANGE)        # gemeinsame Oberkante
+    linie(b, (4, 58), (92, 58), 3, ORANGE)
+
+
+def move_viewport(b):
+    """Ansicht wandert von einem Plan auf den anderen."""
+    blattform(b, 4, 20, 40, 76)
+    blattform(b, 56, 20, 92, 76)
+    rahmen(b, 62, 32, 86, 56, 3, BLAU)
+    rect(b, 66, 36, 82, 52, (222, 238, 248))
+    rahmen(b, 10, 32, 34, 56, 2, LINIE)           # alte Lage
+    pfeil(b, (26, 44), (60, 44), 7, 14, GRUEN)
+
+
+def renumber_sheets(b):
+    """Stapel von Plänen mit Nummernfeldern und Pfeil."""
+    for i, y in enumerate((10, 38, 66)):
+        blattform(b, 8, y, 62, y + 22)
+        rect(b, 12, y + 5, 30, y + 17, BLAU if i == 1 else LINIE)
+        rect(b, 34, y + 9, 56, y + 13, LINIE)
+    pfeil(b, (80, 14), (80, 84), 7, 14, ORANGE)
+
+
+def arrange_sheet(b):
+    """Plan mit zwei Ansichten, eine wird mit Pfeilkreuz verschoben."""
+    blattform(b, 6, 12, 90, 84)
+    rect(b, 66, 70, 86, 80, BLAU)                 # Schriftfeld
+    rahmen(b, 12, 18, 40, 46, 3, LINIE)           # feste Ansicht
+    rahmen(b, 46, 30, 78, 62, 3, BLAU)            # verschobene Ansicht
+    rect(b, 50, 34, 74, 58, (222, 238, 248))
+    pfeil(b, (62, 46), (62, 22), 4, 9, ORANGE)
+    pfeil(b, (62, 46), (62, 70), 4, 9, ORANGE)
+    pfeil(b, (62, 46), (38, 46), 4, 9, ORANGE)
+    pfeil(b, (62, 46), (86, 46), 4, 9, ORANGE)
+
+
 SYMBOLE = {
     "Koordination.panel/ClashNavigator.pushbutton": clash_navigator,
     "Oberflaeche.panel/TabManager.pushbutton": tab_manager,
@@ -504,7 +562,6 @@ SYMBOLE = {
     "Raeume.panel/Beschriftung.stack/TagDistance.pushbutton": tag_distance,
     "Ansichten.panel/Hilfen.stack/ViewIdVisible.pushbutton": view_id_visible,
     "Ansichten.panel/ViewNameManager.pushbutton": view_name_manager,
-    "Ansichten.panel/Duplizieren.stack/ViewToSheet.pushbutton": view_to_sheet,
     "Ansichten.panel/Hilfen.stack/WallLegend.pushbutton": wall_legend,
     "Filter.panel/FilterManager.pushbutton": filter_manager,
     "Phasen.panel/Phasen.stack/CopyWithPhases.pushbutton": copy_with_phases,
@@ -525,10 +582,24 @@ SYMBOLE = {
 }
 
 
+PLAENE = {
+    "Erstellen.panel/ViewToSheet.pushbutton": view_to_sheet,
+    "Erstellen.panel/DuplicateSheet.pushbutton": duplicate_sheet,
+    "Anordnen.panel/ArrangeSheet.pushbutton": arrange_sheet,
+    "Anordnen.panel/AlignViewports.pushbutton": align_viewports,
+    "Anordnen.panel/MoveViewport.pushbutton": move_viewport,
+    "Verwalten.panel/RenumberSheets.pushbutton": renumber_sheets,
+}
+
+# Symbole je Reiter (Ordnername)
+REITER = {"pyMLG.tab": SYMBOLE, "MLGplans.tab": PLAENE}
+
+
 if __name__ == "__main__":
     tab_ordner = sys.argv[1]
     nur = sys.argv[2:] if len(sys.argv) > 2 else None
-    for rel, zeichner in sorted(SYMBOLE.items()):
+    reiter = os.path.basename(os.path.normpath(tab_ordner))
+    for rel, zeichner in sorted(REITER.get(reiter, SYMBOLE).items()):
         if nur and not any(n in rel for n in nur):
             continue
         ziel = os.path.join(tab_ordner, rel.replace("/", os.sep), "icon.png")

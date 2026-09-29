@@ -1,0 +1,12 @@
+title:
+  de_de: "Pläne\nnummerieren"
+  en_us: "Renumber\nSheets"
+  es_es: "Renumerar\nplanos"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Nummeriert die ausgewählten Pläne ab einer Startnummer neu, mit Vorschau. Tauschen und Verschieben von Nummern innerhalb der Auswahl ist ohne Konflikte möglich.
+  en_us: >-
+    Renumbers the selected sheets from a start number, with preview. Swapping and shifting numbers within the selection works without conflicts.
+  es_es: >-
+    Renumera los planos seleccionados a partir de un número inicial, con vista previa. Intercambiar y desplazar números dentro de la selección funciona sin conflictos.

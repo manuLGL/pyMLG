@@ -1,0 +1,12 @@
+title:
+  de_de: "Ansichten\nausrichten"
+  en_us: "Align\nViewports"
+  es_es: "Alinear\nvistas"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Richtet andere Pläne wie den aktiven Plan aus: alle Ansichten (oder nur die markierten) bekommen auf jedem Zielplan ihr Gegenstück und übernehmen Lage, Ansichtsfenster-Typ und Titellage - deckungsgleich im Modell oder nach gleicher Mitte.
+  en_us: >-
+    Aligns other sheets like the active sheet: all views (or only the selected ones) get their counterpart on each target sheet, which takes over position, viewport type and title position - matching in the model or by the same centre.
+  es_es: >-
+    Alinea otros planos como el plano activo: todas las vistas (o sólo las seleccionadas) obtienen su equivalente en cada plano de destino, que adopta la posición, el tipo de ventana y la posición del título, coincidente en el modelo o por el mismo centro.
