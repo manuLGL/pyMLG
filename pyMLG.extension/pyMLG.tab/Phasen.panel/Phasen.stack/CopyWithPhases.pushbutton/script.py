@@ -51,8 +51,7 @@ def main():
     transaktion.Start()
     try:
         neue_ids, paare, ohne_original = rk.kopieren(doc, ids, ziel - basis)
-        for kopie, original in paare:
-            rk.phasen_uebertragen(kopie, original)
+        hinweise = rk.alle_phasen_uebertragen(doc, paare)
         transaktion.Commit()
     except Exception as fehler:
         if transaktion.HasStarted() and not transaktion.HasEnded():
@@ -62,16 +61,15 @@ def main():
         return
 
     rk.auswahl_setzen(uidoc, neue_ids)
-    hinweise = []
     if ohne_original:
-        hinweise.append(t(u"{} Kopie(n) konnte kein Original zugeordnet werden - "
+        hinweise.insert(0,t(u"{} Kopie(n) konnte kein Original zugeordnet werden - "
                         u"deren Phasen bitte prüfen.", u"{} copy/copies could not be matched to an original - please check their phases.", u"{} copia(s) no se pudieron asociar a un original: compruebe sus fases.").format(ohne_original))
     if uebersprungen:
-        hinweise.append(t(u"{} ansichtsspezifische(s) Element(e) (Beschriftungen, "
+        hinweise.insert(0,t(u"{} ansichtsspezifische(s) Element(e) (Beschriftungen, "
                         u"Detaillinien ...) wurden nicht kopiert.", u"{} view-specific element(s) (tags, detail lines ...) were not copied.", u"{} elemento(s) específicos de vista (etiquetas, líneas de detalle ...) no se copiaron.").format(uebersprungen))
     if hinweise:
         forms.alert(t(u"{} Element(e) kopiert.", u"{} element(s) copied.", u"{} elemento(s) copiados.").format(len(neue_ids)),
-                    sub_msg=u"\n".join(hinweise), title=TITEL)
+                    sub_msg=u"\n".join(hinweise[:15]), title=TITEL)
 
 
 main()

@@ -190,12 +190,14 @@ def kopieren(doc, element_ids, verschiebung):
 def phasen_uebertragen(kopie, original):
     """Setzt "Phase erstellt/abgebrochen" der Kopie auf die des Originals.
 
-    Liefert False, wenn das Element keine änderbaren Phasen hat.
+    Liefert None, wenn das Element keine änderbaren Phasen hat, sonst ob die
+    Phasen der Kopie danach mit denen des Originals übereinstimmen
+    (Parameter.Set() meldet Ablehnungen nur über den Rückgabewert).
     """
     ziel_erstellt = kopie.get_Parameter(BIP.PHASE_CREATED)
     quelle_erstellt = original.get_Parameter(BIP.PHASE_CREATED)
     if ziel_erstellt is None or quelle_erstellt is None or ziel_erstellt.IsReadOnly:
-        return False
+        return None
     ziel_abgebr = kopie.get_Parameter(BIP.PHASE_DEMOLISHED)
     quelle_abgebr = original.get_Parameter(BIP.PHASE_DEMOLISHED)
     abgebr_aenderbar = (ziel_abgebr is not None and quelle_abgebr is not None
@@ -212,7 +214,49 @@ def phasen_uebertragen(kopie, original):
         ziel_erstellt.Set(erstellt)
     if abgebr_aenderbar and _gueltig(abgebrochen):
         ziel_abgebr.Set(abgebrochen)
-    return True
+
+    ok = id_wert(ziel_erstellt.AsElementId()) == id_wert(erstellt)
+    if abgebr_aenderbar:
+        ok = ok and id_wert(ziel_abgebr.AsElementId()) == id_wert(quelle_abgebr.AsElementId())
+    return ok
+
+
+def _raum_phase(elem):
+    param = elem.get_Parameter(BIP.ROOM_PHASE)
+    return param.AsElementId() if param is not None else None
+
+
+def alle_phasen_uebertragen(doc, paare):
+    """Überträgt die Phasen aller Paare, Wirte vor eingefügten Elementen.
+
+    Muss in einer offenen Transaktion laufen. Liefert Hinweistexte zu
+    Kopien, deren Phasen nicht übernommen werden konnten.
+    """
+    hinweise = []
+    # Wirte zuerst: sonst steht die Wand beim Setzen der Tür-Phase noch in
+    # der Phase der aktiven Ansicht
+    for kopie, original in sorted(paare, key=lambda p: ist_eingefuegt(p[0])):
+        name = u"{} ({})".format(kopie.Name, id_wert(kopie.Id))
+        raum_soll, raum_ist = _raum_phase(original), _raum_phase(kopie)
+        if raum_soll is not None and raum_ist is not None:
+            # Räume haben eine feste Phase statt "Phase erstellt"
+            if id_wert(raum_soll) != id_wert(raum_ist):
+                phase = doc.GetElement(raum_ist)
+                hinweise.append(t(u"{}: Räume behalten die Phase der Ansicht ('{}')",
+                                  u"{}: rooms keep the phase of the view ('{}')",
+                                  u"{}: las habitaciones conservan la fase de la vista ('{}')").format(
+                    name, phase.Name if phase is not None else u"?"))
+            continue
+        try:
+            ok = phasen_uebertragen(kopie, original)
+        except Exception as fehler:
+            ok = False
+            name = u"{} [{}]".format(name, fehler)
+        if ok is False:
+            hinweise.append(t(u"{}: Phasen nicht übernommen - bitte prüfen",
+                              u"{}: phases not applied - please check",
+                              u"{}: fases no aplicadas - compruébelas").format(name))
+    return hinweise
 
 
 # ---------------------------------------------------------------- Ebenen

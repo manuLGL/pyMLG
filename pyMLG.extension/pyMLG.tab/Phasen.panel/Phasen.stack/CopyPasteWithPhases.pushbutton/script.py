@@ -80,8 +80,7 @@ def main():
                     hinweise.append(u"{} ({}): {}".format(
                         kopie.Name, rk.id_wert(kopie.Id), text))
             rk.hoehen_korrigieren(doc, paare, delta)
-            for kopie, original in paare:
-                rk.phasen_uebertragen(kopie, original)
+            hinweise.extend(rk.alle_phasen_uebertragen(doc, paare))
         transaktion.Commit()
     except Exception as fehler:
         if transaktion.HasStarted() and not transaktion.HasEnded():

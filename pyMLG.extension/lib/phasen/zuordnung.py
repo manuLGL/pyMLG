@@ -50,12 +50,15 @@ def zuordnen(originale, kopien, verschiebung, max_abweichung=MAX_ABWEICHUNG):
     Paare (kleinste Abweichung) werden zuerst vergeben, damit nah beieinander
     liegende gleiche Elemente nicht vertauscht werden.
     """
+    # Nur gleiche Schlüssel vergleichen - bei grossen Auswahlen sonst n x m
+    je_schluessel = {}
+    for oi, original in enumerate(originale):
+        je_schluessel.setdefault(original.schluessel, []).append(oi)
+
     paare = []
     for ki, kopie in enumerate(kopien):
-        for oi, original in enumerate(originale):
-            if original.schluessel != kopie.schluessel:
-                continue
-            a = abweichung(original, kopie, verschiebung)
+        for oi in je_schluessel.get(kopie.schluessel, ()):
+            a = abweichung(originale[oi], kopie, verschiebung)
             if a is not None and a <= max_abweichung:
                 paare.append((a, ki, oi))
     paare.sort(key=lambda p: p[0])
