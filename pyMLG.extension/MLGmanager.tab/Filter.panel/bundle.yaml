@@ -3,4 +3,4 @@ title:
   en_us: "Filters"
   es_es: "Filtros"
 layout:
-  - PassFilterOverrides
+  - FilterManager

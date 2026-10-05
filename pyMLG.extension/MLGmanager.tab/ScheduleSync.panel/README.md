@@ -266,7 +266,7 @@ pyMLG.extension/
 │  ├─ schedule_model.py        Bauteillisten lesen und prüfen
 │  ├─ excel_io.py              Excel schreiben und lesen
 │  └─ importer.py              Rückimport: Analyse und Anwendung
-└─ pyMLG.tab/ScheduleSync.panel/
+└─ MLGmanager.tab/ScheduleSync.panel/
    └─ Excel.stack/
       ├─ Export.pushbutton/    script.py, bundle.yaml, icon.png
       └─ Import.pushbutton/    script.py, bundle.yaml, icon.png

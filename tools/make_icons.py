@@ -607,34 +607,37 @@ def linked_views(b):
 
 
 SYMBOLE = {
-    "Koordination.panel/ClashNavigator.pushbutton": clash_navigator,
-    "Koordination.panel/LinkToGenericModel.pushbutton": link_to_generic_model,
-    "Oberflaeche.panel/TabManager.pushbutton": tab_manager,
     "Ansichten.panel/Duplizieren.stack/DuplicatePlan.pushbutton": duplicate_plan,
     "Ansichten.panel/Duplizieren.stack/DuplicateView.pushbutton": duplicate_view,
     "Filter.panel/PassFilterOverrides.pushbutton": pass_filter_overrides,
     "Raeume.panel/Beschriftung.stack/RoomCenter.pushbutton": room_center,
     "Raeume.panel/Beschriftung.stack/TagDistance.pushbutton": tag_distance,
     "Ansichten.panel/Hilfen.stack/ViewIdVisible.pushbutton": view_id_visible,
-    "Ansichten.panel/ViewNameManager.pushbutton": view_name_manager,
-    "Ansichten.panel/LinkedViews.pushbutton": linked_views,
     "Ansichten.panel/Hilfen.stack/WallLegend.pushbutton": wall_legend,
-    "Filter.panel/FilterManager.pushbutton": filter_manager,
     "Phasen.panel/Phasen.stack/CopyWithPhases.pushbutton": copy_with_phases,
     "Phasen.panel/Phasen.stack/CopyPasteWithPhases.pushbutton": copy_paste_with_phases,
     "Worksets.panel/Worksets.stack/WorksetON.pushbutton": workset_on,
     "Worksets.panel/Worksets.stack/WorksetOFF.pushbutton": workset_off,
     "Worksets.panel/Worksets.stack/WorksetREVERSE.pushbutton": workset_reverse,
-    "Worksets.panel/WorksetCreator.pushbutton": workset_creator,
     "Geometrie.panel/JoinMultiple.pushbutton": join_multiple,
     "Auswahl.panel/FilterMore.pushbutton": filter_more,
     "Auswahl.panel/LinkedIds.pushbutton": linked_ids,
     "Geometrie.panel/LevelAutoSet.pushbutton": level_auto_set,
-    "Projekt.panel/TransferSingle.pushbutton": transfer_single,
-    "Ansichten.panel/ViewTemplateManager.pushbutton": view_template_manager,
     "Ansichten.panel/SectionBox.stack/SectionBoxCopy.pushbutton": section_box_copy,
     "Ansichten.panel/SectionBox.stack/SectionBoxPaste.pushbutton": section_box_paste,
     "Ansichten.panel/SectionBox.stack/SectionBoxSelection.pushbutton": section_box_selection,
+}
+
+MANAGER = {
+    "Ansichten.panel/ViewTemplateManager.pushbutton": view_template_manager,
+    "Ansichten.panel/ViewNameManager.pushbutton": view_name_manager,
+    "Ansichten.panel/LinkedViews.pushbutton": linked_views,
+    "Filter.panel/FilterManager.pushbutton": filter_manager,
+    "Worksets.panel/WorksetCreator.pushbutton": workset_creator,
+    "Koordination.panel/ClashNavigator.pushbutton": clash_navigator,
+    "Koordination.panel/LinkToGenericModel.pushbutton": link_to_generic_model,
+    "ScheduleSync.panel/TransferSingle.pushbutton": transfer_single,
+    "Oberflaeche.panel/TabManager.pushbutton": tab_manager,
 }
 
 
@@ -648,7 +651,8 @@ PLAENE = {
 }
 
 # Symbole je Reiter (Ordnername)
-REITER = {"pyMLG.tab": SYMBOLE, "MLGplans.tab": PLAENE}
+REITER = {"pyMLG.tab": SYMBOLE, "MLGmanager.tab": MANAGER,
+          "MLGplans.tab": PLAENE}
 
 
 if __name__ == "__main__":

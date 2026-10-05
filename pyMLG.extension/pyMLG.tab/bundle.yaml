@@ -1,12 +1,8 @@
 layout:
   - Ansichten
-  - Filter
   - Auswahl
-  - Raeume
   - Geometrie
+  - Raeume
   - Phasen
   - Worksets
-  - Projekt
-  - Koordination
-  - ScheduleSync
-  - Oberflaeche
+  - Filter
