@@ -623,6 +623,7 @@ SYMBOLE = {
     "Auswahl.panel/FilterMore.pushbutton": filter_more,
     "Auswahl.panel/LinkedIds.pushbutton": linked_ids,
     "Geometrie.panel/LevelAutoSet.pushbutton": level_auto_set,
+    "Geometrie.panel/LinkToGenericModel.pushbutton": link_to_generic_model,
     "Ansichten.panel/SectionBox.stack/SectionBoxCopy.pushbutton": section_box_copy,
     "Ansichten.panel/SectionBox.stack/SectionBoxPaste.pushbutton": section_box_paste,
     "Ansichten.panel/SectionBox.stack/SectionBoxSelection.pushbutton": section_box_selection,
@@ -635,7 +636,6 @@ MANAGER = {
     "Filter.panel/FilterManager.pushbutton": filter_manager,
     "Worksets.panel/WorksetCreator.pushbutton": workset_creator,
     "Koordination.panel/ClashNavigator.pushbutton": clash_navigator,
-    "Koordination.panel/LinkToGenericModel.pushbutton": link_to_generic_model,
     "ScheduleSync.panel/TransferSingle.pushbutton": transfer_single,
     "Oberflaeche.panel/TabManager.pushbutton": tab_manager,
 }
