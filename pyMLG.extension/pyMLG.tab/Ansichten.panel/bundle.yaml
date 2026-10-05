@@ -5,6 +5,7 @@ title:
 layout:
   - ViewTemplateManager
   - ViewNameManager
+  - LinkedViews
   - Duplizieren
   - SectionBox
   - Hilfen

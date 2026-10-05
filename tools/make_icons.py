@@ -590,6 +590,22 @@ def arrange_sheet(b):
     pfeil(b, (62, 46), (86, 46), 4, 9, ORANGE)
 
 
+def linked_views(b):
+    """Verknuepftes Modell mit Grundriss, Lupe davor: verknuepfte Ansicht
+    suchen."""
+    blattform(b, 4, 4, 70, 70, BLAU, 10)         # Ansicht der Verknuepfung
+    _grundriss(b, 14, 24, 60, 60)
+    kreis(b, 20, 13, 6, DUNKEL)                  # Kettenglieder
+    kreis(b, 20, 13, 3, WEISS)
+    kreis(b, 29, 13, 6, DUNKEL)
+    kreis(b, 29, 13, 3, WEISS)
+    linie(b, (72, 72), (90, 90), 9, DUNKEL)      # Lupengriff
+    kreis(b, 62, 62, 20, DUNKEL)
+    kreis(b, 62, 62, 14, WEISS)
+    linie(b, (54, 63), (60, 69), 4, GRUEN)       # Haken: gefunden
+    linie(b, (60, 69), (71, 55), 4, GRUEN)
+
+
 SYMBOLE = {
     "Koordination.panel/ClashNavigator.pushbutton": clash_navigator,
     "Koordination.panel/LinkToGenericModel.pushbutton": link_to_generic_model,
@@ -601,6 +617,7 @@ SYMBOLE = {
     "Raeume.panel/Beschriftung.stack/TagDistance.pushbutton": tag_distance,
     "Ansichten.panel/Hilfen.stack/ViewIdVisible.pushbutton": view_id_visible,
     "Ansichten.panel/ViewNameManager.pushbutton": view_name_manager,
+    "Ansichten.panel/LinkedViews.pushbutton": linked_views,
     "Ansichten.panel/Hilfen.stack/WallLegend.pushbutton": wall_legend,
     "Filter.panel/FilterManager.pushbutton": filter_manager,
     "Phasen.panel/Phasen.stack/CopyWithPhases.pushbutton": copy_with_phases,
