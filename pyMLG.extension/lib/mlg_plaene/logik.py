@@ -418,3 +418,28 @@ def ueberschneidungen(rechtecke):
                 treffer.add(i)
                 treffer.add(j)
     return treffer
+
+
+# ---------------------------------------------------------------- Plangrösse
+
+OBEN_LINKS, OBEN_RECHTS = "oben_links", "oben_rechts"
+UNTEN_LINKS, UNTEN_RECHTS = "unten_links", "unten_rechts"
+ANKER_MITTE = "mitte"
+ANKER = (OBEN_LINKS, OBEN_RECHTS, UNTEN_LINKS, UNTEN_RECHTS, ANKER_MITTE)
+
+
+def ankerpunkt(r, anker):
+    """Ecke oder Mitte eines Rechtecks als (x, y)."""
+    mx, my = mitte(r)
+    x = r[0] if anker in (OBEN_LINKS, UNTEN_LINKS) else \
+        r[2] if anker in (OBEN_RECHTS, UNTEN_RECHTS) else mx
+    y = r[3] if anker in (OBEN_LINKS, OBEN_RECHTS) else \
+        r[1] if anker in (UNTEN_LINKS, UNTEN_RECHTS) else my
+    return x, y
+
+
+def anker_versatz(alt, neu, anker):
+    """(dx, dy), damit der Planinhalt nach einem Formatwechsel von alt auf
+    neu denselben Abstand zur gewählten Ecke (oder Mitte) behält."""
+    (ax, ay), (nx, ny) = ankerpunkt(alt, anker), ankerpunkt(neu, anker)
+    return nx - ax, ny - ay

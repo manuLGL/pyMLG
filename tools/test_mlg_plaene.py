@@ -159,6 +159,24 @@ def main():
                  lg.fenster_zuordnen([F(1, "plan", 100, "EG", (0, 0))],
                                      [F(11, "schnitt", 100, "S", (0, 0))]) == [])
 
+    # --- Plangrösse: Inhalt mitnehmen (Ursprung unten rechts wie beim
+    #     Schriftfeld: A2 -> A1 wächst nach links und oben)
+    a2 = (-59.4, 0.0, 0.0, 42.0)
+    a1 = (-84.1, 0.0, 0.0, 59.4)
+    dx, dy = lg.anker_versatz(a2, a1, lg.OBEN_LINKS)
+    ok &= pruefe("oben links: Inhalt wandert nach links oben",
+                 abs(dx + 24.7) < 1e-9 and abs(dy - 17.4) < 1e-9)
+    ok &= pruefe("unten rechts: Inhalt bleibt",
+                 lg.anker_versatz(a2, a1, lg.UNTEN_RECHTS) == (0.0, 0.0))
+    dx, dy = lg.anker_versatz(a2, a1, lg.ANKER_MITTE)
+    ok &= pruefe("Mitte: halber Versatz",
+                 abs(dx + 12.35) < 1e-9 and abs(dy - 8.7) < 1e-9)
+    ok &= pruefe("oben rechts / unten links",
+                 lg.anker_versatz(a2, a1, lg.OBEN_RECHTS) == (0.0, 59.4 - 42.0)
+                 and abs(lg.anker_versatz(a2, a1, lg.UNTEN_LINKS)[0] + 24.7) < 1e-9)
+    ok &= pruefe("gleiches Format: kein Versatz",
+                 all(lg.anker_versatz(a1, a1, a) == (0.0, 0.0) for a in lg.ANKER))
+
     print("\nAlle Tests bestanden." if ok else "\nEs gibt Fehler.")
     return 0 if ok else 1
 

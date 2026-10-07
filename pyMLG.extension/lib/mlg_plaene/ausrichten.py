@@ -80,7 +80,8 @@ def wie_vorbild(doc, vorbilder, ziele, art=GEBAEUDE, typ=True, melden="vorbilder
 
     melden: "vorbilder" nennt Vorbild-Ansichten ohne Gegenstück (ganzer
     Plan wird übertragen), "ziele" nennt Ziel-Ansichten ohne Vorbild (neue
-    Ansichten werden eingepasst). Liefert (Anzahl ausgerichtet, Hinweise).
+    Ansichten werden eingepasst), "keine" nennt beides nicht (Plangrösse).
+    Liefert (Anzahl ausgerichtet, Hinweise).
     """
     nach_id = dict((rv.id_wert(f.Id), f) for f in list(vorbilder) + list(ziele))
     paare = lg.fenster_zuordnen([_info(doc, f) for f in vorbilder],
@@ -102,7 +103,7 @@ def wie_vorbild(doc, vorbilder, ziele, art=GEBAEUDE, typ=True, melden="vorbilder
                 hinweise.append(t(u"kein Gegenstück für '{}'", u"no counterpart for '{}'",
                                   u"sin equivalente para '{}'").format(
                     doc.GetElement(vorbild.ViewId).Name))
-    else:
+    elif melden == "ziele":
         zugeordnet = set(z for _, z in paare)
         for fenster in ziele:
             if rv.id_wert(fenster.Id) not in zugeordnet:

@@ -1,0 +1,86 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{{titel}}"
+        Width="940" Height="640" MinWidth="760" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        FontSize="12">
+    <DockPanel Margin="14">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right"
+                    Margin="0,10,0,0">
+            <Button x:Name="btn_ok" Content="{{ok}}" Width="130" Height="26"
+                    Margin="0,0,8,0" IsDefault="True"/>
+            <Button x:Name="btn_cancel" Content="{{abbrechen}}" Width="90" Height="26"
+                    IsCancel="True"/>
+        </StackPanel>
+        <TextBlock x:Name="lbl_status" DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                   TextWrapping="Wrap"/>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="400"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Pläne -->
+            <DockPanel Grid.Column="0">
+                <TextBlock DockPanel.Dock="Top" Text="{{plaene}}" FontWeight="SemiBold"
+                           Margin="0,0,0,4"/>
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="tb_suche" Grid.Column="0" ToolTip="{{suche}}"/>
+                    <Button x:Name="btn_alle" Grid.Column="1" Content="{{alle}}" Width="60"
+                            Margin="6,0,0,0"/>
+                    <Button x:Name="btn_keine" Grid.Column="2" Content="{{keine}}" Width="60"
+                            Margin="6,0,0,0"/>
+                </Grid>
+                <TextBlock x:Name="lbl_anzahl" DockPanel.Dock="Bottom" Margin="0,4,0,0"
+                           Foreground="#555555"/>
+                <ListBox x:Name="lb_plaene"/>
+            </DockPanel>
+
+            <!-- Format und Ausrichten -->
+            <DockPanel Grid.Column="2">
+                <StackPanel DockPanel.Dock="Top">
+                    <TextBlock Text="{{vorbild}}" Margin="0,0,0,3"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="cb_vorbild" Grid.Column="0"/>
+                        <Button x:Name="btn_vom_vorbild" Grid.Column="1" Content="{{uebernehmen}}"
+                                Margin="6,0,0,0" Padding="8,0" ToolTip="{{uebernehmen_tip}}"/>
+                    </Grid>
+                </StackPanel>
+
+                <GroupBox DockPanel.Dock="Bottom" Header="{{ausrichten}}" Margin="0,10,0,0"
+                          Padding="6">
+                    <StackPanel>
+                        <CheckBox x:Name="cb_mitnehmen" Content="{{mitnehmen}}" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="cb_anker" Margin="20,0,0,10"/>
+                        <CheckBox x:Name="cb_wie_vorbild" Content="{{wie_vorbild}}" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="cb_art" Margin="20,0,0,0"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="{{format}}" Padding="6">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="{{plankopf}}" Margin="0,0,0,3"/>
+                        <ComboBox x:Name="cb_typ" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                        <TextBlock DockPanel.Dock="Top" Text="{{parameter}}" Margin="0,0,0,3"
+                                   TextWrapping="Wrap"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" BorderBrush="#CCCCCC"
+                                      BorderThickness="1">
+                            <StackPanel x:Name="sp_parameter" Margin="4"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </GroupBox>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</Window>

@@ -1,0 +1,12 @@
+title:
+  de_de: "Plangröße\nändern"
+  en_us: "Sheet\nSize"
+  es_es: "Tamaño\nde plano"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Ändert die Größe vieler Pläne auf einmal: neuer Plankopf-Typ und/oder Format-Parameter des Plankopfs (z.B. A0/A1/A2 in einer Familie). Danach nimmt der Inhalt den gleichen Abstand zur gewählten Ecke ein, und auf Wunsch liegen Ansichten und Bauteillisten wie auf einem Vorbild-Plan.
+  en_us: >-
+    Changes the size of many sheets at once: new title block type and/or format parameters of the title block (e.g. A0/A1/A2 in one family). Afterwards the content keeps the same distance to the chosen corner, and optionally views and schedules are placed like on a reference sheet.
+  es_es: >-
+    Cambia el tamaño de muchos planos a la vez: nuevo tipo de cajetín y/o parámetros de formato del cajetín (p. ej. A0/A1/A2 en una familia). Después el contenido mantiene la misma distancia a la esquina elegida y, si se desea, las vistas y tablas quedan como en un plano de referencia.
