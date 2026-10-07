@@ -7,7 +7,7 @@ tooltip:
   de_de: >-
     Die verknüpfte Ansicht von RVT-Verknüpfungen finden und einstellen - wie "Sichtbarkeit/Grafiken > Revit-Verknüpfungen > Nach verknüpfter Ansicht", aber mit Suchfeld.
 
-    Links die Verknüpfungen (Typen und einzelne Exemplare), rechts alle Ansichten der Verknüpfungen - durchsuchbar nach Name, Ansichtstyp, Ebene, Vorlage und Verknüpfung. Der Typfilter zeigt standardmässig nur Ansichten, die zur aktiven Ansicht passen; ● markiert, was in der aktiven Ansicht eingestellt ist, und jede Zeile zeigt, in wie vielen Ansichten sie schon verwendet wird.
+    Links die Verknüpfungen (Typen und einzelne Exemplare) - der Haken davor blendet sie in der aktiven Ansicht ein oder aus -, rechts alle Ansichten der Verknüpfungen - durchsuchbar nach Name, Ansichtstyp, Ebene, Vorlage und Verknüpfung. Der Typfilter zeigt standardmässig nur Ansichten, die zur aktiven Ansicht passen; ● markiert, was in der aktiven Ansicht eingestellt ist, und jede Zeile zeigt, in wie vielen Ansichten sie schon verwendet wird.
 
     Auf die aktive Ansicht anwenden (auch per Doppelklick) oder auf mehrere Ansichten/Vorlagen. Steuert die Ansichtsvorlage einer Ansicht die RVT-Verknüpfungen (Haken in der Vorlage), wird nach Rückfrage die Vorlage geändert.
 
@@ -17,7 +17,7 @@ tooltip:
   en_us: >-
     Find and set the linked view of RVT links - like "Visibility/Graphics > Revit Links > By linked view", but with a search box.
 
-    On the left the links (types and single instances), on the right all views of the links - searchable by name, view type, level, template and link. By default the type filter only shows views that match the active view; ● marks what is set in the active view, and each row shows in how many views it is already used.
+    On the left the links (types and single instances) - the tick in front shows or hides them in the active view -, on the right all views of the links - searchable by name, view type, level, template and link. By default the type filter only shows views that match the active view; ● marks what is set in the active view, and each row shows in how many views it is already used.
 
     Apply to the active view (also by double-click) or to several views/templates. If a view's template controls the RVT links (ticked in the template), the template is changed after confirmation.
 
@@ -27,7 +27,7 @@ tooltip:
   es_es: >-
     Busca y ajusta la vista vinculada de los vínculos RVT, como en "Visibilidad/Gráficos > Vínculos de Revit > Por vista vinculada", pero con cuadro de búsqueda.
 
-    A la izquierda los vínculos (tipos y ejemplares individuales), a la derecha todas las vistas de los vínculos, con búsqueda por nombre, tipo de vista, nivel, plantilla y vínculo. Por defecto, el filtro de tipo solo muestra las vistas que corresponden a la vista activa; ● marca lo ajustado en la vista activa y cada fila indica en cuántas vistas ya se usa.
+    A la izquierda los vínculos (tipos y ejemplares individuales) - la casilla delante los muestra u oculta en la vista activa -, a la derecha todas las vistas de los vínculos, con búsqueda por nombre, tipo de vista, nivel, plantilla y vínculo. Por defecto, el filtro de tipo solo muestra las vistas que corresponden a la vista activa; ● marca lo ajustado en la vista activa y cada fila indica en cuántas vistas ya se usa.
 
     Aplicar a la vista activa (también con doble clic) o a varias vistas/plantillas. Si la plantilla de una vista controla los vínculos RVT (marcado en la plantilla), se cambia la plantilla tras confirmarlo.
 

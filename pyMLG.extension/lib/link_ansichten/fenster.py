@@ -6,14 +6,18 @@ Revit-Verknüpfungen > Anzeigeeinstellungen zu klicken.
     ┌ Verknüpfungen ──────┬ Ansichten in den Verknüpfungen ─────────────────┐
     │ Suchen: [______]    │ Suchen: [__________]  Typ: [Passend ▾] □ benutzt│
     │ ┌─────────────────┐ │ ┌─────────────────────────────────────────────┐ │
-    │ │ AR.rvt          │ │ │ ● Grundriss: UG02            AR.rvt         │ │
-    │ │ TW.rvt          │ │ │   Ebene UG02 · in 3 Ansichten               │ │
+    │ │ ☑ AR.rvt        │ │ │ ● Grundriss: UG02            AR.rvt         │ │
+    │ │ ☐ TW.rvt        │ │ │   Ebene UG02 · in 3 Ansichten               │ │
     │ └─────────────────┘ │ └─────────────────────────────────────────────┘ │
     ├ Aktive Ansicht ─────┴─────────────────────────────────────────────────┤
     │ M100 - UG02 (gesteuert von Vorlage …)                                │
     │ AR.rvt: Nach verknüpfter Ansicht "Grundriss: UG02"                   │
     └──────────────────────────────────────────────────────────────────────┘
     [Auf aktive Ansicht] [Auf Ansichten…] [Zurücksetzen]     [OK] [Abbrechen]
+
+Der Haken vor einer Verknüpfung blendet sie in der aktiven Ansicht ein oder
+aus - wie der Haken im Reiter Revit-Verknüpfungen von Sichtbarkeit/Grafiken
+(in der API: HideElements/UnhideElements der Exemplare).
 
 Steuert die Ansichtsvorlage der Zielansicht die RVT-Verknüpfungen (Haken in
 der Vorlage), wird die Vorlage geändert - nach Rückfrage.
@@ -37,8 +41,10 @@ from System.Windows import (
     GridUnitType,
     TextTrimming,
     Thickness,
+    VerticalAlignment,
 )
 from System.Windows.Controls import (
+    CheckBox,
     ColumnDefinition,
     Grid,
     ListBoxItem,
@@ -92,11 +98,13 @@ XAML_TEXTE = {
     "suche_tip": (u"Mehrere Wörter: alle müssen vorkommen",
                   u"Several words: all must occur",
                   u"Varias palabras: deben aparecer todas"),
-    "links_hinweis": (u"Ohne Markierung werden die Ansichten aller "
+    "links_hinweis": (u"Haken: in der aktiven Ansicht anzeigen. Ohne "
+                      u"Markierung werden rechts die Ansichten aller "
                       u"Verknüpfungen gezeigt.",
-                      u"Without a selection the views of all links are "
-                      u"shown.",
-                      u"Sin selección se muestran las vistas de todos los "
+                      u"Tick: show in the active view. Without a selection "
+                      u"the views of all links are shown on the right.",
+                      u"Casilla: mostrar en la vista activa. Sin selección "
+                      u"se muestran a la derecha las vistas de todos los "
                       u"vínculos."),
     "ansichten": (u"Ansichten in den Verknüpfungen",
                   u"Views in the links",
@@ -425,12 +433,13 @@ class LinkAnsichtenFenster(object):
         passend = [v for v in self.verknuepfungen
                    if lg.trifft((v.name + u" " + v.typ_name).lower(),
                                 woerter)]
+        ansicht = self._aktive_ansicht()
         self._still = True
         try:
             liste.Items.Clear()
             for v in passend:
                 item = ListBoxItem()
-                item.Content = (u"    └ " + v.name) if v.exemplar else v.name
+                item.Content = self._linkzeile(ansicht, v)
                 item.Tag = v.wert
                 if not v.geladen:
                     item.Foreground = ROT
@@ -458,6 +467,49 @@ class LinkAnsichtenFenster(object):
                                        u"%d of %d links",
                                        u"%d de %d vínculos") % (
             len(passend), len(self.verknuepfungen))
+
+    def _linkzeile(self, ansicht, v):
+        zeile = StackPanel()
+        zeile.Orientation = Orientation.Horizontal
+        if v.exemplar:
+            einzug = TextBlock()
+            einzug.Text = u"    └ "
+            zeile.Children.Add(einzug)
+        haken = CheckBox()
+        haken.VerticalAlignment = VerticalAlignment.Center
+        haken.Margin = Thickness(0.0, 0.0, 6.0, 0.0)
+        if rv.ausblendbar(self.doc, ansicht, v):
+            haken.IsChecked = rv.sichtbar(self.doc, ansicht, v)
+            haken.ToolTip = t(u"In der aktiven Ansicht anzeigen",
+                              u"Show in the active view",
+                              u"Mostrar en la vista activa")
+            haken.Click += self._h(
+                lambda s, a, v=v: self._schalte(v, s.IsChecked))
+        else:
+            haken.IsChecked = None
+            haken.IsEnabled = False
+            haken.ToolTip = t(u"In der aktiven Ansicht nicht ausblendbar",
+                              u"Cannot be hidden in the active view",
+                              u"No se puede ocultar en la vista activa")
+        zeile.Children.Add(haken)
+        name = TextBlock()
+        name.Text = v.name
+        zeile.Children.Add(name)
+        return zeile
+
+    def _schalte(self, v, an):
+        an = bool(an)
+        ansicht = self._aktive_ansicht()
+        try:
+            self._transaktion(
+                t(u"Verknüpfung einblenden", u"Show link", u"Mostrar vínculo")
+                if an else t(u"Verknüpfung ausblenden", u"Hide link",
+                             u"Ocultar vínculo"),
+                lambda: rv.setze_sichtbar(ansicht, v, an))
+        finally:
+            # Typ und Exemplare hängen zusammen - alle Haken neu lesen (auch
+            # wenn Revit abgelehnt hat)
+            self._fuelle_links()
 
     def _markierte_link_werte(self):
         return [int(item.Tag) for item in self.c("linkliste").SelectedItems]

@@ -19,7 +19,7 @@ from Autodesk.Revit.DB import (
     View,
 )
 
-from filter_manager.aufloesung import id_wert
+from filter_manager.aufloesung import id_liste, id_wert
 from link_ansichten import logik as lg
 from mlg_sprache import t
 
@@ -76,6 +76,8 @@ class Verknuepfung(object):
         self.name = element.Name if exemplar else typ.Name
         self.link_doc = link_doc
         self.ansichten = []
+        # Exemplare, die der Haken ein-/ausblendet (beim Typ: alle)
+        self.exemplar_ids = [element.Id] if exemplar else []
 
     @property
     def geladen(self):
@@ -116,6 +118,7 @@ def verknuepfungen(doc):
             continue
         link_doc = _link_doc(eigene)
         eintrag = Verknuepfung(typ, typ, link_doc)
+        eintrag.exemplar_ids = [e.Id for e in eigene]
         eintrag.ansichten = _ansichten(eintrag, link_doc, typen)
         ergebnis.append(eintrag)
         if len(eigene) > 1:
@@ -241,6 +244,45 @@ def setze(ansicht, verknuepfung, link_ansicht):
                                  _einstellung(link_ansicht.id, True))
     except Exception:
         raise fehler
+
+
+def sichtbar(doc, ansicht, verknuepfung):
+    """Haken wie in Sichtbarkeit/Grafiken > Revit-Verknüpfungen:
+    True (alle Exemplare sichtbar), False (alle ausgeblendet), None (gemischt
+    oder in dieser Ansicht nicht ausblendbar - dann ist der Haken gesperrt)."""
+    zustaende = set()
+    for eid in verknuepfung.exemplar_ids:
+        exemplar = doc.GetElement(eid)
+        try:
+            if exemplar is None or not exemplar.CanBeHidden(ansicht):
+                return None
+            zustaende.add(bool(exemplar.IsHidden(ansicht)))
+        except Exception:
+            return None
+    if len(zustaende) != 1:
+        return None
+    return not zustaende.pop()
+
+
+def ausblendbar(doc, ansicht, verknuepfung):
+    for eid in verknuepfung.exemplar_ids:
+        exemplar = doc.GetElement(eid)
+        try:
+            if exemplar is None or not exemplar.CanBeHidden(ansicht):
+                return False
+        except Exception:
+            return False
+    return bool(verknuepfung.exemplar_ids)
+
+
+def setze_sichtbar(ansicht, verknuepfung, an):
+    """Exemplare in der Ansicht ein- oder ausblenden (wie der Haken im
+    Reiter Revit-Verknüpfungen bzw. "In Ansicht ausblenden > Elemente")."""
+    ids = id_liste(verknuepfung.exemplar_ids)
+    if an:
+        ansicht.UnhideElements(ids)
+    else:
+        ansicht.HideElements(ids)
 
 
 def zuruecksetzen(ansicht, verknuepfung):
