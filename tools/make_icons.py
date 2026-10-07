@@ -654,10 +654,22 @@ def dxf_legend(b):
         rect(b, 50, y, 84, y + 4, DUNKEL)
 
 
+def component_legend(b):
+    """Legendenblatt: drei Bauteile untereinander, Text rechts daneben."""
+    blattform(b, 4, 6, 92, 90, BLAU, 12)
+    rect(b, 12, 26, 34, 40, DUNKEL)               # Tür / Bauteil 1
+    rect(b, 16, 30, 30, 36, WEISS)
+    kreis(b, 23, 55, 8, ORANGE)                   # Bauteil 2
+    rect(b, 12, 68, 34, 82, GRUEN)                # Bauteil 3
+    for y in (31, 53, 73):                        # Typnamen
+        rect(b, 44, y, 84, y + 4, DUNKEL)
+
+
 PLAENE = {
     "Erstellen.panel/ViewToSheet.pushbutton": view_to_sheet,
     "Erstellen.panel/DuplicateSheet.pushbutton": duplicate_sheet,
     "Erstellen.panel/DxfLegend.pushbutton": dxf_legend,
+    "Erstellen.panel/ComponentLegend.pushbutton": component_legend,
     "Anordnen.panel/ArrangeSheet.pushbutton": arrange_sheet,
     "Anordnen.panel/AlignViewports.pushbutton": align_viewports,
     "Anordnen.panel/MoveViewport.pushbutton": move_viewport,

@@ -6,3 +6,4 @@ layout:
   - ViewToSheet
   - DuplicateSheet
   - DxfLegend
+  - ComponentLegend
