@@ -590,6 +590,34 @@ def arrange_sheet(b):
     pfeil(b, (62, 46), (86, 46), 4, 9, ORANGE)
 
 
+def sheet_size(b):
+    """Kleiner Plan wächst zum grossen, die Ansicht bleibt oben links."""
+    blattform(b, 6, 6, 90, 90)
+    rect(b, 64, 76, 86, 86, BLAU)                 # Schriftfeld
+    rahmen(b, 6, 6, 52, 50, 3, LINIE)             # altes Format
+    rahmen(b, 14, 14, 40, 38, 3, BLAU)            # Ansicht
+    rect(b, 18, 18, 36, 34, (222, 238, 248))
+    pfeil(b, (48, 46), (80, 68), 6, 13, ORANGE)
+
+
+def _giebelwand(b, x0, x1, unten, traufe, first, rand, farbe):
+    """Wandansicht mit bearbeitetem Profil (Giebel)."""
+    mitte = (x0 + x1) / 2.0
+    polygon(b, [(x0, unten), (x0, traufe), (mitte, first), (x1, traufe),
+                (x1, unten)], DUNKEL)
+    polygon(b, [(x0 + rand, unten - rand), (x0 + rand, traufe + rand * 0.4),
+                (mitte, first + rand * 1.4), (x1 - rand, traufe + rand * 0.4),
+                (x1 - rand, unten - rand)], farbe)
+
+
+def wall_profile_copy(b):
+    """Wand mit Giebelprofil, Pfeil auf zwei gleiche Wände."""
+    _giebelwand(b, 4, 46, 90, 40, 8, 5, ORANGE)
+    pfeil(b, (44, 22), (70, 22), 6, 12, DUNKEL)
+    _giebelwand(b, 54, 72, 90, 60, 42, 4, GRUEN)
+    _giebelwand(b, 76, 94, 90, 60, 42, 4, GRUEN)
+
+
 def linked_views(b):
     """Verknuepftes Modell mit Grundriss, Lupe davor: verknuepfte Ansicht
     suchen."""
@@ -606,12 +634,27 @@ def linked_views(b):
     linie(b, (60, 69), (71, 55), 4, GRUEN)
 
 
+def column_numbering(b):
+    """Stuetzenraster im Grundriss, Pfad in Schlangenlinie, die ersten
+    Stuetzen schon nummeriert (gruen)."""
+    blattform(b, 4, 4, 92, 92)
+    linie(b, (20, 28), (76, 28), 5, ORANGE)        # Reihe 1 nach rechts
+    linie(b, (76, 28), (76, 68), 5, ORANGE)
+    pfeil(b, (76, 68), (24, 68), 5, 12, ORANGE)    # Reihe 2 zurueck
+    for i, x in enumerate((20, 48, 76)):
+        for j, y in enumerate((28, 68)):
+            farbe = GRUEN if j == 0 else DUNKEL
+            rect(b, x - 9, y - 9, x + 9, y + 9, farbe)
+            rect(b, x - 4, y - 4, x + 4, y + 4, WEISS if j == 0 else LINIE)
+
+
 SYMBOLE = {
     "Ansichten.panel/Duplizieren.stack/DuplicatePlan.pushbutton": duplicate_plan,
     "Ansichten.panel/Duplizieren.stack/DuplicateView.pushbutton": duplicate_view,
     "Filter.panel/PassFilterOverrides.pushbutton": pass_filter_overrides,
     "Raeume.panel/Beschriftung.stack/RoomCenter.pushbutton": room_center,
     "Raeume.panel/Beschriftung.stack/TagDistance.pushbutton": tag_distance,
+    "Raeume.panel/ColumnNumbering.pushbutton": column_numbering,
     "Ansichten.panel/Hilfen.stack/ViewIdVisible.pushbutton": view_id_visible,
     "Ansichten.panel/Hilfen.stack/WallLegend.pushbutton": wall_legend,
     "Phasen.panel/Phasen.stack/CopyWithPhases.pushbutton": copy_with_phases,
@@ -624,6 +667,7 @@ SYMBOLE = {
     "Auswahl.panel/LinkedIds.pushbutton": linked_ids,
     "Geometrie.panel/LevelAutoSet.pushbutton": level_auto_set,
     "Geometrie.panel/LinkToGenericModel.pushbutton": link_to_generic_model,
+    "Geometrie.panel/WallProfileCopy.pushbutton": wall_profile_copy,
     "Ansichten.panel/SectionBox.stack/SectionBoxCopy.pushbutton": section_box_copy,
     "Ansichten.panel/SectionBox.stack/SectionBoxPaste.pushbutton": section_box_paste,
     "Ansichten.panel/SectionBox.stack/SectionBoxSelection.pushbutton": section_box_selection,
@@ -674,6 +718,7 @@ PLAENE = {
     "Anordnen.panel/AlignViewports.pushbutton": align_viewports,
     "Anordnen.panel/MoveViewport.pushbutton": move_viewport,
     "Verwalten.panel/RenumberSheets.pushbutton": renumber_sheets,
+    "Verwalten.panel/SheetSize.pushbutton": sheet_size,
 }
 
 # Symbole je Reiter (Ordnername)
