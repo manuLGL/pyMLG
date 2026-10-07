@@ -1,0 +1,30 @@
+title:
+  de_de: "Legende\naus DXF"
+  en_us: "Legend\nfrom DXF"
+  es_es: "Leyenda\ndesde DXF"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Baut eine CAD-Legende aus einer DXF-Datei als Revit-Legende nach: Linien mit Farbe, Linienmuster und Stärke, Texte mit Schrift und Höhe, Schraffuren als Füllbereiche. Blöcke werden aufgelöst, Weiss wird schwarz.
+
+    DXF aus AutoCAD: DXFOUT bzw. Speichern unter > DXF (unter Extras > Optionen > DXF-Optionen lassen sich nur die gewählten Objekte speichern). Im Dialog Massstab über die Texthöhe auf dem Plan einstellen, die Vorschau zeigt das Ergebnis auf weissem Papier.
+
+    Neue Linienstile, Texttypen und Füllbereichstypen bekommen ein Präfix (Vorgabe LEY); vorhandene gleichnamige werden wiederverwendet, wenn sie passen - sonst entsteht _2, oder sie werden auf Wunsch überschrieben. Mit "Gleichnamige Legende ersetzen" wird eine vorhandene Legende geleert und neu gezeichnet und bleibt auf den Plänen stehen. Für eine echte Legende muss im Projekt schon eine Legende existieren (sie wird leer dupliziert), sonst entsteht eine Zeichnungsansicht. Ein Rückgängig-Schritt.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Rebuilds a CAD legend from a DXF file as a Revit legend: lines with colour, line pattern and weight, texts with font and height, hatches as filled regions. Blocks are exploded, white becomes black.
+
+    DXF from AutoCAD: DXFOUT or Save As > DXF (Tools > Options > DXF Options can save only the selected objects). In the dialog set the scale via the text height on the sheet; the preview shows the result on white paper.
+
+    New line styles, text types and filled region types get a prefix (default LEY); existing ones with the same name are reused if they match - otherwise _2 is created, or they are overwritten on request. "Replace legend with the same name" clears and redraws an existing legend, which stays on its sheets. For a real legend the project must already contain a legend (it is duplicated empty), otherwise a drafting view is created. One undo step.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Reconstruye una leyenda CAD desde un archivo DXF como leyenda de Revit: líneas con color, patrón y grosor, textos con fuente y altura, sombreados como regiones rellenadas. Los bloques se descomponen, el blanco pasa a negro.
+
+    DXF desde AutoCAD: DXFOUT o Guardar como > DXF (en Herramientas > Opciones > Opciones DXF se pueden guardar solo los objetos seleccionados). En el diálogo ajuste la escala con la altura de texto en el plano; la vista previa muestra el resultado en papel blanco.
+
+    Los nuevos estilos de línea, tipos de texto y tipos de región reciben un prefijo (por defecto LEY); los existentes con el mismo nombre se reutilizan si coinciden; si no, se crea _2, o se sobrescriben si se desea. "Reemplazar leyenda del mismo nombre" vacía y vuelve a dibujar una leyenda existente, que se queda en sus planos. Para una leyenda real el proyecto debe tener ya una leyenda (se duplica vacía); si no, se crea una vista de diseño. Un paso de deshacer.
+
+    Requiere el motor CPython3.

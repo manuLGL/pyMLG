@@ -641,9 +641,23 @@ MANAGER = {
 }
 
 
+def dxf_legend(b):
+    """Legendenblatt: farbige Strichlinien und Symbol links, Text rechts."""
+    blattform(b, 4, 6, 92, 90, BLAU, 12)
+    for x in range(12, 38, 9):                    # Fecal: orange gestrichelt
+        rect(b, x, 34, x + 6, 39, ORANGE)
+    for x in range(12, 38, 9):                    # Pluvial: blau gestrichelt
+        rect(b, x, 52, x + 6, 57, BLAU)
+    rahmen(b, 17, 66, 31, 80, 3, ORANGE)          # Arqueta
+    rect(b, 42, 22, 44, 86, LINIE)                # Spaltentrennung
+    for y in (35, 53, 71):                        # Beschreibung
+        rect(b, 50, y, 84, y + 4, DUNKEL)
+
+
 PLAENE = {
     "Erstellen.panel/ViewToSheet.pushbutton": view_to_sheet,
     "Erstellen.panel/DuplicateSheet.pushbutton": duplicate_sheet,
+    "Erstellen.panel/DxfLegend.pushbutton": dxf_legend,
     "Anordnen.panel/ArrangeSheet.pushbutton": arrange_sheet,
     "Anordnen.panel/AlignViewports.pushbutton": align_viewports,
     "Anordnen.panel/MoveViewport.pushbutton": move_viewport,
