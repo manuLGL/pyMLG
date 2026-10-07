@@ -6,3 +6,4 @@ layout:
   - JoinMultiple
   - LevelAutoSet
   - LinkToGenericModel
+  - WallProfileCopy

@@ -1,0 +1,24 @@
+title:
+  de_de: "Profil\nübertragen"
+  en_us: "Transfer\nProfile"
+  es_es: "Transferir\nperfil"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Überträgt das bearbeitete Profil einer Wand auf andere gleich lange, gerade Wände - so muss nicht jede Wand einzeln bearbeitet werden.
+
+    Wände wählen (darunter genau eine mit bearbeitetem Profil) und klicken - oder ohne Auswahl starten und Quelle und Ziele nacheinander anklicken. Das Profil wird mit der Wand gedreht und auf die Unterkante der Zielwand gesetzt. Ein Rückgängig-Schritt je Ausführung.
+
+    Benötigt die CPython3-Engine und Revit 2022 oder neuer.
+  en_us: >-
+    Transfers the edited profile of one wall to other straight walls of the same length - no need to edit every wall by hand.
+
+    Select the walls (exactly one of them with an edited profile) and click - or start without a selection and pick the source and targets one after another. The profile is rotated with the wall and placed at the base of the target wall. One undo step per run.
+
+    Requires the CPython3 engine and Revit 2022 or newer.
+  es_es: >-
+    Transfiere el perfil editado de un muro a otros muros rectos de la misma longitud, sin tener que editar cada muro a mano.
+
+    Seleccione los muros (exactamente uno con el perfil editado) y haga clic, o empiece sin selección y elija el origen y los destinos uno tras otro. El perfil gira con el muro y se coloca en la base del muro de destino. Un paso de deshacer por ejecución.
+
+    Requiere el motor CPython3 y Revit 2022 o posterior.
