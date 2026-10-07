@@ -9,7 +9,7 @@ Kategorien wählen, Reihenfolge prüfen, Massstab und Abstand einstellen.
     │ [Alle] [Keine]      │ [Alle] [Keine]      │                        │
     ├ Einstellungen ──────┴─────────────────────┴────────────────────────┤
     │ Name [Legende Türen]  Massstab 1:[50]  Abstand [10] mm (Papier)    │
-    │ Beschriftung [Familie: Typ ▾]  Texttyp [2.5mm Arial ▾]  ☐ ersetzen │
+    │ Richtung [Grundriss ▾] Beschriftung [Familie: Typ ▾] Texttyp [▾] ☐ │
     └────────────────────────────────── 7 Bauteile [Legende erstellen] [Abbrechen]
 
 Die Kategorien werden beim Markieren einer Ansicht gelesen (je Ansicht
@@ -59,6 +59,16 @@ XAML_TEXTE = {
                     u"superior del siguiente, medido en el papel."),
     "beschriftung": (u"Beschriftung:", u"Label:", u"Etiqueta:"),
     "texttyp": (u"Texttyp:", u"Text type:", u"Tipo de texto:"),
+    "richtung": (u"Ansichtsrichtung:", u"View direction:", u"Dirección de vista:"),
+    "richtung_tip": (u"Wie die Bauteile gezeigt werden. Bietet Revit die Richtung für "
+                     u"einen Typ nicht an (Türen z.B. keinen Schnitt), wird er im "
+                     u"Grundriss gezeigt und im Bericht genannt.",
+                     u"How the components are shown. If Revit does not offer the "
+                     u"direction for a type (doors e.g. have no section), it is shown "
+                     u"in floor plan and listed in the report.",
+                     u"Cómo se muestran los componentes. Si Revit no ofrece la "
+                     u"dirección para un tipo (las puertas p.ej. no tienen sección), "
+                     u"se muestra en planta y se indica en el informe."),
     "ersetzen": (u"Gleichnamige Legende ersetzen", u"Replace legend with the same name",
                  u"Reemplazar leyenda del mismo nombre"),
     "ersetzen_tip": (u"Gibt es schon eine Legende mit dem Namen, wird ihr Inhalt "
@@ -70,6 +80,32 @@ XAML_TEXTE = {
                      u"Si ya existe una leyenda con ese nombre, se borra su "
                      u"contenido y se vuelve a crear. En los planos se queda en "
                      u"su sitio. Sin marcar se crea \"Nombre (2)\"."),
+    "masse": (u"Paso anschreiben (Türen, Fenster)", u"Show clear opening (doors, windows)",
+              u"Indicar paso (puertas, ventanas)"),
+    "masse_tip": (u"Schreibt Breite × Höhe in mm als Text neben Türen und Fenster. "
+                  u"Welche Parameter das Paso enthalten, wählst du rechts - gesucht "
+                  u"wird zuerst am Typ, dann an einem Exemplar.",
+                  u"Writes width × height in mm as text next to doors and windows. "
+                  u"Choose on the right which parameters hold the clear opening - "
+                  u"looked up on the type first, then on an instance.",
+                  u"Escribe ancho × alto en mm como texto junto a puertas y ventanas. "
+                  u"A la derecha elige qué parámetros contienen el paso - se busca "
+                  u"primero en el tipo y luego en un ejemplar."),
+    "mass_breite": (u"Breite:", u"Width:", u"Ancho:"),
+    "mass_hoehe": (u"Höhe:", u"Height:", u"Alto:"),
+    "mass_art": (u"als:", u"as:", u"como:"),
+    "mass_art_tip": (u"Maßkette: Breite mittig unter dem Bauteil, Höhe links "
+                     u"daneben (nur in Ansichten). Die Werte sind exakt das Paso; "
+                     u"die Ketten hängen an unsichtbaren Hilfslinien, nicht an der "
+                     u"Türgeometrie.",
+                     u"Dimension string: width centred below the component, height "
+                     u"to its left (elevations only). The values are exactly the "
+                     u"clear opening; the dimensions use invisible helper lines, not "
+                     u"the door geometry.",
+                     u"Cota: ancho centrado bajo el componente, alto a su izquierda "
+                     u"(solo en alzados). Los valores son exactamente el paso; las "
+                     u"cotas usan líneas auxiliares invisibles, no la geometría de "
+                     u"la puerta."),
     "erstellen": (u"Legende erstellen", u"Create legend", u"Crear leyenda"),
     "abbrechen": (u"Abbrechen", u"Cancel", u"Cancelar"),
 }
@@ -158,6 +194,7 @@ XAML = u"""
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Text="{{name}}" VerticalAlignment="Center" Margin="0,0,6,0"/>
@@ -171,6 +208,10 @@ XAML = u"""
 
         <StackPanel Grid.Row="1" Grid.ColumnSpan="6" Orientation="Horizontal"
                     Margin="0,8,0,0">
+          <TextBlock Text="{{richtung}}" VerticalAlignment="Center" Margin="0,0,6,0"
+                     ToolTip="{{richtung_tip}}"/>
+          <ComboBox x:Name="richtung" Width="140" ToolTip="{{richtung_tip}}"
+                    Margin="0,0,14,0"/>
           <TextBlock Text="{{beschriftung}}" VerticalAlignment="Center" Margin="0,0,6,0"/>
           <ComboBox x:Name="beschriftung" Width="140"/>
           <TextBlock Text="{{texttyp}}" VerticalAlignment="Center" Margin="14,0,6,0"/>
@@ -178,7 +219,21 @@ XAML = u"""
           <CheckBox x:Name="ersetzen" Content="{{ersetzen}}" ToolTip="{{ersetzen_tip}}"
                     VerticalAlignment="Center" Margin="24,0,0,0"/>
         </StackPanel>
-        <TextBlock x:Name="namehinweis" Grid.Row="2" Grid.ColumnSpan="6"
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="6" Orientation="Horizontal"
+                    Margin="0,8,0,0">
+          <CheckBox x:Name="masse" Content="{{masse}}" ToolTip="{{masse_tip}}"
+                    VerticalAlignment="Center"/>
+          <TextBlock Text="{{mass_breite}}" VerticalAlignment="Center" Margin="14,0,6,0"/>
+          <ComboBox x:Name="mass_breite" Width="200"/>
+          <TextBlock Text="{{mass_hoehe}}" VerticalAlignment="Center" Margin="14,0,6,0"/>
+          <ComboBox x:Name="mass_hoehe" Width="200"/>
+          <TextBlock Text="{{mass_art}}" VerticalAlignment="Center" Margin="14,0,6,0"
+                     ToolTip="{{mass_art_tip}}"/>
+          <ComboBox x:Name="mass_art" Width="150" ToolTip="{{mass_art_tip}}"/>
+          <TextBlock x:Name="masse_hinweis" Foreground="#666" VerticalAlignment="Center"
+                     Margin="14,0,0,0"/>
+        </StackPanel>
+        <TextBlock x:Name="namehinweis" Grid.Row="3" Grid.ColumnSpan="6"
                    Foreground="#A05A00" TextWrapping="Wrap" Margin="0,6,0,0"/>
       </Grid>
     </GroupBox>
@@ -273,6 +328,9 @@ class LegendenFenster(object):
         self._kat_markiert = set(self.einstellungen.get(u"kategorien", []))
         self._kat_boxen = []      # (kat_id, CheckBox)
         self._reihenfolge = []
+        self._massnamen = []      # Längenparameter der Türen/Fenster in der Auswahl
+        self._mass_schluessel = None
+        self._still = False
         self._ansicht_boxen = []  # (Suchtext, CheckBox, Ansicht)
         self._fuelle_ansichten(aktive_ansicht)
         self._fuelle_einstellungen()
@@ -312,6 +370,13 @@ class LegendenFenster(object):
         gespeichert = e.get(u"beschriftung", lg.BESCHRIFTUNG_FAMILIE_TYP)
         art.SelectedIndex = werte.index(gespeichert) if gespeichert in werte else 0
 
+        richtung = c("richtung")
+        for _wert, texte in lg.RICHTUNGEN:
+            richtung.Items.Add(tt(texte))
+        werte = [w for w, _ in lg.RICHTUNGEN]
+        gespeichert = e.get(u"richtung", lg.RICHTUNG_GRUNDRISS)
+        richtung.SelectedIndex = werte.index(gespeichert) if gespeichert in werte else 0
+
         texttyp = c("texttyp")
         self._texttypen, vorgabe = rv.texttypen(self.doc)
         gewuenscht = e.get(u"texttyp")
@@ -325,6 +390,12 @@ class LegendenFenster(object):
         if self._texttypen:
             texttyp.SelectedIndex = start
         c("ersetzen").IsChecked = bool(e.get(u"ersetzen", False))
+        c("masse").IsChecked = bool(e.get(u"masse", False))
+        for _wert, texte in lg.MASS_ARTEN:
+            c("mass_art").Items.Add(tt(texte))
+        werte = [w for w, _ in lg.MASS_ARTEN]
+        gespeichert = e.get(u"mass_art", lg.MASS_KETTE)
+        c("mass_art").SelectedIndex = werte.index(gespeichert) if gespeichert in werte else 0
         self._beschriftung_geaendert()
 
     def _verdrahte(self):
@@ -338,6 +409,9 @@ class LegendenFenster(object):
             lambda s, a: self._beschriftung_geaendert())
         c("name").TextChanged += self._h(lambda s, a: self._namehinweis())
         c("ersetzen").Click += self._h(lambda s, a: self._namehinweis())
+        c("masse").Click += self._h(lambda s, a: self._masse_geaendert())
+        for feld in ("mass_breite", "mass_hoehe", "mass_art"):
+            c(feld).SelectionChanged += self._h(lambda s, a: self._masse_geaendert())
         c("ok").Click += self._h(self._ok)
         self.fenster.Loaded += self._h(lambda s, a: c("suche").Focus())
 
@@ -428,6 +502,8 @@ class LegendenFenster(object):
     def _zeige_vorschau(self):
         gewaehlt = [k for k, box in self._kat_boxen if box.IsChecked]
         self._reihenfolge = lg.reihenfolge(self._typen, gewaehlt)
+        self._fuelle_massparameter()
+        masse = self._masse()
         liste = self.c("vorschau")
         liste.Items.Clear()
         art = self._beschriftungsart()
@@ -443,6 +519,9 @@ class LegendenFenster(object):
             zeile = TextBlock()
             text = lg.beschriftung(typ, lg.BESCHRIFTUNG_FAMILIE_TYP)
             zeile.Text = u"%s   (%d×)" % (text, typ.anzahl)
+            mass = rv.masstext(self.doc, typ, masse)
+            if mass:
+                zeile.Text += u"   ·   " + mass
             zeile.Margin = Thickness(14, 0, 0, 0)
             if art == lg.BESCHRIFTUNG_KEINE:
                 zeile.ToolTip = text
@@ -461,7 +540,74 @@ class LegendenFenster(object):
             else lg.BESCHRIFTUNG_KEINE
 
     def _beschriftung_geaendert(self):
-        self.c("texttyp").IsEnabled = self._beschriftungsart() != lg.BESCHRIFTUNG_KEINE
+        self.c("texttyp").IsEnabled = (self._beschriftungsart() != lg.BESCHRIFTUNG_KEINE
+                                       or (self._masse() is not None
+                                           and lg.mit_text(self._mass_art())))
+
+    # -- Paso von Türen und Fenstern ---------------------------------------------
+
+    def _fuelle_massparameter(self):
+        """Auswahllisten Breite/Höhe mit den Längenparametern der Türen und
+        Fenster füllen - nur wenn sich diese Typen geändert haben."""
+        typen = [typ for typ in self._reihenfolge if rv.hat_masse(typ)]
+        schluessel = tuple(typ.schluessel for typ in typen)
+        if schluessel == self._mass_schluessel:
+            return
+        self._mass_schluessel = schluessel
+        alt = [self._gewaehlter_name(f) for f in ("mass_breite", "mass_hoehe")]
+        self._massnamen, vorgabe = rv.laengenparameter(self.doc, typen)
+        gespeichert = (self.einstellungen.get(u"mass_breite"),
+                       self.einstellungen.get(u"mass_hoehe"))
+        self._still = True
+        try:
+            for index, feld in enumerate(("mass_breite", "mass_hoehe")):
+                liste = self.c(feld)
+                liste.Items.Clear()
+                for name in self._massnamen:
+                    liste.Items.Add(name)
+                for wunsch in (alt[index], gespeichert[index], vorgabe[index]):
+                    if wunsch in self._massnamen:
+                        liste.SelectedIndex = self._massnamen.index(wunsch)
+                        break
+        finally:
+            self._still = False
+        self._schalte_masse(bool(typen))
+
+    def _schalte_masse(self, moeglich):
+        c = self.c
+        c("masse").IsEnabled = moeglich
+        an = moeglich and bool(c("masse").IsChecked)
+        c("mass_breite").IsEnabled = an
+        c("mass_hoehe").IsEnabled = an
+        c("mass_art").IsEnabled = an
+        c("masse_hinweis").Text = u"" if moeglich else t(
+            u"keine Türen oder Fenster gewählt", u"no doors or windows selected",
+            u"no hay puertas ni ventanas")
+
+    def _gewaehlter_name(self, feld):
+        index = self.c(feld).SelectedIndex
+        if 0 <= index < len(self._massnamen):
+            return self._massnamen[index]
+        return None
+
+    def _masse(self):
+        """(Breite, Höhe) als Parameternamen oder None (Option aus)."""
+        if not self.c("masse").IsChecked or not self.c("masse").IsEnabled:
+            return None
+        masse = (self._gewaehlter_name("mass_breite"), self._gewaehlter_name("mass_hoehe"))
+        return masse if any(masse) else None
+
+    def _mass_art(self):
+        index = self.c("mass_art").SelectedIndex
+        return lg.MASS_ARTEN[index][0] if 0 <= index < len(lg.MASS_ARTEN) \
+            else lg.MASS_KETTE
+
+    def _masse_geaendert(self):
+        if self._still:
+            return
+        self._schalte_masse(self.c("masse").IsEnabled)
+        self._beschriftung_geaendert()
+        self._zeige_vorschau()
 
     def _namehinweis(self):
         name = (self.c("name").Text or u"").strip()
@@ -511,13 +657,22 @@ class LegendenFenster(object):
             texttyp_name, texttyp_id = self._texttypen[index]
         self._merke_kategorien()
         ersetzen = bool(self.c("ersetzen").IsChecked)
+        index = self.c("richtung").SelectedIndex
+        richtung = lg.RICHTUNGEN[index][0] if 0 <= index < len(lg.RICHTUNGEN) \
+            else lg.RICHTUNG_GRUNDRISS
+        masse = self._masse()
         self.ergebnis = {u"typen": list(self._reihenfolge), u"name": name,
                          u"massstab": massstab, u"abstand": abstand,
                          u"beschriftung": art, u"texttyp": texttyp_id,
-                         u"ersetzen": ersetzen}
+                         u"ersetzen": ersetzen, u"richtung": richtung, u"masse": masse,
+                         u"mass_art": self._mass_art()}
         schreibe_einstellungen({u"name": name, u"massstab": massstab, u"abstand": abstand,
                                 u"beschriftung": art, u"texttyp": texttyp_name,
-                                u"ersetzen": ersetzen,
+                                u"ersetzen": ersetzen, u"richtung": richtung,
+                                u"masse": bool(self.c("masse").IsChecked),
+                                u"mass_breite": self._gewaehlter_name("mass_breite"),
+                                u"mass_hoehe": self._gewaehlter_name("mass_hoehe"),
+                                u"mass_art": self._mass_art(),
                                 u"kategorien": sorted(self._kat_markiert)})
         self.fenster.Close()
 

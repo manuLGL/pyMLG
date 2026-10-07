@@ -5,26 +5,26 @@ title:
 author: pyMLG
 tooltip:
   de_de: >-
-    Erstellt eine Legende aus den Familientypen, die in einer oder mehreren Ansichten sichtbar sind: Ansichten markieren, Kategorien wählen, Massstab und Abstand einstellen. Je Typ entsteht ein Legendenbauteil in der Ansichtsrichtung Grundriss, alle untereinander in einer Spalte, sortiert nach Kategorie, Familie und Typ. Auf Wunsch steht der Typname daneben.
+    Erstellt eine Legende aus den Familientypen, die in einer oder mehreren Ansichten sichtbar sind: Ansichten markieren, Kategorien wählen, Massstab und Abstand einstellen. Je Typ entsteht ein Legendenbauteil in der gewählten Ansichtsrichtung (Grundriss, Deckenplan, Schnitt, Ansicht vorne/hinten/links/rechts, 3D), alle untereinander in einer Spalte, sortiert nach Kategorie, Familie und Typ. Auf Wunsch steht der Typname daneben. Bei Türen und Fenstern kann das Paso (Breite × Höhe, Parameter wählbar) als Maßkette und/oder Text angegeben werden.
 
     Der Abstand gilt in mm auf dem Plan zwischen Unterkante und Oberkante der Bauteile. Gelesen wird nur das aktive Modell, keine Verknüpfungen.
 
-    Die Revit-API kann Legendenbauteile nur kopieren: Im Projekt muss es schon eine Legende mit mindestens einem Legendenbauteil geben (einmal von Hand anlegen). Typen, die Revit nicht als Legendenbauteil zeigen kann, nennt der Bericht. Mit "Gleichnamige Legende ersetzen" wird eine vorhandene Legende neu aufgebaut und bleibt auf den Plänen stehen. Ein Rückgängig-Schritt.
+    Die Revit-API kann Legendenbauteile nur kopieren: Im Projekt muss es schon eine Legende mit mindestens einem Legendenbauteil geben (einmal von Hand anlegen). Typen, die Revit nicht als Legendenbauteil zeigen kann oder die die gewählte Richtung nicht haben (dann Grundriss), nennt der Bericht. Mit "Gleichnamige Legende ersetzen" wird eine vorhandene Legende neu aufgebaut und bleibt auf den Plänen stehen. Ein Rückgängig-Schritt.
 
     Benötigt die CPython3-Engine.
   en_us: >-
-    Creates a legend from the family types visible in one or more views: check views, choose categories, set scale and spacing. One legend component per type in floor plan view direction, all stacked in one column, sorted by category, family and type. Optionally the type name is placed next to it.
+    Creates a legend from the family types visible in one or more views: check views, choose categories, set scale and spacing. One legend component per type in the chosen view direction (floor plan, ceiling plan, section, elevation front/back/left/right, 3D), all stacked in one column, sorted by category, family and type. Optionally the type name is placed next to it. For doors and windows the clear opening (width × height, parameters selectable) can be shown as dimensions and/or text.
 
     The spacing is in mm on the sheet between the bottom and top edges of the components. Only the active model is read, no links.
 
-    The Revit API can only copy legend components: the project must already contain a legend with at least one legend component (create it once by hand). Types that Revit cannot show as legend components are listed in the report. "Replace legend with the same name" rebuilds an existing legend, which stays on its sheets. One undo step.
+    The Revit API can only copy legend components: the project must already contain a legend with at least one legend component (create it once by hand). Types that Revit cannot show as legend components or that lack the chosen direction (then floor plan) are listed in the report. "Replace legend with the same name" rebuilds an existing legend, which stays on its sheets. One undo step.
 
     Requires the CPython3 engine.
   es_es: >-
-    Crea una leyenda con los tipos de familia visibles en una o varias vistas: marque vistas, elija categorías, ajuste escala y separación. Un componente de leyenda por tipo en dirección de vista planta, todos apilados en una columna, ordenados por categoría, familia y tipo. Opcionalmente se coloca el nombre del tipo al lado.
+    Crea una leyenda con los tipos de familia visibles en una o varias vistas: marque vistas, elija categorías, ajuste escala y separación. Un componente de leyenda por tipo en la dirección de vista elegida (planta, plano de techo, sección, alzado frontal/posterior/izquierdo/derecho, 3D), todos apilados en una columna, ordenados por categoría, familia y tipo. Opcionalmente se coloca el nombre del tipo al lado. En puertas y ventanas se puede indicar el paso (ancho × alto, parámetros a elegir) como cota y/o texto.
 
     La separación es en mm en el plano entre el borde inferior y el superior de los componentes. Solo se lee el modelo activo, sin vínculos.
 
-    La API de Revit solo puede copiar componentes de leyenda: el proyecto debe tener ya una leyenda con al menos un componente de leyenda (crearlo una vez a mano). Los tipos que Revit no puede mostrar como componente de leyenda se indican en el informe. "Reemplazar leyenda del mismo nombre" vuelve a crear una leyenda existente, que se queda en sus planos. Un paso de deshacer.
+    La API de Revit solo puede copiar componentes de leyenda: el proyecto debe tener ya una leyenda con al menos un componente de leyenda (crearlo una vez a mano). Los tipos que Revit no puede mostrar como componente de leyenda o que no tienen la dirección elegida (entonces planta) se indican en el informe. "Reemplazar leyenda del mismo nombre" vuelve a crear una leyenda existente, que se queda en sus planos. Un paso de deshacer.
 
     Requiere el motor CPython3.

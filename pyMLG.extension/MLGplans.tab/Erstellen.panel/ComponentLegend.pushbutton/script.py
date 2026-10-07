@@ -1,7 +1,7 @@
 #! python3
 # -*- coding: utf-8 -*-
 """ComponentLegend: Legende aus den Familientypen gewählter Ansichten -
-ein Legendenbauteil je Typ, untereinander, im Grundriss.
+ein Legendenbauteil je Typ, untereinander, in der gewählten Ansichtsrichtung.
 
 Die Logik liegt in lib/bauteil_legende (logik.py, revit.py, fenster.py).
 
@@ -44,6 +44,11 @@ def _bericht(ergebnis):
                 u"%d legend components placed, %d labels",
                 u"%d componentes de leyenda colocados, %d etiquetas")
               % (ergebnis.platziert, ergebnis.texte)]
+    if ergebnis.ketten or ergebnis.ketten_fehler:
+        zeilen.append(t(u"%d Maßketten", u"%d dimensions", u"%d cotas") % ergebnis.ketten
+                      + (t(u" (%d nicht möglich)", u" (%d not possible)",
+                           u" (%d no posibles)") % ergebnis.ketten_fehler
+                         if ergebnis.ketten_fehler else u""))
     if ergebnis.ersetzt:
         zeilen.insert(0, t(u"Vorhandene Legende ersetzt (%d alte Elemente gelöscht).",
                            u"Existing legend replaced (%d old elements deleted).",
@@ -55,15 +60,15 @@ def _bericht(ergebnis):
                         u"Revit cannot show these types as legend components:",
                         u"Revit no puede mostrar estos tipos como componente de leyenda:"))
         zeilen.extend(_typliste(ergebnis.abgelehnt))
-    if ergebnis.ohne_grundriss:
+    if ergebnis.ohne_richtung:
         zeilen.append(u"")
-        zeilen.append(t(u"Ohne Ansichtsrichtung Grundriss (Revit bietet sie für diese "
-                        u"Typen nicht an):",
-                        u"Without view direction floor plan (Revit does not offer it "
-                        u"for these types):",
-                        u"Sin dirección de vista planta (Revit no la ofrece para "
-                        u"estos tipos):"))
-        zeilen.extend(_typliste(ergebnis.ohne_grundriss))
+        zeilen.append(t(u"Gewählte Ansichtsrichtung gibt es für diese Typen nicht - "
+                        u"im Grundriss gezeigt:",
+                        u"The chosen view direction does not exist for these types - "
+                        u"shown in floor plan:",
+                        u"La dirección de vista elegida no existe para estos tipos - "
+                        u"se muestran en planta:"))
+        zeilen.extend(_typliste(ergebnis.ohne_richtung))
     return u"\n".join(zeilen)
 
 
@@ -173,7 +178,10 @@ def main():
                               auswahl[u"massstab"], auswahl[u"abstand"],
                               beschriftung=auswahl[u"beschriftung"],
                               texttyp_id=auswahl[u"texttyp"],
-                              ersetzen=auswahl[u"ersetzen"])
+                              ersetzen=auswahl[u"ersetzen"],
+                              richtung=auswahl[u"richtung"],
+                              masse=auswahl[u"masse"],
+                              mass_art=auswahl[u"mass_art"])
     except rv.LegendenFehler as fehler:
         ui.meldung(u"%s" % fehler, titel=TITEL,
                    hauptzeile=t(u"Legende nicht erstellt", u"Legend not created",

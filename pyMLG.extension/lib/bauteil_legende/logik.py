@@ -10,8 +10,32 @@ Bauteils erst nach dem Platzieren bekannt ist).
 
 import re
 
-# Werte des Parameters LEGEND_COMPONENT_VIEW ("Ansichtsrichtung")
+# Werte des Parameters LEGEND_COMPONENT_VIEW ("Ansichtsrichtung"), wie in
+# pyRevits Werkzeugen Drawing Set > Legends. Welche Richtungen ein Typ
+# anbietet, hängt von der Kategorie ab (Türen z.B. keinen Schnitt).
 RICHTUNG_GRUNDRISS = -8
+RICHTUNGEN = (
+    (RICHTUNG_GRUNDRISS, (u"Grundriss", u"Floor plan", u"Planta")),
+    (-4, (u"Deckenplan", u"Ceiling plan", u"Plano de techo")),
+    (-5, (u"Schnitt", u"Section", u"Sección")),
+    (-7, (u"Ansicht vorne", u"Elevation front", u"Alzado frontal")),
+    (-6, (u"Ansicht hinten", u"Elevation back", u"Alzado posterior")),
+    (-10, (u"Ansicht links", u"Elevation left", u"Alzado izquierdo")),
+    (-9, (u"Ansicht rechts", u"Elevation right", u"Alzado derecho")),
+    (-3, (u"3D", u"3D", u"3D")),
+)
+
+# Paso von Türen/Fenstern: als Text, als Maßkette oder beides
+MASS_TEXT = 0
+MASS_KETTE = 1
+MASS_BEIDES = 2
+MASS_ARTEN = (
+    (MASS_KETTE, (u"Maßkette", u"Dimension string", u"Cota")),
+    (MASS_TEXT, (u"Text", u"Text", u"Texto")),
+    (MASS_BEIDES, (u"Maßkette + Text", u"Dimension + text", u"Cota + texto")),
+)
+# Ansichtsrichtungen, in denen die Höhe sichtbar ist (Ansichten)
+RICHTUNGEN_MIT_HOEHE = (-7, -6, -10, -9)
 
 BESCHRIFTUNG_KEINE = 0
 BESCHRIFTUNG_TYP = 1
@@ -29,6 +53,7 @@ class Typ(object):
         self.familie = familie or u""
         self.name = name or u""
         self.elemente = set()
+        self.beispiel = None            # ein Exemplar (ElementId) für Exemplarparameter
 
     @property
     def anzahl(self):
@@ -42,11 +67,14 @@ def sammle(funde, typen=None):
     """Funde in {typ_schluessel: Typ} einsammeln. Ein Element, das in
     mehreren Ansichten sichtbar ist, zählt nur einmal."""
     typen = {} if typen is None else typen
-    for kat_id, kategorie, schluessel, ref, familie, name, element in funde:
+    for fund in funde:
+        kat_id, kategorie, schluessel, ref, familie, name, element = fund[:7]
         typ = typen.get(schluessel)
         if typ is None:
             typ = typen[schluessel] = Typ(kat_id, kategorie, schluessel, ref,
                                           familie, name)
+        if typ.beispiel is None and len(fund) > 7:
+            typ.beispiel = fund[7]
         typ.elemente.add(element)
     return typen
 
@@ -86,6 +114,53 @@ def beschriftung(typ, art):
             return u"%s: %s" % (typ.familie, typ.name)
         return typ.name
     return u""
+
+
+def masstext(breite_mm, hoehe_mm):
+    """u"825 × 2030" - fehlt ein Wert, nur der andere; ohne beide u""."""
+    werte = [u"%d" % int(round(w)) for w in (breite_mm, hoehe_mm) if w is not None]
+    return u" × ".join(werte)
+
+
+def mit_text(art):
+    return art in (MASS_TEXT, MASS_BEIDES)
+
+
+def mit_kette(art):
+    return art in (MASS_KETTE, MASS_BEIDES)
+
+
+def kettenlage(links, unten, breite_bauteil, breite_paso, hoehe_paso, abstand):
+    """Lage der Maßketten eines Bauteils (Modelleinheiten).
+
+    Breite: mittig unter dem Bauteil, Maßlinie um abstand tiefer.
+    Höhe: links neben dem Bauteil ab der Unterkante, Maßlinie um abstand
+    weiter links. Rückgabe {"breite": (x1, x2, y_linie),
+    "hoehe": (y1, y2, x_linie)} - nur für vorhandene Werte."""
+    lage = {}
+    if breite_paso:
+        mitte = links + breite_bauteil / 2.0
+        lage[u"breite"] = (mitte - breite_paso / 2.0, mitte + breite_paso / 2.0,
+                          unten - abstand)
+    if hoehe_paso:
+        lage[u"hoehe"] = (unten, unten + hoehe_paso, links - abstand)
+    return lage
+
+
+def zeilen(*texte):
+    """Nicht leere Texte untereinander (Revit-Text: Zeilenumbruch \r)."""
+    return u"\r".join(text for text in texte if text)
+
+
+def ueberlappt(punkte, rahmen):
+    """Berührt das Rechteck um die Punkte [(x, y)] den Rahmen
+    (x0, y0, x1, y1)? Kante an Kante zählt als berührt."""
+    if not punkte:
+        return True
+    xs = [p[0] for p in punkte]
+    ys = [p[1] for p in punkte]
+    x0, y0, x1, y1 = rahmen
+    return max(xs) >= x0 and min(xs) <= x1 and max(ys) >= y0 and min(ys) <= y1
 
 
 def zahl(text):

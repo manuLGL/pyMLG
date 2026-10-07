@@ -11,7 +11,8 @@ Deshalb:
     1. eine vorhandene Legende ohne Inhalt duplizieren (wie DxfLegend)
     2. ein vorhandenes Legendenbauteil als Muster in die neue Legende kopieren
     3. je Typ das Muster kopieren, Parameter "Bauteiltyp" (LEGEND_COMPONENT)
-       und "Ansichtsrichtung" (LEGEND_COMPONENT_VIEW = Grundriss) setzen
+       und "Ansichtsrichtung" (LEGEND_COMPONENT_VIEW, Vorgabe Grundriss)
+       setzen - kennt der Typ die gewählte Richtung nicht: Grundriss
     4. untereinander schieben: Oberkante an Unterkante des vorigen minus
        Abstand, linksbündig
     5. optional Text rechts daneben, auf Höhe der Bauteilmitte
@@ -27,7 +28,17 @@ from Autodesk.Revit.DB import (
     ElementId,
     ElementTransformUtils,
     ElementTypeGroup,
+    Curve,
     FilteredElementCollector,
+    GeometryInstance,
+    GraphicsStyleType,
+    Line,
+    Options,
+    PolyLine,
+    Solid,
+    ReferenceArray,
+    SpecTypeId,
+    StorageType,
     HorizontalTextAlignment,
     SubTransaction,
     TextNote,
@@ -48,6 +59,11 @@ from dxf_legende import revit as dxf_rv
 from mlg_sprache import t
 
 MM = 1.0 / 304.8
+
+# Maßketten, in mm auf dem Papier
+KETTE_ABSTAND_MM = 8.0     # Bauteilkante bis Maßlinie
+HILFSLINIE_MM = 2.0        # Länge der unsichtbaren Hilfslinien
+KETTE_PLATZ_MM = 12.0      # zusätzlicher Platz unter Bauteilen mit Breitenkette
 
 LegendenFehler = dxf_rv.LegendenFehler
 id_wert = dxf_rv.id_wert
@@ -81,6 +97,10 @@ NICHT_MOEGLICH = (
 )
 
 
+# Kategorien, deren Paso (Breite × Höhe) angeschrieben werden kann
+MIT_MASSEN = ("OST_Doors", "OST_Windows")
+
+
 def _kategorie_ids(namen):
     ids = set()
     for name in namen:
@@ -103,6 +123,97 @@ def _gesperrt():
     return _GESPERRT[0]
 
 
+_MASSKATEGORIEN = []
+
+
+def hat_masse(typ):
+    """Tür oder Fenster - Typen, deren Paso angeschrieben werden kann."""
+    if not _MASSKATEGORIEN:
+        _MASSKATEGORIEN.append(_kategorie_ids(MIT_MASSEN))
+    return typ.kat_id in _MASSKATEGORIEN[0]
+
+
+def _ist_laenge(parameter):
+    try:
+        return (parameter.StorageType == StorageType.Double
+                and parameter.Definition.GetDataType() == SpecTypeId.Length)
+    except Exception:
+        return False
+
+
+def _quellen(doc, typ):
+    """Typ und ein Exemplar - dort werden Parameter gesucht."""
+    quellen = [doc.GetElement(typ.ref)]
+    if typ.beispiel is not None:
+        quellen.append(doc.GetElement(typ.beispiel))
+    return [q for q in quellen if q is not None]
+
+
+def laengenparameter(doc, typen):
+    """Namen aller Längenparameter der Türen/Fenster (Typ und Exemplar),
+    sortiert, und die Vorgaben (Breite, Höhe) - die Revit-Parameter
+    Breite/Höhe in der Sprache des Projekts."""
+    namen = set()
+    vorgabe = [None, None]
+    for typ in typen:
+        if not hat_masse(typ):
+            continue
+        for quelle in _quellen(doc, typ):
+            for parameter in quelle.Parameters:
+                if _ist_laenge(parameter):
+                    namen.add(parameter.Definition.Name)
+            for index, eingebaut in enumerate((BuiltInParameter.FAMILY_WIDTH_PARAM,
+                                               BuiltInParameter.FAMILY_HEIGHT_PARAM)):
+                if vorgabe[index] is None:
+                    parameter = quelle.get_Parameter(eingebaut)
+                    if parameter is not None:
+                        vorgabe[index] = parameter.Definition.Name
+    return sorted(namen, key=lambda n: n.lower()), tuple(vorgabe)
+
+
+def massen_mm(doc, typ, name):
+    """Wert des Längenparameters name in mm - zuerst am Typ, dann am
+    Exemplar. None, wenn es ihn nicht gibt oder er leer ist."""
+    if not name:
+        return None
+    for quelle in _quellen(doc, typ):
+        parameter = quelle.LookupParameter(name)
+        if parameter is not None and parameter.HasValue and _ist_laenge(parameter):
+            return parameter.AsDouble() * 304.8
+    return None
+
+
+def _standard_mm(doc, typ, eingebaut):
+    """Revit-Parameter Breite/Höhe der Familie (Typ, dann Exemplar)."""
+    for quelle in _quellen(doc, typ):
+        parameter = quelle.get_Parameter(eingebaut)
+        if parameter is not None and parameter.HasValue:
+            return parameter.AsDouble() * 304.8
+    return None
+
+
+def masstext(doc, typ, masse):
+    """u"825 × 2030" für Türen/Fenster, sonst u"". masse = (Breite, Höhe)
+    als Parameternamen oder None."""
+    return lg.masstext(*masswerte(doc, typ, masse))
+
+
+def masswerte(doc, typ, masse):
+    """(Breite, Höhe) in mm für Türen/Fenster, sonst (None, None). Hat eine
+    Familie den gewählten Parameter nicht (z.B. "Breite Schiebeflügel" nur
+    bei Schiebetüren), gilt ihre Standard-Breite bzw. -Höhe."""
+    if not masse or not hat_masse(typ):
+        return None, None
+    werte = []
+    for name, eingebaut in zip(masse, (BuiltInParameter.FAMILY_WIDTH_PARAM,
+                                       BuiltInParameter.FAMILY_HEIGHT_PARAM)):
+        wert = massen_mm(doc, typ, name)
+        if wert is None:
+            wert = _standard_mm(doc, typ, eingebaut)
+        werte.append(wert)
+    return tuple(werte)
+
+
 def ansichten(doc):
     """Grafische Ansichten (ohne Vorlagen), nach Art und Name."""
     reihen = list(ANSICHTSARTEN)
@@ -117,9 +228,44 @@ def ist_lesbar(ansicht):
             and ansicht.ViewType in ANSICHTSARTEN)
 
 
+def _zuschnitt(ansicht):
+    """(Umkehr-Transformation, Rahmen) des aktiven Zuschnitts oder None.
+    3D-Ansichten bleiben aussen vor (Perspektive, Schnittbereich regelt
+    der Collector selbst)."""
+    if ansicht.ViewType == ViewType.ThreeD:
+        return None
+    try:
+        if not ansicht.CropBoxActive:
+            return None
+        box = ansicht.CropBox
+    except Exception:
+        return None
+    if box is None:
+        return None
+    return box.Transform.Inverse, (box.Min.X, box.Min.Y, box.Max.X, box.Max.Y)
+
+
+def _im_zuschnitt(element, zuschnitt):
+    box = element.get_BoundingBox(None)
+    if box is None:
+        return True
+    umkehr, rahmen = zuschnitt
+    punkte = []
+    for x in (box.Min.X, box.Max.X):
+        for y in (box.Min.Y, box.Max.Y):
+            for z in (box.Min.Z, box.Max.Z):
+                p = umkehr.OfPoint(XYZ(x, y, z))
+                punkte.append((p.X, p.Y))
+    return lg.ueberlappt(punkte, rahmen)
+
+
 def lies_ansicht(doc, ansicht):
-    """Funde für logik.sammle: alle sichtbaren Modellelemente mit Typ."""
+    """Funde für logik.sammle: alle sichtbaren Modellelemente mit Typ.
+
+    Der Collector mit Ansicht lässt laut API-Doku Elemente knapp ausserhalb
+    des Zuschnitts durch - die werden hier am Zuschnittrahmen aussortiert."""
     gesperrt = _gesperrt()
+    zuschnitt = _zuschnitt(ansicht)
     funde = []
     namen = {}
     for element in (FilteredElementCollector(doc, ansicht.Id)
@@ -137,6 +283,8 @@ def lies_ansicht(doc, ansicht):
         # verschachtelte Familien gehören zur übergeordneten
         if getattr(element, "SuperComponent", None) is not None:
             continue
+        if zuschnitt is not None and not _im_zuschnitt(element, zuschnitt):
+            continue
         typ_id = element.GetTypeId()
         if typ_id is None or typ_id == ElementId.InvalidElementId:
             continue
@@ -152,7 +300,7 @@ def lies_ansicht(doc, ansicht):
             continue
         familie, typname = namen[schluessel]
         funde.append((kat_id, kategorie.Name, schluessel, typ_id, familie, typname,
-                      id_wert(element.Id)))
+                      id_wert(element.Id), element.Id))
     return funde
 
 
@@ -200,8 +348,10 @@ class Ergebnis(object):
         self.texte = 0
         self.ersetzt = False
         self.geloescht = 0
+        self.ketten = 0              # erzeugte Maßketten
+        self.ketten_fehler = 0
         self.abgelehnt = []          # Typen, die Revit nicht als Bauteil nimmt
-        self.ohne_grundriss = []     # Typen ohne Ansichtsrichtung Grundriss
+        self.ohne_richtung = []      # Typen ohne die gewählte Ansichtsrichtung
 
 
 def _ids(*element_ids):
@@ -244,9 +394,12 @@ def _leere(doc, ansicht, behalten):
 
 
 def erzeuge(doc, typen, name, massstab, abstand_mm, beschriftung=lg.BESCHRIFTUNG_KEINE,
-            texttyp_id=None, ersetzen=False):
+            texttyp_id=None, ersetzen=False, richtung=lg.RICHTUNG_GRUNDRISS,
+            masse=None, mass_art=lg.MASS_TEXT):
     """Legende mit einem Bauteil je Typ (in der gegebenen Reihenfolge)
-    untereinander. Rückgabe Ergebnis."""
+    untereinander. masse = (Breite, Höhe) als Parameternamen: Paso von
+    Türen/Fenstern als zweite Textzeile und/oder Maßkette (mass_art).
+    Rückgabe Ergebnis."""
     vorlage = vorlage_bauteil(doc)
     if vorlage is None:
         raise LegendenFehler(fehlt_vorlage_text())
@@ -270,8 +423,8 @@ def erzeuge(doc, typen, name, massstab, abstand_mm, beschriftung=lg.BESCHRIFTUNG
             ansicht = dxf_rv._neue_ansicht(doc, name, massstab,
                                            doc.GetElement(vorlage.OwnerViewId))
             muster = _kopiere_muster(doc, vorlage, ansicht)
-        _Bauer(doc, ansicht, muster, massstab, abstand_mm, ergebnis).baue(
-            typen, beschriftung, texttyp_id)
+        _Bauer(doc, ansicht, muster, massstab, abstand_mm, ergebnis, richtung).baue(
+            typen, beschriftung, texttyp_id, masse, mass_art)
         doc.Delete(muster.Id)
         if transaktion.Commit() != TransactionStatus.Committed:
             raise LegendenFehler(t(u"Revit hat die Legende nicht übernommen.",
@@ -311,26 +464,97 @@ def fehlt_vorlage_text():
 
 class _Bauer(object):
 
-    def __init__(self, doc, ansicht, muster, massstab, abstand_mm, ergebnis):
+    def __init__(self, doc, ansicht, muster, massstab, abstand_mm, ergebnis,
+                 richtung=lg.RICHTUNG_GRUNDRISS):
         self.doc = doc
+        self.richtung = richtung
         self.ansicht = ansicht
         self.muster = muster
-        self.abstand = abstand_mm * MM * float(massstab)
+        self.papier = MM * float(massstab)          # 1 mm Papier in Modelleinheiten
+        self.abstand = abstand_mm * self.papier
         self.ergebnis = ergebnis
+        self._unsichtbar = None
 
-    def baue(self, typen, beschriftung, texttyp_id):
+    def baue(self, typen, beschriftung, texttyp_id, masse=None, mass_art=lg.MASS_TEXT):
         platziert = []          # (typ, breite, mitte_y)
         oben = 0.0
+        kette = bool(masse) and lg.mit_kette(mass_art)
         for typ in typen:
-            masse = self._bauteil(typ, oben)
-            if masse is None:
+            groesse = self._bauteil(typ, oben)
+            if groesse is None:
                 continue
-            breite, hoehe = masse
+            breite, hoehe = groesse
             platziert.append((typ, breite, oben - hoehe / 2.0))
-            oben -= hoehe + self.abstand
+            unten = oben - hoehe
+            oben = unten - self.abstand
+            if kette:
+                werte = masswerte(self.doc, typ, masse)
+                if self._kette(werte, breite, unten):
+                    # Platz für die Breitenkette unter dem Bauteil
+                    oben -= KETTE_PLATZ_MM * self.papier
         self.ergebnis.platziert = len(platziert)
-        if beschriftung != lg.BESCHRIFTUNG_KEINE and platziert:
-            self._texte(platziert, beschriftung, texttyp_id)
+        text_masse = masse if lg.mit_text(mass_art) else None
+        if (beschriftung != lg.BESCHRIFTUNG_KEINE or text_masse) and platziert:
+            self._texte(platziert, beschriftung, texttyp_id, text_masse)
+
+    # -- Maßketten ----------------------------------------------------------------
+
+    def _kette(self, werte, breite_bauteil, unten):
+        """Maßketten für das Paso (mm) eines Bauteils mit Unterkante unten,
+        links an x=0. Rückgabe, ob eine Breitenkette unter dem Bauteil liegt."""
+        breite_mm, hoehe_mm = werte
+        if self.richtung not in lg.RICHTUNGEN_MIT_HOEHE:
+            hoehe_mm = None
+        lage = lg.kettenlage(0.0, unten, breite_bauteil,
+                             breite_mm * MM if breite_mm else None,
+                             hoehe_mm * MM if hoehe_mm else None,
+                             KETTE_ABSTAND_MM * self.papier)
+        hilfe = HILFSLINIE_MM * self.papier
+        if u"breite" in lage:
+            x1, x2, y = lage[u"breite"]
+            self._masslinie([Line.CreateBound(XYZ(x, unten, 0.0),
+                                              XYZ(x, unten - hilfe, 0.0)) for x in (x1, x2)],
+                            Line.CreateBound(XYZ(x1, y, 0.0), XYZ(x2, y, 0.0)))
+        if u"hoehe" in lage:
+            y1, y2, x = lage[u"hoehe"]
+            self._masslinie([Line.CreateBound(XYZ(0.0, yy, 0.0),
+                                              XYZ(-hilfe, yy, 0.0)) for yy in (y1, y2)],
+                            Line.CreateBound(XYZ(x, y1, 0.0), XYZ(x, y2, 0.0)))
+        return u"breite" in lage
+
+    def _masslinie(self, hilfslinien, masslinie):
+        """Bemaßung zwischen zwei unsichtbaren Hilfslinien - Legendenbauteile
+        geben keine Kanten zum Bemaßen her."""
+        doc = self.doc
+        unter = SubTransaction(doc)
+        unter.Start()
+        try:
+            bezuege = ReferenceArray()
+            for kurve in hilfslinien:
+                linie = doc.Create.NewDetailCurve(self.ansicht, kurve)
+                stil = self._unsichtbare_linien()
+                if stil is not None:
+                    linie.LineStyle = stil
+                bezuege.Append(linie.GeometryCurve.Reference)
+            doc.Create.NewDimension(self.ansicht, masslinie, bezuege)
+            unter.Commit()
+            self.ergebnis.ketten += 1
+        except Exception:
+            if unter.HasStarted() and not unter.HasEnded():
+                unter.RollBack()
+            self.ergebnis.ketten_fehler += 1
+
+    def _unsichtbare_linien(self):
+        """Linienstil <Unsichtbare Linien> oder None."""
+        if self._unsichtbar is None:
+            self._unsichtbar = False
+            linien = self.doc.Settings.Categories.get_Item(BuiltInCategory.OST_Lines)
+            gesucht = id_wert(ElementId(BuiltInCategory.OST_InvisibleLines))
+            for unter in linien.SubCategories:
+                if id_wert(unter.Id) == gesucht:
+                    self._unsichtbar = unter.GetGraphicsStyle(GraphicsStyleType.Projection)
+                    break
+        return self._unsichtbar or None
 
     def _bauteil(self, typ, oben):
         """Bauteil für typ mit Oberkante bei oben, linksbündig an x=0.
@@ -343,41 +567,80 @@ class _Bauer(object):
             bauteil = doc.GetElement(neu[0])
             # Richtung vor und nach dem Typwechsel: Steht das Muster auf einer
             # Richtung, die der neue Typ nicht kennt, könnte Revit ihn ablehnen.
-            self._grundriss(bauteil)
+            self._setze_richtung(bauteil, lg.RICHTUNG_GRUNDRISS)
             parameter = bauteil.get_Parameter(BuiltInParameter.LEGEND_COMPONENT)
             parameter.Set(typ.ref)
             if id_wert(parameter.AsElementId()) != typ.schluessel:
                 raise ValueError(u"Bauteiltyp nicht übernommen")
-            grundriss = self._grundriss(bauteil)
+            gewaehlt = self._setze_richtung(bauteil, self.richtung)
+            if not gewaehlt:
+                # Richtung gibt es für diesen Typ nicht - Grundriss statt
+                # dessen, was das Muster zufällig hatte
+                self._setze_richtung(bauteil, lg.RICHTUNG_GRUNDRISS)
             doc.Regenerate()
-            box = bauteil.get_BoundingBox(self.ansicht)
-            if box is None:
-                raise ValueError(u"Bauteil ohne Ausdehnung")
-            ElementTransformUtils.MoveElement(
-                doc, bauteil.Id, XYZ(-box.Min.X, oben - box.Max.Y, 0.0))
+            rahmen = self._sichtbar(bauteil)
+            if rahmen is None:
+                box = bauteil.get_BoundingBox(self.ansicht)
+                if box is None:
+                    raise ValueError(u"Bauteil ohne Ausdehnung")
+                rahmen = (box.Min.X, box.Min.Y, box.Max.X, box.Max.Y)
+            x0, y0, x1, y1 = rahmen
+            ElementTransformUtils.MoveElement(doc, bauteil.Id, XYZ(-x0, oben - y1, 0.0))
             unter.Commit()
         except Exception:
             if unter.HasStarted() and not unter.HasEnded():
                 unter.RollBack()
             self.ergebnis.abgelehnt.append(typ)
             return None
-        if not grundriss:
-            self.ergebnis.ohne_grundriss.append(typ)
-        return box.Max.X - box.Min.X, box.Max.Y - box.Min.Y
+        if not gewaehlt:
+            self.ergebnis.ohne_richtung.append(typ)
+        return x1 - x0, y1 - y0
+
+    def _sichtbar(self, bauteil):
+        """(x0, y0, x1, y1) der sichtbaren Geometrie in der Legende - die
+        Bounding-Box ist oft grösser (unsichtbare Teile der Familie), dann
+        sässen Maßketten neben der Tür. None, wenn nichts lesbar ist."""
+        optionen = Options()
+        optionen.View = self.ansicht
+        punkte = []
+
+        def sammle(geometrie):
+            if geometrie is None:
+                return
+            for objekt in geometrie:
+                if isinstance(objekt, GeometryInstance):
+                    sammle(objekt.GetInstanceGeometry())
+                elif isinstance(objekt, Curve):
+                    punkte.extend(objekt.Tessellate())
+                elif isinstance(objekt, PolyLine):
+                    punkte.extend(objekt.GetCoordinates())
+                elif isinstance(objekt, Solid):
+                    for kante in objekt.Edges:
+                        punkte.extend(kante.Tessellate())
+
+        try:
+            sammle(bauteil.get_Geometry(optionen))
+        except Exception:
+            return None
+        if not punkte:
+            return None
+        xs = [p.X for p in punkte]
+        ys = [p.Y for p in punkte]
+        return min(xs), min(ys), max(xs), max(ys)
 
     @staticmethod
-    def _grundriss(bauteil):
-        """Ansichtsrichtung auf Grundriss stellen. Rückgabe, ob sie es ist."""
+    def _setze_richtung(bauteil, wert):
+        """Ansichtsrichtung setzen. Rückgabe, ob das Bauteil sie jetzt hat."""
         richtung = bauteil.get_Parameter(BuiltInParameter.LEGEND_COMPONENT_VIEW)
         if richtung is None or richtung.IsReadOnly:
             return False
         try:
-            richtung.Set(lg.RICHTUNG_GRUNDRISS)
-            return richtung.AsInteger() == lg.RICHTUNG_GRUNDRISS
+            richtung.Set(wert)
+            return richtung.AsInteger() == wert
         except Exception:
             return False
 
-    def _texte(self, platziert, art, texttyp_id):
+    def _texte(self, platziert, art, texttyp_id, masse=None):
         if texttyp_id is None or texttyp_id == ElementId.InvalidElementId:
             texttyp_id = self.doc.GetDefaultElementTypeId(ElementTypeGroup.TextNoteType)
         x = max(breite for _typ, breite, _y in platziert) + max(self.abstand, 0.0)
@@ -387,7 +650,7 @@ class _Bauer(object):
         optionen.HorizontalAlignment = HorizontalTextAlignment.Left
         optionen.VerticalAlignment = VerticalTextAlignment.Middle
         for typ, _breite, mitte in platziert:
-            text = lg.beschriftung(typ, art)
+            text = lg.zeilen(lg.beschriftung(typ, art), masstext(self.doc, typ, masse))
             if not text:
                 continue
             TextNote.Create(self.doc, self.ansicht.Id, XYZ(x, mitte, 0.0), text, optionen)

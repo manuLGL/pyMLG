@@ -74,6 +74,47 @@ def test_eingaben():
     assert lg.pruefe_abstand(u"") is None
 
 
+def test_masse():
+    assert lg.masstext(825.0, 2030.4) == u"825 × 2030"
+    assert lg.masstext(None, 2030.0) == u"2030"
+    assert lg.masstext(None, None) == u""
+    assert lg.zeilen(u"Tür: T1", u"", u"825 × 2030") == u"Tür: T1\r825 × 2030"
+    assert lg.zeilen(u"", u"825") == u"825"
+    # Fund mit Beispiel-Exemplar (8. Wert)
+    typen = lg.sammle([(1, u"Türen", 5, None, u"T", u"T1", 7, u"ref7"),
+                       (1, u"Türen", 5, None, u"T", u"T1", 8, u"ref8")])
+    assert typen[5].beispiel == u"ref7" and typen[5].anzahl == 2
+
+
+def test_kettenlage():
+    # Bauteil 1000 breit, Unterkante bei -2200, Paso 800 x 2100, Abstand 50
+    lage = lg.kettenlage(0.0, -2200.0, 1000.0, 800.0, 2100.0, 50.0)
+    assert lage[u"breite"] == (100.0, 900.0, -2250.0)
+    assert lage[u"hoehe"] == (-2200.0, -100.0, -50.0)
+    assert lg.kettenlage(0.0, 0.0, 1000.0, None, None, 50.0) == {}
+    assert u"hoehe" not in lg.kettenlage(0.0, 0.0, 1000.0, 800.0, None, 50.0)
+    assert lg.mit_kette(lg.MASS_BEIDES) and not lg.mit_kette(lg.MASS_TEXT)
+    assert lg.mit_text(lg.MASS_BEIDES) and not lg.mit_text(lg.MASS_KETTE)
+
+
+def test_zuschnitt():
+    rahmen = (0.0, 0.0, 10.0, 5.0)
+    assert lg.ueberlappt([(1, 1), (2, 2)], rahmen)            # innen
+    assert lg.ueberlappt([(-3, -3), (1, 1)], rahmen)          # ragt hinein
+    assert lg.ueberlappt([(-5, -5), (20, 20)], rahmen)        # umfasst ihn
+    assert lg.ueberlappt([(10, 5), (12, 7)], rahmen)          # Ecke an Ecke
+    assert not lg.ueberlappt([(11, 1), (12, 2)], rahmen)      # rechts daneben
+    assert not lg.ueberlappt([(1, -3), (2, -1)], rahmen)      # darunter
+    assert lg.ueberlappt([], rahmen)
+
+
+def test_richtungen():
+    werte = [w for w, _ in lg.RICHTUNGEN]
+    assert len(set(werte)) == len(werte)
+    assert werte[0] == lg.RICHTUNG_GRUNDRISS == -8
+    assert dict(lg.RICHTUNGEN)[-5][0] == u"Schnitt"
+
+
 if __name__ == "__main__":
     for name, funktion in sorted(globals().items()):
         if name.startswith("test_") and callable(funktion):
