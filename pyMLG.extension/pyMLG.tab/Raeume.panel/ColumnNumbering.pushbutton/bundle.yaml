@@ -1,0 +1,30 @@
+title:
+  de_de: "Stützen\nnummerieren"
+  en_us: "Number\nColumns"
+  es_es: "Numerar\npilares"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Nummeriert Stützen nach dem Plan des Statikers - die letzte Zahl der ersten Nummer wird hochgezählt (S-01, S-02 ...).
+
+    Anklicken: Stützen nacheinander in der Reihenfolge des Plans anklicken, ESC beendet. Pfad-Linie: Modell- oder Detaillinien durch die Stützen zeichnen und wählen - nummeriert wird in Zeichenrichtung (Schlangenlinie oder eine Linie je Reihe).
+
+    Die Nummern erscheinen während des Laufs als Vorschau in der Ansicht; am Ende übernehmen oder alles verwerfen. Optional bekommen Stützen darüber und darunter dieselbe Nummer. Ein Rückgängig-Schritt je Lauf.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Numbers columns according to the structural engineer's plan - the last number of the first number is counted up (S-01, S-02 ...).
+
+    Pick: pick the columns one after another in the order of the plan, ESC ends. Path line: draw model or detail lines through the columns and pick them - numbering follows the drawing direction (a snake line or one line per row).
+
+    The numbers are previewed in the view while you work; at the end keep them or discard everything. Optionally, columns above and below get the same number. One undo step per run.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Numera los pilares según el plano del ingeniero de estructuras: se incrementa el último número del primer número (S-01, S-02 ...).
+
+    Seleccionar: seleccione los pilares uno tras otro en el orden del plano, ESC termina. Línea de recorrido: dibuje líneas de modelo o de detalle a través de los pilares y selecciónelas; se numera en el sentido del dibujo (una línea en zigzag o una línea por fila).
+
+    Los números se muestran como vista previa durante el proceso; al final se conservan o se descarta todo. Opcionalmente, los pilares de encima y debajo reciben el mismo número. Un paso de deshacer por ejecución.
+
+    Requiere el motor CPython3.
