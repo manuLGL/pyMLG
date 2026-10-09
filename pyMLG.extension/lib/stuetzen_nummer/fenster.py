@@ -4,7 +4,7 @@
     Vorgehen    ● Anklicken   ○ Pfad-Linie
     Nummer      Erste [S-01]  Schritt [1]   S-01, S-02, S-03 …
     Parameter   [Kennzeichen          v]
-    Stützen     ☑ Tragwerk ☑ Architektur  ☑ darüber/darunter gleich
+    Elemente    ☑ Tragwerk ☑ Architektur ☐ Wände  ☑ darüber/darunter gleich
     Pfad        Abstand zur Linie [0,30] m
                                        [Starten] [Abbrechen]
 
@@ -78,17 +78,21 @@ XAML_TEXTE = {
                u"Se incrementa el último número, se conservan los ceros."),
     "parameter": (u"Schreiben in Parameter", u"Write to parameter",
                   u"Escribir en el parámetro"),
-    "stuetzen": (u"Stützen", u"Columns", u"Pilares"),
+    "stuetzen": (u"Elemente", u"Elements", u"Elementos"),
     "tragwerk": (u"Tragwerksstützen", u"Structural columns",
                  u"Pilares estructurales"),
     "architektur": (u"Architektonische Stützen", u"Architectural columns",
                     u"Pilares arquitectónicos"),
+    "wand": (u"Wände", u"Walls", u"Muros"),
     "stapel": (u"Gleiche Nummer für Stützen darüber und darunter "
-               u"(gleiche Lage auf anderen Ebenen)",
+               u"(gleiche Lage auf anderen Ebenen; Wände bekommen immer "
+               u"eine eigene Nummer)",
                u"Same number for columns above and below "
-               u"(same position on other levels)",
+               u"(same position on other levels; walls always get their "
+               u"own number)",
                u"Mismo número para los pilares de encima y debajo "
-               u"(misma posición en otros niveles)"),
+               u"(misma posición en otros niveles; los muros siempre "
+               u"reciben su propio número)"),
     "abstand": (u"Pfad: max. Abstand Stütze - Linie (m)",
                 u"Path: max. distance column - line (m)",
                 u"Recorrido: distancia máx. pilar - línea (m)"),
@@ -153,6 +157,7 @@ XAML = u"""
       <StackPanel>
         <CheckBox x:Name="kat_tragwerk" Content="{{tragwerk}}"/>
         <CheckBox x:Name="kat_architektur" Content="{{architektur}}"/>
+        <CheckBox x:Name="kat_wand" Content="{{wand}}"/>
         <CheckBox x:Name="stapeln" Margin="0,6,0,2">
           <TextBlock Text="{{stapel}}" TextWrapping="Wrap"/>
         </CheckBox>
@@ -224,7 +229,7 @@ class Fenster(object):
             pass
         for name in ("modus_klick", "modus_pfad", "start", "schritt",
                      "vorschau", "parameter", "kat_tragwerk",
-                     "kat_architektur", "stapeln", "abstand"):
+                     "kat_architektur", "kat_wand", "stapeln", "abstand"):
             setattr(self, name, f.FindName(name))
 
         einst = lade_einstellungen()
@@ -235,11 +240,13 @@ class Fenster(object):
         self.schritt.Text = u"%s" % einst.get("schritt", 1)
         self.kat_tragwerk.IsChecked = einst.get("tragwerk", True)
         self.kat_architektur.IsChecked = einst.get("architektur", True)
+        self.kat_wand.IsChecked = einst.get("wand", False)
         self.stapeln.IsChecked = einst.get("stapeln", True)
         self.abstand.Text = einst.get("abstand", u"0,30")
 
         self.optionen = (rv.parameter_optionen(
-            doc, [rv.TRAGWERK, rv.ARCHITEKTUR]) or rv.standard_optionen())
+            doc, [rv.TRAGWERK, rv.ARCHITEKTUR, rv.WAND])
+            or rv.standard_optionen())
         for _, name in self.optionen:
             self.parameter.Items.Add(name)
         schluessel = [s for s, _ in self.optionen]
@@ -299,11 +306,13 @@ class Fenster(object):
             kategorien.append(rv.TRAGWERK)
         if self.kat_architektur.IsChecked:
             kategorien.append(rv.ARCHITEKTUR)
+        if self.kat_wand.IsChecked:
+            kategorien.append(rv.WAND)
         if not kategorien:
             dlg.meldung(self.fenster, t(
-                u"Bitte mindestens eine Stützen-Kategorie wählen.",
-                u"Please choose at least one column category.",
-                u"Elija al menos una categoría de pilares."),
+                u"Bitte mindestens eine Kategorie wählen.",
+                u"Please choose at least one category.",
+                u"Elija al menos una categoría."),
                 titel=TITEL, warnung=True)
             return
         modus = PFAD if self.modus_pfad.IsChecked else KLICK
@@ -330,6 +339,7 @@ class Fenster(object):
             "parameter": schluessel,
             "tragwerk": rv.TRAGWERK in kategorien,
             "architektur": rv.ARCHITEKTUR in kategorien,
+            "wand": rv.WAND in kategorien,
             "stapeln": bool(self.stapeln.IsChecked),
             "abstand": self.abstand.Text,
         })

@@ -42,9 +42,10 @@ def _klicken(uidoc, lauf, zaehler, einst):
 
     hinweis = u""
     while True:
-        text = hinweis + t(u"Stütze für %s anklicken - ESC = fertig",
-                           u"Pick the column for %s - ESC = done",
-                           u"Seleccione el pilar para %s - ESC = terminar") \
+        text = hinweis + t(u"Element für %s anklicken - ESC = fertig",
+                           u"Pick the element for %s - ESC = done",
+                           u"Seleccione el elemento para %s - ESC = "
+                           u"terminar") \
             % zaehler.aktuell
         stuetze = rv.waehle_stuetze(uidoc, einst.kategorien, text)
         if stuetze is None:
@@ -70,15 +71,19 @@ def _pfad(uidoc, lauf, zaehler, einst, linien):
                              [rv.grundriss(e) for e in kandidaten],
                              einst.abstand)
     if not reihenfolge:
-        ui.meldung(t(u"Keine sichtbare Stütze liegt nahe genug an der Linie. "
-                     u"Abstand im Fenster vergrößern?",
-                     u"No visible column is close enough to the line. "
-                     u"Increase the distance in the window?",
-                     u"Ningún pilar visible está lo bastante cerca de la "
-                     u"línea. ¿Aumentar la distancia en la ventana?"),
-                   titel=TITEL, hauptzeile=t(u"Keine Stützen gefunden",
-                                             u"No columns found",
-                                             u"No se han encontrado pilares"),
+        ui.meldung(t(u"Kein sichtbares Element liegt nahe genug an der "
+                     u"Linie (bei Wänden zählt die Wandmitte). Abstand im "
+                     u"Fenster vergrößern?",
+                     u"No visible element is close enough to the line "
+                     u"(for walls the wall midpoint counts). Increase the "
+                     u"distance in the window?",
+                     u"Ningún elemento visible está lo bastante cerca de la "
+                     u"línea (en los muros cuenta el punto medio). "
+                     u"¿Aumentar la distancia en la ventana?"),
+                   titel=TITEL, hauptzeile=t(u"Keine Elemente gefunden",
+                                             u"No elements found",
+                                             u"No se han encontrado "
+                                             u"elementos"),
                    warnung=True)
         return
     lauf.nummeriere([kandidaten[i] for i in reihenfolge], zaehler)
@@ -123,9 +128,10 @@ def _abschluss(lauf, zaehler):
                            for e, g in lauf.fehler])]
     doppelt = lauf.doppelte()
     if doppelt:
-        zeilen += [u"", t(u"Diese Nummern tragen schon andere Stützen:",
-                          u"These numbers are already used by other columns:",
-                          u"Estos números ya los usan otros pilares:"),
+        zeilen += [u"", t(u"Diese Nummern tragen schon andere Elemente:",
+                          u"These numbers are already used by other "
+                          u"elements:",
+                          u"Estos números ya los usan otros elementos:"),
                    _liste([u"%s: %s" % (n, u", ".join(rv.beschreibe(e)
                                                      for e in el[:3]))
                            for n, el in sorted(doppelt.items())])]

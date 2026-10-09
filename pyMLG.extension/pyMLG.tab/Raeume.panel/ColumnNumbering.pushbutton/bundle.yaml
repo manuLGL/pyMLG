@@ -9,7 +9,7 @@ tooltip:
 
     Anklicken: Stützen nacheinander in der Reihenfolge des Plans anklicken, ESC beendet. Pfad-Linie: Modell- oder Detaillinien durch die Stützen zeichnen und wählen - nummeriert wird in Zeichenrichtung (Schlangenlinie oder eine Linie je Reihe).
 
-    Die Nummern erscheinen während des Laufs als Vorschau in der Ansicht; am Ende übernehmen oder alles verwerfen. Optional bekommen Stützen darüber und darunter dieselbe Nummer. Ein Rückgängig-Schritt je Lauf.
+    Die Nummern erscheinen während des Laufs als Vorschau in der Ansicht; am Ende übernehmen oder alles verwerfen. Optional bekommen Stützen darüber und darunter dieselbe Nummer. Wände lassen sich ebenso nummerieren (Haken "Wände", jede Wand eigene Nummer). Ein Rückgängig-Schritt je Lauf.
 
     Benötigt die CPython3-Engine.
   en_us: >-
@@ -17,7 +17,7 @@ tooltip:
 
     Pick: pick the columns one after another in the order of the plan, ESC ends. Path line: draw model or detail lines through the columns and pick them - numbering follows the drawing direction (a snake line or one line per row).
 
-    The numbers are previewed in the view while you work; at the end keep them or discard everything. Optionally, columns above and below get the same number. One undo step per run.
+    The numbers are previewed in the view while you work; at the end keep them or discard everything. Optionally, columns above and below get the same number. Walls can be numbered too ("Walls" checkbox, each wall its own number). One undo step per run.
 
     Requires the CPython3 engine.
   es_es: >-
@@ -25,6 +25,6 @@ tooltip:
 
     Seleccionar: seleccione los pilares uno tras otro en el orden del plano, ESC termina. Línea de recorrido: dibuje líneas de modelo o de detalle a través de los pilares y selecciónelas; se numera en el sentido del dibujo (una línea en zigzag o una línea por fila).
 
-    Los números se muestran como vista previa durante el proceso; al final se conservan o se descarta todo. Opcionalmente, los pilares de encima y debajo reciben el mismo número. Un paso de deshacer por ejecución.
+    Los números se muestran como vista previa durante el proceso; al final se conservan o se descarta todo. Opcionalmente, los pilares de encima y debajo reciben el mismo número. También se pueden numerar muros (casilla "Muros", cada muro su propio número). Un paso de deshacer por ejecución.
 
     Requiere el motor CPython3.

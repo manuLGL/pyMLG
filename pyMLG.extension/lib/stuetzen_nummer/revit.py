@@ -50,10 +50,16 @@ STAPEL_TOLERANZ = 0.05 / FUSS
 
 TRAGWERK = "tragwerk"
 ARCHITEKTUR = "architektur"
+WAND = "wand"
 KATEGORIEN = {
     TRAGWERK: BuiltInCategory.OST_StructuralColumns,
     ARCHITEKTUR: BuiltInCategory.OST_Columns,
+    WAND: BuiltInCategory.OST_Walls,
 }
+
+# Linienelemente, deren Enden höchstens so weit auseinander liegen (Höhe),
+# gelten als waagrecht (Wände) -> Mitte statt unterer Endpunkt
+WAAGRECHT_TOLERANZ = 0.01 / FUSS
 
 # Diese eingebauten Parameter stehen in der Liste oben
 BEVORZUGT = ("ALL_MODEL_MARK", "ALL_MODEL_INSTANCE_COMMENTS")
@@ -89,9 +95,16 @@ def _kategorie_ids(kategorien):
 
 
 def ist_stuetze(element, kategorien):
+    """Element einer der gewählten Kategorien (Stützen, ggf. Wände)."""
     kategorie = getattr(element, "Category", None)
     return (kategorie is not None and element.Location is not None
             and id_wert(kategorie.Id) in _kategorie_ids(kategorien))
+
+
+def ist_wand(element):
+    kategorie = getattr(element, "Category", None)
+    return (kategorie is not None and id_wert(kategorie.Id)
+            == id_wert(ElementId(KATEGORIEN[WAND])))
 
 
 def _sammler(doc, kategorien, ansicht=None):
@@ -112,7 +125,9 @@ def stuetzen(doc, kategorien, ansicht=None):
 
 
 def punkt(stuetze):
-    """Einfügepunkt (XYZ); bei geneigten Stützen der untere Endpunkt."""
+    """Einfügepunkt (XYZ); bei geneigten Stützen der untere Endpunkt, bei
+    waagrechten Linienelementen (Wände) die Mitte - sonst hinge die
+    Reihenfolge im Pfad-Modus von der Zeichenrichtung der Wand ab."""
     ort = stuetze.Location
     p = getattr(ort, "Point", None)
     if p is not None:
@@ -121,6 +136,8 @@ def punkt(stuetze):
     if kurve is None:
         return None
     a, b = kurve.GetEndPoint(0), kurve.GetEndPoint(1)
+    if abs(a.Z - b.Z) <= WAAGRECHT_TOLERANZ:
+        return kurve.Evaluate(0.5, True)
     return a if a.Z <= b.Z else b
 
 
@@ -334,11 +351,14 @@ class Lauf(object):
 
     def _stapel(self, stuetze):
         """Die Stütze und - falls gewünscht - alle Stützen über und unter
-        ihr, die noch keine Nummer haben."""
-        if not self.stapeln:
+        ihr, die noch keine Nummer haben. Wände werden nie gestapelt: ein
+        einzelner Punkt je Wand trifft die Wand darüber nur, wenn sie exakt
+        gleich gezeichnet ist (siehe punkt)."""
+        if not self.stapeln or ist_wand(stuetze):
             return [stuetze]
         if self._alle is None:
-            self._alle = stuetzen(self.doc, self.kategorien)
+            nur_stuetzen = [k for k in self.kategorien if k != WAND]
+            self._alle = stuetzen(self.doc, nur_stuetzen)
             self._alle_xy = [grundriss(e) for e in self._alle]
         treffer = lg.uebereinander(grundriss(stuetze), self._alle_xy,
                                    STAPEL_TOLERANZ)
