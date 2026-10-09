@@ -1,0 +1,30 @@
+title:
+  de_de: "Werte nach\noben/unten"
+  en_us: "Values\nUp/Down"
+  es_es: "Valores\narriba/abajo"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Überträgt Parameterwerte gewählter Stützen, Wände und Unterzüge auf die Elemente, die in anderen Geschossen an derselben Stelle (XY) stehen.
+
+    Stützen: gleicher Einfügepunkt. Wände und Unterzüge: gleicher Anfang, gleiches Ende und gleiche Mitte der Achse, die Zeichenrichtung ist egal. Die Höhe zählt nicht, die Toleranz ist einstellbar (Standard 5 cm). Übertragen wird nur innerhalb derselben Kategorie. Option: gleiche Achse genügt - dann zählen auch kürzere oder längere Wände/Unterzüge, die sich mindestens zur Hälfte überlappen. Die Geschosszuordnung (FBOK, RDOK ...) entscheidet nur über die Geschossauswahl, nicht über die Lage.
+
+    Im Fenster: Parameter anhaken (mehrere möglich), Zielgeschosse wählen und angeben, ob vorhandene Werte überschrieben werden. Leere Quellwerte werden nie übertragen. Am Ende übernehmen oder alles verwerfen - ein Rückgängig-Schritt je Lauf.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Copies parameter values of selected columns, walls and beams to the elements at the same position (XY) on other levels.
+
+    Columns: same insertion point. Walls and beams: same start, end and middle of the axis, the drawing direction does not matter. Height is ignored, the tolerance is adjustable (default 5 cm). Values are only copied within the same category. Option: same axis is enough - then shorter or longer walls/beams that overlap at least by half also count. The element's level only matters for the level selection, not for the position.
+
+    In the window: check the parameters (several possible), choose the target levels and whether existing values are overwritten. Empty source values are never copied. At the end keep the result or discard everything - one undo step per run.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Copia los valores de parámetros de los pilares, muros y vigas seleccionados a los elementos situados en la misma posición (XY) en otros niveles.
+
+    Pilares: mismo punto de inserción. Muros y vigas: mismo inicio, fin y centro del eje; el sentido del dibujo no importa. La altura no cuenta, la tolerancia es ajustable (5 cm por defecto). Solo se copia dentro de la misma categoría. Opción: basta el mismo eje; entonces también cuentan muros/vigas más cortos o largos que se solapen al menos la mitad. El nivel del elemento solo cuenta para la selección de niveles, no para la posición.
+
+    En la ventana: marque los parámetros (varios posibles), elija los niveles de destino e indique si se sobrescriben los valores existentes. Los valores de origen vacíos nunca se copian. Al final se conserva el resultado o se descarta todo: un paso de deshacer por ejecución.
+
+    Requiere el motor CPython3.

@@ -648,6 +648,20 @@ def column_numbering(b):
             rect(b, x - 4, y - 4, x + 4, y + 4, WEISS if j == 0 else LINIE)
 
 
+def stack_values(b):
+    """Schnitt durch drei Geschosse, je eine Stuetze und ein Unterzug an
+    derselben Stelle: unten die Quelle (orange), darueber uebernommen
+    (gruen), Pfeil nach oben."""
+    decken = (6, 34, 62, 90)
+    for y in decken:
+        rect(b, 4, y - 4, 76, y, DUNKEL)
+    for i, (oben, unten) in enumerate(zip(decken, decken[1:])):
+        farbe = ORANGE if i == 2 else GRUEN
+        rect(b, 12, oben, 22, unten - 4, farbe)     # Stuetze
+        rect(b, 22, oben, 66, oben + 8, farbe)      # Unterzug
+    pfeil(b, (88, 90), (88, 8), 6, 13, DUNKEL)
+
+
 SYMBOLE = {
     "Ansichten.panel/Duplizieren.stack/DuplicatePlan.pushbutton": duplicate_plan,
     "Ansichten.panel/Duplizieren.stack/DuplicateView.pushbutton": duplicate_view,
@@ -655,6 +669,7 @@ SYMBOLE = {
     "Raeume.panel/Beschriftung.stack/RoomCenter.pushbutton": room_center,
     "Raeume.panel/Beschriftung.stack/TagDistance.pushbutton": tag_distance,
     "Raeume.panel/ColumnNumbering.pushbutton": column_numbering,
+    "Raeume.panel/StackValues.pushbutton": stack_values,
     "Ansichten.panel/Hilfen.stack/ViewIdVisible.pushbutton": view_id_visible,
     "Ansichten.panel/Hilfen.stack/WallLegend.pushbutton": wall_legend,
     "Phasen.panel/Phasen.stack/CopyWithPhases.pushbutton": copy_with_phases,
