@@ -662,6 +662,24 @@ def stack_values(b):
     pfeil(b, (88, 90), (88, 8), 6, 13, DUNKEL)
 
 
+def elements_2d(b):
+    """Zwei Blaetter mit 2D-Inhalt hintereinander (ganzes Projekt), vorn
+    Fuellbereich, Masslinie und Textzeilen, rotes Kreuz: finden und
+    loeschen."""
+    blattform(b, 4, 4, 62, 62, BLAU, 8)          # weitere Ansicht dahinter
+    blattform(b, 18, 18, 86, 88, BLAU, 10)       # Ansicht mit 2D-Elementen
+    rect(b, 26, 38, 54, 58, ORANGE)              # Fuellbereich
+    rect(b, 26, 66, 78, 69, DUNKEL)              # Masslinie
+    rect(b, 26, 61, 29, 74, DUNKEL)
+    rect(b, 75, 61, 78, 74, DUNKEL)
+    for y in (40, 48):                           # Textzeilen
+        rect(b, 60, y, 78, y + 4, LINIE)
+    kreis(b, 76, 78, 15, WEISS)
+    kreis(b, 76, 78, 12, ROT)
+    linie(b, (70, 72), (82, 84), 4, WEISS)
+    linie(b, (82, 72), (70, 84), 4, WEISS)
+
+
 SYMBOLE = {
     "Ansichten.panel/Duplizieren.stack/DuplicatePlan.pushbutton": duplicate_plan,
     "Ansichten.panel/Duplizieren.stack/DuplicateView.pushbutton": duplicate_view,
@@ -679,6 +697,7 @@ SYMBOLE = {
     "Worksets.panel/Worksets.stack/WorksetREVERSE.pushbutton": workset_reverse,
     "Geometrie.panel/JoinMultiple.pushbutton": join_multiple,
     "Auswahl.panel/FilterMore.pushbutton": filter_more,
+    "Auswahl.panel/Elements2D.pushbutton": elements_2d,
     "Auswahl.panel/LinkedIds.pushbutton": linked_ids,
     "Geometrie.panel/LevelAutoSet.pushbutton": level_auto_set,
     "Geometrie.panel/LinkToGenericModel.pushbutton": link_to_generic_model,

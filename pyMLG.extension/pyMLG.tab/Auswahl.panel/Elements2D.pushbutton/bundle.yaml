@@ -1,0 +1,50 @@
+title:
+  de_de: "2D-\nElemente"
+  en_us: "2D\nElements"
+  es_es: "Elementos\n2D"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Alle 2D-Elemente des ganzen Projekts finden - nicht nur in der aktuellen
+    Ansicht - und markierte auswählen oder löschen.
+
+    Detaillinien, Füllbereiche, Detailbauteile, Detailgruppen, Texte,
+    Bemaßungen, Beschriftungen, Symbole, Revisionswolken und
+    ansichtsspezifische CAD-Importe. Baum nach Kategorie > Familie > Typ
+    oder nach Ansichtsart > Ansicht. Eingrenzen auf Ansichten, die auf
+    einem Plan liegen - oder auf keinem; im Projektbrowser vorher
+    ausgewählte Pläne werden übernommen. Doppelklick zeigt ein Element in seiner Ansicht.
+    Ansichten, Ansichtsfenster, Planköpfe und Ansichtsmarken sind nie dabei.
+    Vor dem Löschen prüft ein Probelauf, dass Revit kein Modell-Element
+    (3D-Element, Raster, Ebene) mitlöscht.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Find all 2D elements of the whole project - not just the active view -
+    and select or delete the checked ones.
+
+    Detail lines, filled regions, detail components, detail groups, texts,
+    dimensions, tags, symbols, revision clouds and view-specific CAD imports.
+    Tree by category > family > type or by view type > view. Narrow down to
+    views that are placed on a sheet - or on none; sheets selected in the
+    project browser beforehand are taken over. Double-click shows an element in
+    its view. Views, viewports, title blocks and view markers are never
+    included. Before deleting, a dry run makes sure Revit does not delete any
+    model element (3D element, grid, level) along with them.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Encuentra todos los elementos 2D de todo el proyecto, no solo de la
+    vista activa, y selecciona o elimina los marcados.
+
+    Líneas de detalle, regiones rellenas, componentes de detalle, grupos de
+    detalle, textos, cotas, etiquetas, símbolos, nubes de revisión e
+    importaciones CAD específicas de vista. Árbol por categoría > familia >
+    tipo o por tipo de vista > vista. Acota a vistas colocadas en un plano
+    o en ninguno; los planos seleccionados antes en el navegador de
+    proyectos se adoptan. Doble clic muestra un elemento en su vista. Nunca
+    incluye vistas, ventanas de vista, cajetines ni marcas de vista. Antes de
+    eliminar, una prueba comprueba que Revit no elimine ningún elemento del
+    modelo (elemento 3D, rejilla, nivel).
+
+    Requiere el motor CPython3.
