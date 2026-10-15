@@ -10,7 +10,9 @@ tooltip:
 
     Baum aller übertragbaren Elemente: Typen, Ansichtsvorlagen, Pläne,
     Zeichenansichten, Legenden, Bauteillisten, Filter, Materialien, Muster und
-    wahlweise Modellelemente. Doppelte Typnamen: Zieltypen verwenden,
+    wahlweise Modellelemente. Modellansichten (Grundrisse, Schnitte, Ansichten,
+    3D) werden im Ziel neu aufgebaut: Ebene, Zuschnitt, Ansichtsbereich,
+    Eigenschaften, Sichtbarkeit/Filter, Vorlage und Ansichtselemente. Doppelte Typnamen: Zieltypen verwenden,
     abbrechen oder nachfragen. Markierte Elemente in der Quelle löschen oder
     umbenennen (Präfix, Suffix, Suchen/Ersetzen, Groß-/Kleinschreibung).
 
@@ -21,7 +23,9 @@ tooltip:
 
     Tree of all transferable elements: types, view templates, sheets, drafting
     views, legends, schedules, filters, materials, patterns and optionally
-    model elements. Duplicate type names: use destination types, abort or ask.
+    model elements. Model views (plans, sections, elevations, 3D) are rebuilt
+    in the target: level, crop, view range, properties, visibility/filters,
+    template and view elements. Duplicate type names: use destination types, abort or ask.
     Delete or rename checked elements in the source (prefix, suffix, find and
     replace, upper/lower case).
 
@@ -32,7 +36,10 @@ tooltip:
 
     Árbol de todos los elementos transferibles: tipos, plantillas de vista,
     planos, vistas de diseño, leyendas, tablas, filtros, materiales, patrones
-    y, opcionalmente, elementos de modelo. Nombres de tipo duplicados: usar
+    y, opcionalmente, elementos de modelo. Las vistas de modelo (plantas,
+    secciones, alzados, 3D) se reconstruyen en el destino: nivel, recorte,
+    rango de vista, propiedades, visibilidad/filtros, plantilla y elementos
+    de vista. Nombres de tipo duplicados: usar
     los tipos del destino, cancelar o preguntar. Eliminar o renombrar los
     elementos marcados en el origen (prefijo, sufijo, buscar y reemplazar,
     mayúsculas/minúsculas).

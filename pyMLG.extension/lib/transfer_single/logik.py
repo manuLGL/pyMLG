@@ -6,6 +6,7 @@ Die Knoten stammen aus filter_more.baum; Markierung, Zählung und Zustand
 funktionieren dort unabhängig von der Tiefe.
 """
 
+import math
 import re
 
 from filter_more import baum as bm
@@ -109,6 +110,69 @@ def neuer_name(name, aktion, a=u"", b=u""):
     if aktion == ZAHLEN:
         return ersetze_zahl(name, a, b)
     raise ValueError(aktion)
+
+
+def name_mit_nummer(name, nummer):
+    """n-ter Namensvorschlag für eine Ansicht: 'EG', 'EG (2)', 'EG (3)' ..."""
+    return name if nummer <= 1 else u"%s (%d)" % (name, nummer)
+
+
+# ---------------------------------------------------------------------------
+# Modellansichten
+# ---------------------------------------------------------------------------
+
+# ViewType-Name -> Art. Flächenpläne, Walkthroughs usw. werden nicht neu
+# aufgebaut.
+GRUNDRISS = "grundriss"
+DECKE = "decke"
+TRAGWERK = "tragwerk"
+SCHNITT = "schnitt"
+DETAIL = "detail"
+ANSICHT = "ansicht"
+DREI_D = "3d"
+MODELLANSICHTEN = {
+    "FloorPlan": GRUNDRISS,
+    "CeilingPlan": DECKE,
+    "EngineeringPlan": TRAGWERK,
+    "Section": SCHNITT,
+    "Detail": DETAIL,
+    "Elevation": ANSICHT,
+    "ThreeD": DREI_D,
+}
+PLAENE = (GRUNDRISS, DECKE, TRAGWERK)
+
+
+def modellansicht_art(view_type):
+    """Art der Modellansicht zum ViewType-Namen, None = keine."""
+    return MODELLANSICHTEN.get(u"%s" % view_type)
+
+
+def passende_ebene(name, hoehe, ebenen, toleranz=0.01):
+    """Ebene im Ziel zu einer Ebene der Quelle.
+
+    ebenen: [(Name, Höhe, Id)] des Ziels, Höhen in Fuß (bereits in die
+    Koordinaten des Ziels umgerechnet). Gleicher Name zählt zuerst (ohne
+    Groß-/Kleinschreibung), sonst die nächstgelegene Ebene innerhalb der
+    Toleranz. Rückgabe (Id, "name" | "hoehe") oder (None, None)."""
+    schluessel = (name or u"").strip().casefold()
+    for ebene_name, _h, ebene_id in ebenen:
+        if (ebene_name or u"").strip().casefold() == schluessel:
+            return ebene_id, "name"
+    beste = None
+    for _n, ebene_hoehe, ebene_id in ebenen:
+        abstand = abs(ebene_hoehe - hoehe)
+        if abstand <= toleranz and (beste is None or abstand < beste[0]):
+            beste = (abstand, ebene_id)
+    if beste is not None:
+        return beste[1], "hoehe"
+    return None, None
+
+
+def drehwinkel(von, nach):
+    """Winkel (Bogenmaß, gegen den Uhrzeigersinn), um den der 2D-Vektor von
+    gedreht werden muss, damit er in Richtung nach zeigt."""
+    return math.atan2(von[0] * nach[1] - von[1] * nach[0],
+                      von[0] * nach[0] + von[1] * nach[1])
 
 
 def freie_nummer(nummer, vergeben):

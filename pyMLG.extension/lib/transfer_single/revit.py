@@ -10,11 +10,10 @@ Kopiert wird mit ElementTransformUtils.CopyElements:
     Pläne                                               neuer Plan im Ziel,
                                                         Planelemente (Plankopf,
                                                         Texte) View -> View,
-                                                        übertragbare Ansichten
-                                                        neu platziert
+                                                        Ansichten neu platziert
 
-Modellansichten (Grundrisse, Schnitte, 3D) lassen sich per API nicht zwischen
-Dokumenten kopieren - sie werden im Protokoll genannt.
+Modellansichten (Grundrisse, Schnitte, Ansichten, 3D) lassen sich nicht
+zwischen Dokumenten kopieren - modellansichten.py baut sie im Ziel neu auf.
 
 Doppelte Typnamen: IDuplicateTypeNamesHandler (Zieltypen verwenden, abbrechen
 oder nachfragen). Revit-Warnungen beim Übertragen löscht auf Wunsch ein
@@ -92,6 +91,26 @@ T_FUELLMUSTER = t(u"Füllmuster", u"Fill patterns", u"Patrones de relleno")
 T_BROWSER = t(u"Browser-Organisation", u"Browser organization",
               u"Organización del navegador")
 T_MODELL = t(u"Modell", u"Model", u"Modelo")
+T_MODELLANSICHTEN = {
+    lg.GRUNDRISS: t(u"Modellansichten – Grundrisse",
+                    u"Model views – Floor plans",
+                    u"Vistas de modelo – Plantas"),
+    lg.DECKE: t(u"Modellansichten – Deckenpläne",
+                u"Model views – Ceiling plans",
+                u"Vistas de modelo – Planos de techo"),
+    lg.TRAGWERK: t(u"Modellansichten – Tragwerkspläne",
+                   u"Model views – Structural plans",
+                   u"Vistas de modelo – Planos estructurales"),
+    lg.SCHNITT: t(u"Modellansichten – Schnitte", u"Model views – Sections",
+                  u"Vistas de modelo – Secciones"),
+    lg.DETAIL: t(u"Modellansichten – Detailansichten",
+                 u"Model views – Detail views",
+                 u"Vistas de modelo – Vistas de detalle"),
+    lg.ANSICHT: t(u"Modellansichten – Ansichten", u"Model views – Elevations",
+                  u"Vistas de modelo – Alzados"),
+    lg.DREI_D: t(u"Modellansichten – 3D-Ansichten", u"Model views – 3D views",
+                 u"Vistas de modelo – Vistas 3D"),
+}
 
 
 def id_wert(element_id):
@@ -216,6 +235,9 @@ def datensaetze(doc, mit_modell=False):
                     and not getattr(ansicht, "IsInternalKeynoteSchedule",
                                     False):
                 neu(T_LISTEN, ansicht, ansicht.Name)
+            elif lg.modellansicht_art(ansicht.ViewType):
+                neu(T_MODELLANSICHTEN[lg.modellansicht_art(ansicht.ViewType)],
+                    ansicht, ansicht.Name)
         except Exception:
             continue
 
@@ -589,31 +611,77 @@ def _eigene_elemente(doc, ansicht):
     return ergebnis
 
 
-def _kopiere_ansicht(quelle_doc, ansicht, ziel, optionen, kopien):
+class Kontext(object):
+    """Zustand der Übertragung in ein Ziel (ein Lauf)."""
+
+    def __init__(self, quelle_doc, ziel, transform, optionen):
+        self.quelle = quelle_doc
+        self.ziel = ziel
+        self.transform = transform      # für Modellansichten
+        self.optionen = optionen
+        self.kopien = {}        # Id-Wert der Quellansicht -> neue Ansicht
+        # Zwischenspeicher von modellansichten.py
+        self.namen = {}
+        self.muster = {}
+        self.ebenen = None
+        self.kategorien = None
+
+    def bereinige(self):
+        """Kopien entfernen, die eine zurückgenommene Untertransaktion
+        gelöscht hat."""
+        for schluessel, ansicht in list(self.kopien.items()):
+            if not ansicht.IsValidObject:
+                del self.kopien[schluessel]
+
+
+def _kopiere_ansicht(k, ansicht, hinweise):
     """Ansicht übertragen (einmal je Lauf). Rückgabe: neue Ansicht."""
+    if lg.modellansicht_art(ansicht.ViewType):
+        from transfer_single import modellansichten as mv
+        return mv.kopiere(k, ansicht, hinweise)
     schluessel = id_wert(ansicht.Id)
-    if schluessel in kopien:
-        return kopien[schluessel]
+    if schluessel in k.kopien:
+        return k.kopien[schluessel]
     neue_ids = ElementTransformUtils.CopyElements(
-        quelle_doc, net_ids([ansicht.Id]), ziel, Transform.Identity,
+        k.quelle, net_ids([ansicht.Id]), k.ziel, Transform.Identity,
         _optionen())
-    neue = ziel.GetElement(list(neue_ids)[0])
-    if optionen.ansichtselemente and not isinstance(ansicht, ViewSchedule):
-        quell_ids = _eigene_elemente(quelle_doc, ansicht)
+    neue = k.ziel.GetElement(list(neue_ids)[0])
+    if k.optionen.ansichtselemente and not isinstance(ansicht, ViewSchedule):
+        quell_ids = _eigene_elemente(k.quelle, ansicht)
         # Kopiert Revit die Ansichtselemente bereits mit, nicht verdoppeln
-        if quell_ids and not _eigene_elemente(ziel, neue):
+        if quell_ids and not _eigene_elemente(k.ziel, neue):
             ElementTransformUtils.CopyElements(
                 ansicht, net_ids(quell_ids), neue, Transform.Identity,
                 _optionen())
-    kopien[schluessel] = neue
+    k.kopien[schluessel] = neue
     return neue
 
 
 UEBERTRAGBARE_ANSICHTEN = (ViewType.DraftingView, ViewType.Legend)
 
 
-def _kopiere_plan(quelle_doc, plan, ziel, optionen, kopien, nummern,
-                  protokoll):
+def _uebertragbar(ansicht):
+    return ansicht.ViewType in UEBERTRAGBARE_ANSICHTEN \
+        or lg.modellansicht_art(ansicht.ViewType) is not None
+
+
+def _gleicher_typ(k, element):
+    """Gleichnamiger Typ derselben Kategorie im Ziel (z.B. Ansichtsfenster-
+    typ) oder None."""
+    typ = k.quelle.GetElement(element.GetTypeId())
+    if typ is None or typ.Category is None:
+        return None
+    name = _text(lambda: typ.Name)
+    for kandidat in FilteredElementCollector(k.ziel) \
+            .OfCategoryId(typ.Category.Id).WhereElementIsElementType():
+        if _text(lambda: kandidat.Name) == name:
+            return kandidat.Id
+    return None
+
+
+def _kopiere_plan(k, plan, nummern, protokoll):
+    quelle_doc, ziel = k.quelle, k.ziel
+
     def ausfuehren():
         neu = ViewSheet.Create(ziel, ElementId.InvalidElementId)
         neu.SheetNumber = lg.freie_nummer(plan.SheetNumber, nummern)
@@ -623,22 +691,27 @@ def _kopiere_plan(quelle_doc, plan, ziel, optionen, kopien, nummern,
             ElementTransformUtils.CopyElements(
                 plan, net_ids(eigene), neu, Transform.Identity, _optionen())
         hinweise = []
-        if optionen.plaene_mit_ansichten:
+        if k.optionen.plaene_mit_ansichten:
             for vp_id in plan.GetAllViewports():
                 viewport = quelle_doc.GetElement(vp_id)
                 ansicht = quelle_doc.GetElement(viewport.ViewId)
-                if ansicht.ViewType not in UEBERTRAGBARE_ANSICHTEN:
+                if not _uebertragbar(ansicht):
                     hinweise.append(t(
-                        u"Modellansicht '%s' nicht übertragbar",
-                        u"model view '%s' cannot be transferred",
-                        u"la vista de modelo '%s' no se puede transferir")
-                        % ansicht.Name)
+                        u"Ansicht '%s' nicht übertragbar (%s)",
+                        u"view '%s' cannot be transferred (%s)",
+                        u"la vista '%s' no se puede transferir (%s)")
+                        % (ansicht.Name, ansicht.ViewType))
                     continue
-                neue = _kopiere_ansicht(quelle_doc, ansicht, ziel, optionen,
-                                        kopien)
+                ansicht_hinweise = []
+                neue = _kopiere_ansicht(k, ansicht, ansicht_hinweise)
+                hinweise.extend(u"'%s': %s" % (ansicht.Name, h)
+                                for h in ansicht_hinweise)
                 if Viewport.CanAddViewToSheet(ziel, neu.Id, neue.Id):
-                    Viewport.Create(ziel, neu.Id, neue.Id,
-                                    viewport.GetBoxCenter())
+                    neuer_vp = Viewport.Create(ziel, neu.Id, neue.Id,
+                                               viewport.GetBoxCenter())
+                    typ_id = _gleicher_typ(k, viewport)
+                    if typ_id is not None:
+                        neuer_vp.ChangeTypeId(typ_id)
                 else:
                     hinweise.append(t(
                         u"'%s' ist bereits auf einem anderen Plan",
@@ -649,14 +722,14 @@ def _kopiere_plan(quelle_doc, plan, ziel, optionen, kopien, nummern,
                 if instanz.IsTitleblockRevisionSchedule:
                     continue
                 liste = quelle_doc.GetElement(instanz.ScheduleId)
-                neue = _kopiere_ansicht(quelle_doc, liste, ziel, optionen,
-                                        kopien)
+                neue = _kopiere_ansicht(k, liste, hinweise)
                 ScheduleSheetInstance.Create(ziel, neu.Id, neue.Id,
                                              instanz.Point)
         return neu, hinweise
 
     ergebnis, fehler = _einheit(ziel, ausfuehren)
     if fehler is not None:
+        k.bereinige()
         protokoll.fehlschlag(u"%s: %s" % (bezeichnung(plan), fehler))
         return
     neu, hinweise = ergebnis
@@ -713,27 +786,33 @@ def uebertrage(quelle, ziel_docs, id_werte, optionen):
             except Exception:
                 pass
         try:
+            # Eine Transformation für Modellelemente und Modellansichten
+            transform = transformation(
+                quelle, ziel, optionen.transformation, protokoll) \
+                if modell or ansichten or plaene else Transform.Identity
             _kopiere_gruppe(doc, rest, ziel, Transform.Identity, protokoll)
             if modell:
-                _kopiere_gruppe(doc, modell, ziel, transformation(
-                    quelle, ziel, optionen.transformation, protokoll),
-                    protokoll)
-            kopien = {}
+                _kopiere_gruppe(doc, modell, ziel, transform, protokoll)
+            k = Kontext(doc, ziel, transform, optionen)
             for ansicht in ansichten:
+                hinweise = []
                 neu, fehler = _einheit(ziel, lambda: _kopiere_ansicht(
-                    doc, ansicht, ziel, optionen, kopien))
+                    k, ansicht, hinweise))
                 if fehler is None:
+                    for hinweis in hinweise:
+                        protokoll.hinweis(u"%s: %s" % (bezeichnung(ansicht),
+                                                       hinweis))
                     protokoll.vormerken(bezeichnung(ansicht), [neu.Id],
                                         ansicht)
                 else:
+                    k.bereinige()
                     protokoll.fehlschlag(u"%s: %s" % (bezeichnung(ansicht),
                                                       fehler))
             if plaene:
                 nummern = set(p.SheetNumber.casefold() for p in
                               FilteredElementCollector(ziel).OfClass(ViewSheet))
                 for plan in plaene:
-                    _kopiere_plan(doc, plan, ziel, optionen, kopien, nummern,
-                                  protokoll)
+                    _kopiere_plan(k, plan, nummern, protokoll)
             status = transaktion.Commit()
         except Exception as ausnahme:
             if transaktion.HasStarted() and not transaktion.HasEnded():

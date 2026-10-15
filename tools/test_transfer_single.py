@@ -69,6 +69,41 @@ def test_umbenennen():
         raise AssertionError(u"ungültige Zahl muss ValueError werfen")
 
 
+def test_modellansicht_art():
+    assert lg.modellansicht_art(u"FloorPlan") == lg.GRUNDRISS
+    assert lg.modellansicht_art(u"EngineeringPlan") in lg.PLAENE
+    assert lg.modellansicht_art(u"Elevation") == lg.ANSICHT
+    assert lg.modellansicht_art(u"ThreeD") == lg.DREI_D
+    for keine in (u"AreaPlan", u"DraftingView", u"Legend", u"Walkthrough",
+                  u"DrawingSheet"):
+        assert lg.modellansicht_art(keine) is None
+
+
+def test_passende_ebene():
+    ebenen = [(u"EG", 0.0, 1), (u"OG1", 10.0, 2), (u"OG 2", 20.0, 3)]
+    # Name zählt vor der Höhe, ohne Groß-/Kleinschreibung
+    assert lg.passende_ebene(u"og1", 99.0, ebenen) == (2, "name")
+    # sonst Höhe innerhalb der Toleranz, die nächste gewinnt
+    assert lg.passende_ebene(u"Level 2", 20.004, ebenen) == (3, "hoehe")
+    assert lg.passende_ebene(u"X", 10.0, ebenen + [(u"Y", 10.005, 4)]) \
+        == (2, "hoehe")
+    assert lg.passende_ebene(u"X", 10.5, ebenen) == (None, None)
+    assert lg.passende_ebene(u"X", 0.0, []) == (None, None)
+
+
+def test_drehwinkel():
+    import math
+    assert abs(lg.drehwinkel((1, 0), (0, 1)) - math.pi / 2) < 1e-12
+    assert abs(lg.drehwinkel((0, 1), (1, 0)) + math.pi / 2) < 1e-12
+    assert abs(abs(lg.drehwinkel((1, 0), (-1, 0))) - math.pi) < 1e-12
+    assert lg.drehwinkel((0, -1), (0, -1)) == 0.0
+
+
+def test_name_mit_nummer():
+    assert lg.name_mit_nummer(u"EG", 1) == u"EG"
+    assert lg.name_mit_nummer(u"EG", 2) == u"EG (2)"
+
+
 def test_freie_nummer():
     vergeben = {u"a101", u"a101-2"}
     assert lg.freie_nummer(u"A101", vergeben) == u"A101-3"
