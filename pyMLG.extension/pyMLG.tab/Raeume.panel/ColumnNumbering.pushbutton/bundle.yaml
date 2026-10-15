@@ -1,30 +1,30 @@
 title:
-  de_de: "Stützen\nnummerieren"
-  en_us: "Number\nColumns"
-  es_es: "Numerar\npilares"
+  de_de: "Elemente\nnummerieren"
+  en_us: "Number\nElements"
+  es_es: "Numerar\nelementos"
 author: pyMLG
 tooltip:
   de_de: >-
-    Nummeriert Stützen nach dem Plan des Statikers - die letzte Zahl der ersten Nummer wird hochgezählt (S-01, S-02 ...).
+    Nummeriert Elemente beliebiger Kategorien - z. B. Stützen nach dem Plan des Statikers, Türen, Räume oder Wände. Die letzte Zahl der ersten Nummer wird hochgezählt (S-01, S-02 ...).
 
-    Anklicken: Stützen nacheinander in der Reihenfolge des Plans anklicken, ESC beendet. Pfad-Linie: Modell- oder Detaillinien durch die Stützen zeichnen und wählen - nummeriert wird in Zeichenrichtung (Schlangenlinie oder eine Linie je Reihe).
+    Anklicken: Elemente nacheinander in der Reihenfolge des Plans anklicken, ESC beendet. Pfad-Linie: Modell- oder Detaillinien durch die Elemente zeichnen und wählen - nummeriert wird in Zeichenrichtung (Schlangenlinie oder eine Linie je Reihe).
 
-    Die Nummern erscheinen während des Laufs als Vorschau in der Ansicht; am Ende übernehmen oder alles verwerfen. Optional bekommen Stützen darüber und darunter dieselbe Nummer. Wände lassen sich ebenso nummerieren (Haken "Wände", jede Wand eigene Nummer). Ein Rückgängig-Schritt je Lauf.
+    Die Kategorien werden im Fenster gewählt (nur solche mit Elementen im Projekt). Die Nummern erscheinen während des Laufs als Vorschau in der Ansicht; am Ende übernehmen oder alles verwerfen. Optional bekommen Elemente derselben Kategorie darüber und darunter dieselbe Nummer (nicht bei Wänden, Trägern u. ä.). Ein Rückgängig-Schritt je Lauf.
 
     Benötigt die CPython3-Engine.
   en_us: >-
-    Numbers columns according to the structural engineer's plan - the last number of the first number is counted up (S-01, S-02 ...).
+    Numbers elements of any category - e.g. columns according to the structural engineer's plan, doors, rooms or walls. The last number of the first number is counted up (S-01, S-02 ...).
 
-    Pick: pick the columns one after another in the order of the plan, ESC ends. Path line: draw model or detail lines through the columns and pick them - numbering follows the drawing direction (a snake line or one line per row).
+    Pick: pick the elements one after another in the order of the plan, ESC ends. Path line: draw model or detail lines through the elements and pick them - numbering follows the drawing direction (a snake line or one line per row).
 
-    The numbers are previewed in the view while you work; at the end keep them or discard everything. Optionally, columns above and below get the same number. Walls can be numbered too ("Walls" checkbox, each wall its own number). One undo step per run.
+    The categories are chosen in the window (only those with elements in the project). The numbers are previewed in the view while you work; at the end keep them or discard everything. Optionally, elements of the same category above and below get the same number (not for walls, beams etc.). One undo step per run.
 
     Requires the CPython3 engine.
   es_es: >-
-    Numera los pilares según el plano del ingeniero de estructuras: se incrementa el último número del primer número (S-01, S-02 ...).
+    Numera elementos de cualquier categoría, p. ej. pilares según el plano del ingeniero de estructuras, puertas, habitaciones o muros. Se incrementa el último número del primer número (S-01, S-02 ...).
 
-    Seleccionar: seleccione los pilares uno tras otro en el orden del plano, ESC termina. Línea de recorrido: dibuje líneas de modelo o de detalle a través de los pilares y selecciónelas; se numera en el sentido del dibujo (una línea en zigzag o una línea por fila).
+    Seleccionar: seleccione los elementos uno tras otro en el orden del plano, ESC termina. Línea de recorrido: dibuje líneas de modelo o de detalle a través de los elementos y selecciónelas; se numera en el sentido del dibujo (una línea en zigzag o una línea por fila).
 
-    Los números se muestran como vista previa durante el proceso; al final se conservan o se descarta todo. Opcionalmente, los pilares de encima y debajo reciben el mismo número. También se pueden numerar muros (casilla "Muros", cada muro su propio número). Un paso de deshacer por ejecución.
+    Las categorías se eligen en la ventana (solo las que tienen elementos en el proyecto). Los números se muestran como vista previa durante el proceso; al final se conservan o se descarta todo. Opcionalmente, los elementos de la misma categoría encima y debajo reciben el mismo número (no en muros, vigas, etc.). Un paso de deshacer por ejecución.
 
     Requiere el motor CPython3.

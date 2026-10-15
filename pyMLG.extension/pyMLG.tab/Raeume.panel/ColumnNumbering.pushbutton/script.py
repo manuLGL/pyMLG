@@ -1,6 +1,7 @@
 #! python3
 # -*- coding: utf-8 -*-
-"""ColumnNumbering: Stützen nach dem Plan des Statikers durchnummerieren.
+"""ColumnNumbering: Elemente beliebiger Kategorien (z.B. Stützen nach dem
+Plan des Statikers) durchnummerieren.
 
 Die Logik liegt in lib/stuetzen_nummer (Fenster: fenster.py, Revit:
 revit.py, Pfad und Nummern: logik.py).
@@ -23,7 +24,7 @@ if os.path.join(_EXT, "lib") not in sys.path:
 
 from mlg_sprache import t  # noqa: E402
 
-TITEL = t(u"Stützen nummerieren", u"Number Columns", u"Numerar pilares")
+TITEL = t(u"Elemente nummerieren", u"Number Elements", u"Numerar elementos")
 
 # So viele Einträge werden in Meldungen einzeln genannt
 MAX_ZEILEN = 8
@@ -72,14 +73,18 @@ def _pfad(uidoc, lauf, zaehler, einst, linien):
                              einst.abstand)
     if not reihenfolge:
         ui.meldung(t(u"Kein sichtbares Element liegt nahe genug an der "
-                     u"Linie (bei Wänden zählt die Wandmitte). Abstand im "
-                     u"Fenster vergrößern?",
+                     u"Linie (es zählt der Einfügepunkt, bei Wänden und "
+                     u"Trägern die Mitte, bei Decken u. ä. die Mitte des "
+                     u"Umrisses). Abstand im Fenster vergrößern?",
                      u"No visible element is close enough to the line "
-                     u"(for walls the wall midpoint counts). Increase the "
-                     u"distance in the window?",
+                     u"(the insertion point counts, for walls and beams "
+                     u"the midpoint, for floors etc. the center of the "
+                     u"outline). Increase the distance in the window?",
                      u"Ningún elemento visible está lo bastante cerca de la "
-                     u"línea (en los muros cuenta el punto medio). "
-                     u"¿Aumentar la distancia en la ventana?"),
+                     u"línea (cuenta el punto de inserción; en muros y "
+                     u"vigas el punto medio, en suelos y similares el "
+                     u"centro del contorno). ¿Aumentar la distancia en la "
+                     u"ventana?"),
                    titel=TITEL, hauptzeile=t(u"Keine Elemente gefunden",
                                              u"No elements found",
                                              u"No se han encontrado "
@@ -116,10 +121,10 @@ def _abschluss(lauf, zaehler):
                 u"%d números: %s … %s") % (len(lauf.reihenfolge), erste,
                                             letzte)]
     if gestapelt:
-        zeilen.append(t(u"Dazu %d Stützen darüber/darunter mit gleicher "
+        zeilen.append(t(u"Dazu %d Elemente darüber/darunter mit gleicher "
                         u"Nummer.",
-                        u"Plus %d columns above/below with the same number.",
-                        u"Además %d pilares encima/debajo con el mismo "
+                        u"Plus %d elements above/below with the same number.",
+                        u"Además %d elementos encima/debajo con el mismo "
                         u"número.") % gestapelt)
     if lauf.fehler:
         zeilen += [u"", t(u"Nicht geschrieben:", u"Not written:",
@@ -161,10 +166,9 @@ def main():
     uidoc = getattr(__revit__, "ActiveUIDocument", None)
     doc = uidoc.Document if uidoc is not None else None
     if doc is None or doc.IsFamilyDocument:
-        ui.meldung(t(u"Stützen nummerieren geht nur in Projektdateien.",
-                     u"Numbering columns only works in project files.",
-                     u"Numerar pilares solo funciona en archivos de "
-                     u"proyecto."),
+        ui.meldung(t(u"Nummerieren geht nur in Projektdateien.",
+                     u"Numbering only works in project files.",
+                     u"Numerar solo funciona en archivos de proyecto."),
                    titel=TITEL, hauptzeile=t(u"Kein Projekt geöffnet",
                                              u"No project open",
                                              u"No hay ningún proyecto "
@@ -175,9 +179,9 @@ def main():
         ui.meldung(t(u"Das Dokument ist schreibgeschützt.",
                      u"The document is read-only.",
                      u"El documento es de solo lectura."), titel=TITEL,
-                   hauptzeile=t(u"Stützen können nicht nummeriert werden",
-                                u"Columns cannot be numbered",
-                                u"No se pueden numerar los pilares"),
+                   hauptzeile=t(u"Elemente können nicht nummeriert werden",
+                                u"Elements cannot be numbered",
+                                u"No se pueden numerar los elementos"),
                    warnung=True)
         return
 
@@ -225,9 +229,9 @@ def _zeige_fehler(spur):
                                      u"\n\nRegistro: %s") % protokoll
                                    if protokoll else u""),
                    titel=TITEL,
-                   hauptzeile=t(u"Stützen nummerieren ist fehlgeschlagen",
-                                u"Number Columns failed",
-                                u"Numerar pilares ha fallado"),
+                   hauptzeile=t(u"Elemente nummerieren ist fehlgeschlagen",
+                                u"Number Elements failed",
+                                u"Numerar elementos ha fallado"),
                    warnung=True)
     except Exception:
         pass

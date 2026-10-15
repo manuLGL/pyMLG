@@ -20,6 +20,7 @@ import uuid
 from Autodesk.Revit.DB import (  # noqa: E402
     BuiltInCategory,
     BuiltInParameter,
+    CategoryType,
     Color,
     CurveElement,
     ElementId,
@@ -48,17 +49,20 @@ FUSS = 0.3048
 # Stützen höchstens so weit auseinander (Grundriss) gelten als übereinander
 STAPEL_TOLERANZ = 0.05 / FUSS
 
-TRAGWERK = "tragwerk"
-ARCHITEKTUR = "architektur"
-WAND = "wand"
-KATEGORIEN = {
-    TRAGWERK: BuiltInCategory.OST_StructuralColumns,
-    ARCHITEKTUR: BuiltInCategory.OST_Columns,
-    WAND: BuiltInCategory.OST_Walls,
-}
+# Kategorien werden über den Wert ihrer Id geführt (BuiltInCategory als
+# Zahl) - gleich in jedem Projekt und jeder Sprache
+TRAGWERK = int(BuiltInCategory.OST_StructuralColumns)
+ARCHITEKTUR = int(BuiltInCategory.OST_Columns)
+WAND = int(BuiltInCategory.OST_Walls)
+STANDARD = (TRAGWERK, ARCHITEKTUR)
+
+# Diese Kategorien gelten beim Stapeln als eine (Tragwerks- und
+# architektonische Stütze übereinander bekommen dieselbe Nummer)
+STAPEL_GRUPPEN = ((TRAGWERK, ARCHITEKTUR),)
 
 # Linienelemente, deren Enden höchstens so weit auseinander liegen (Höhe),
-# gelten als waagrecht (Wände) -> Mitte statt unterer Endpunkt
+# gelten als waagrecht (Wände, Träger, Rohre) -> Mitte statt unterer
+# Endpunkt
 WAAGRECHT_TOLERANZ = 0.01 / FUSS
 
 # Diese eingebauten Parameter stehen in der Liste oben
@@ -88,30 +92,69 @@ def beschreibe(element):
         return u"[%d]" % id_wert(element.Id)
 
 
-# ---------------------------------------------------------------- Stützen
+# ---------------------------------------------------------------- Kategorien
 
-def _kategorie_ids(kategorien):
-    return set(id_wert(ElementId(KATEGORIEN[k])) for k in kategorien)
+def kategorie_wert(element):
+    kategorie = getattr(element, "Category", None)
+    return id_wert(kategorie.Id) if kategorie is not None else None
 
+
+def _modellkategorien(doc):
+    """{Id-Wert: Kategorie} aller Modellkategorien, die Parameter tragen
+    können (keine Beschriftungen, keine internen)."""
+    ergebnis = {}
+    for kategorie in doc.Settings.Categories:
+        try:
+            if (kategorie.CategoryType != CategoryType.Model
+                    or kategorie.IsTagCategory
+                    or not kategorie.AllowsBoundParameters
+                    or not kategorie.IsVisibleInUI):
+                continue
+        except Exception:
+            continue
+        ergebnis[id_wert(kategorie.Id)] = kategorie
+    return ergebnis
+
+
+def kategorie_optionen(doc):
+    """[(Id-Wert, Name)] der Modellkategorien, von denen es im Projekt
+    Elemente gibt - nach Namen sortiert."""
+    ergebnis = []
+    for wert_, kategorie in _modellkategorien(doc).items():
+        vorhanden = FilteredElementCollector(doc) \
+            .OfCategoryId(kategorie.Id).WhereElementIsNotElementType() \
+            .FirstElementId()
+        if vorhanden != ElementId.InvalidElementId:
+            ergebnis.append((wert_, u"%s" % kategorie.Name))
+    return sorted(ergebnis, key=lambda e: e[1].lower())
+
+
+# ---------------------------------------------------------------- Elemente
 
 def ist_stuetze(element, kategorien):
-    """Element einer der gewählten Kategorien (Stützen, ggf. Wände)."""
-    kategorie = getattr(element, "Category", None)
-    return (kategorie is not None and element.Location is not None
-            and id_wert(kategorie.Id) in _kategorie_ids(kategorien))
+    """Element einer der gewählten Kategorien mit bestimmbarer Lage."""
+    return (kategorie_wert(element) in kategorien
+            and punkt(element) is not None)
 
 
-def ist_wand(element):
-    kategorie = getattr(element, "Category", None)
-    return (kategorie is not None and id_wert(kategorie.Id)
-            == id_wert(ElementId(KATEGORIEN[WAND])))
+def ist_linienelement(element):
+    """Waagrechtes Linienelement (Wand, Träger, Rohr ...)."""
+    kurve = getattr(element.Location, "Curve", None)
+    if kurve is None:
+        return False
+    a, b = kurve.GetEndPoint(0), kurve.GetEndPoint(1)
+    return abs(a.Z - b.Z) <= WAAGRECHT_TOLERANZ
 
 
 def _sammler(doc, kategorien, ansicht=None):
     from System.Collections.Generic import List
-    liste = List[BuiltInCategory]()
+    vorhanden = _modellkategorien(doc)
+    liste = List[ElementId]()
     for k in kategorien:
-        liste.Add(KATEGORIEN[k])
+        if k in vorhanden:
+            liste.Add(vorhanden[k].Id)
+    if liste.Count == 0:
+        return []
     sammler = (FilteredElementCollector(doc, ansicht.Id) if ansicht
                else FilteredElementCollector(doc))
     return sammler.WherePasses(ElementMulticategoryFilter(liste)) \
@@ -119,26 +162,43 @@ def _sammler(doc, kategorien, ansicht=None):
 
 
 def stuetzen(doc, kategorien, ansicht=None):
-    """Alle Stützen (oder die in der Ansicht sichtbaren)."""
+    """Alle Elemente der Kategorien (oder die in der Ansicht sichtbaren)."""
     return [e for e in _sammler(doc, kategorien, ansicht)
-            if ist_stuetze(e, kategorien) and punkt(e) is not None]
+            if ist_stuetze(e, kategorien)]
 
 
 def punkt(stuetze):
     """Einfügepunkt (XYZ); bei geneigten Stützen der untere Endpunkt, bei
     waagrechten Linienelementen (Wände) die Mitte - sonst hinge die
-    Reihenfolge im Pfad-Modus von der Zeichenrichtung der Wand ab."""
+    Reihenfolge im Pfad-Modus von der Zeichenrichtung der Wand ab.
+    Elemente ohne Punkt oder Linie (Decken, Dächer ...): Mitte des
+    Umgrenzungsrahmens auf seiner Unterkante."""
     ort = stuetze.Location
     p = getattr(ort, "Point", None)
     if p is not None:
         return p
     kurve = getattr(ort, "Curve", None)
     if kurve is None:
-        return None
+        try:
+            rahmen = stuetze.get_BoundingBox(None)
+        except Exception:
+            rahmen = None
+        if rahmen is None:
+            return None
+        return XYZ((rahmen.Min.X + rahmen.Max.X) / 2.0,
+                   (rahmen.Min.Y + rahmen.Max.Y) / 2.0, rahmen.Min.Z)
     a, b = kurve.GetEndPoint(0), kurve.GetEndPoint(1)
     if abs(a.Z - b.Z) <= WAAGRECHT_TOLERANZ:
         return kurve.Evaluate(0.5, True)
     return a if a.Z <= b.Z else b
+
+
+def stapel_gruppe(kategorie):
+    """Die Kategorien, mit denen gestapelt wird."""
+    for gruppe in STAPEL_GRUPPEN:
+        if kategorie in gruppe:
+            return gruppe
+    return (kategorie,)
 
 
 def _xy(p):
@@ -152,13 +212,20 @@ def grundriss(stuetze):
 
 # ---------------------------------------------------------------- Parameter
 
-def parameter_optionen(doc, kategorien, stichprobe=200):
+def _stichprobe(doc, kategorien, je_kategorie):
+    for k in kategorien:
+        for nummer, element in enumerate(_sammler(doc, [k])):
+            if nummer >= je_kategorie:
+                break
+            yield element
+
+
+def parameter_optionen(doc, kategorien, stichprobe=50):
     """[(Schlüssel, Anzeigename)] der beschreibbaren Text-Parameter der
-    Stützen. Schlüssel: 'bip:ALL_MODEL_MARK' oder 'name:<Name>'."""
+    Elemente (Stichprobe je Kategorie).
+    Schlüssel: 'bip:ALL_MODEL_MARK' oder 'name:<Name>'."""
     gefunden = {}
-    for nummer, element in enumerate(_sammler(doc, kategorien)):
-        if nummer >= stichprobe:
-            break
+    for element in _stichprobe(doc, kategorien, stichprobe):
         for parameter in element.Parameters:
             if (parameter.StorageType != StorageType.String
                     or parameter.IsReadOnly):
@@ -339,10 +406,10 @@ class Lauf(object):
             ElementTypeGroup.TextNoteType)
         self._notizen_moeglich = self._notiztyp != ElementId.InvalidElementId
         self._fuellung = _vollfuellung(self.doc)
-        self._alle = None
+        self._alle = {}            # Stapelgruppe -> ([Elemente], [xy])
         self.gruppe = TransactionGroup(
-            self.doc, t(u"Stützen nummerieren", u"Number columns",
-                        u"Numerar pilares"))
+            self.doc, t(u"Elemente nummerieren", u"Number elements",
+                        u"Numerar elementos"))
         self.gruppe.Start()
 
     # --- Zuordnung --------------------------------------------------------
@@ -350,21 +417,25 @@ class Lauf(object):
         return self.nummern.get(id_wert(stuetze.Id))
 
     def _stapel(self, stuetze):
-        """Die Stütze und - falls gewünscht - alle Stützen über und unter
-        ihr, die noch keine Nummer haben. Wände werden nie gestapelt: ein
+        """Das Element und - falls gewünscht - alle Elemente derselben
+        Kategorie über und unter ihm, die noch keine Nummer haben.
+        Waagrechte Linienelemente (Wände, Träger) werden nie gestapelt: ein
         einzelner Punkt je Wand trifft die Wand darüber nur, wenn sie exakt
         gleich gezeichnet ist (siehe punkt)."""
-        if not self.stapeln or ist_wand(stuetze):
+        if not self.stapeln or ist_linienelement(stuetze):
             return [stuetze]
-        if self._alle is None:
-            nur_stuetzen = [k for k in self.kategorien if k != WAND]
-            self._alle = stuetzen(self.doc, nur_stuetzen)
-            self._alle_xy = [grundriss(e) for e in self._alle]
-        treffer = lg.uebereinander(grundriss(stuetze), self._alle_xy,
+        gruppe = tuple(k for k in stapel_gruppe(kategorie_wert(stuetze))
+                       if k in self.kategorien)
+        if gruppe not in self._alle:
+            alle = [e for e in stuetzen(self.doc, gruppe)
+                    if not ist_linienelement(e)]
+            self._alle[gruppe] = (alle, [grundriss(e) for e in alle])
+        alle, alle_xy = self._alle[gruppe]
+        treffer = lg.uebereinander(grundriss(stuetze), alle_xy,
                                    STAPEL_TOLERANZ)
         ergebnis = [stuetze]
         for i in treffer:
-            e = self._alle[i]
+            e = alle[i]
             if e.Id != stuetze.Id and self.vergeben(e) is None:
                 ergebnis.append(e)
         return ergebnis
@@ -384,9 +455,9 @@ class Lauf(object):
             auftraege.append((stuetze, nummer, gruppe))
         if not auftraege:
             return
-        transaktion = Transaction(self.doc, t(u"Stütze nummerieren",
-                                              u"Number column",
-                                              u"Numerar pilar"))
+        transaktion = Transaction(self.doc, t(u"Element nummerieren",
+                                              u"Number element",
+                                              u"Numerar elemento"))
         transaktion.Start()
         try:
             optionen = transaktion.GetFailureHandlingOptions()

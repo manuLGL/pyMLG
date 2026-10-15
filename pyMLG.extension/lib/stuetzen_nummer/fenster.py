@@ -3,8 +3,10 @@
 
     Vorgehen    ● Anklicken   ○ Pfad-Linie
     Nummer      Erste [S-01]  Schritt [1]   S-01, S-02, S-03 …
+    Kategorien  [Suche      ]
+                ☑ Tragwerksstützen  ☐ Türen  ☐ Wände ...
+                ☑ darüber/darunter gleich
     Parameter   [Kennzeichen          v]
-    Elemente    ☑ Tragwerk ☑ Architektur ☐ Wände  ☑ darüber/darunter gleich
     Pfad        Abstand zur Linie [0,30] m
                                        [Starten] [Abbrechen]
 
@@ -23,7 +25,8 @@ clr.AddReference("PresentationFramework")
 clr.AddReference("PresentationCore")
 clr.AddReference("WindowsBase")
 
-from System.Windows.Controls import Control  # noqa: E402
+from System.Windows import Visibility  # noqa: E402
+from System.Windows.Controls import CheckBox, Control  # noqa: E402
 from System.Windows.Media import Color, SolidColorBrush  # noqa: E402
 
 from filter_manager import dialoge as dlg  # noqa: E402
@@ -31,7 +34,7 @@ from mlg_sprache import t, uebersetze_xaml  # noqa: E402
 from stuetzen_nummer import logik as lg  # noqa: E402
 from stuetzen_nummer import revit as rv  # noqa: E402
 
-TITEL = t(u"Stützen nummerieren", u"Number Columns", u"Numerar pilares")
+TITEL = t(u"Elemente nummerieren", u"Number Elements", u"Numerar elementos")
 
 KLICK = "klick"
 PFAD = "pfad"
@@ -50,25 +53,25 @@ def _pinsel(r, g, b):
 ROT = _pinsel(192, 57, 43)
 
 XAML_TEXTE = {
-    "titel": (u"Stützen nummerieren", u"Number Columns",
-              u"Numerar pilares"),
+    "titel": (u"Elemente nummerieren", u"Number Elements",
+              u"Numerar elementos"),
     "vorgehen": (u"Vorgehen", u"Method", u"Método"),
     "klick": (u"Anklicken", u"Pick", u"Seleccionar"),
-    "klick_text": (u"Stützen nacheinander in der Reihenfolge des Statik-Plans "
+    "klick_text": (u"Elemente nacheinander in der Reihenfolge des Plans "
                    u"anklicken. ESC beendet.",
-                   u"Pick the columns one after another in the order of the "
-                   u"structural plan. ESC ends.",
-                   u"Seleccione los pilares uno tras otro en el orden del "
-                   u"plano de estructura. ESC termina."),
+                   u"Pick the elements one after another in the order of "
+                   u"the plan. ESC ends.",
+                   u"Seleccione los elementos uno tras otro en el orden del "
+                   u"plano. ESC termina."),
     "pfad": (u"Pfad-Linie", u"Path line", u"Línea de recorrido"),
-    "pfad_text": (u"Modell- oder Detaillinien durch die Stützen zeichnen und "
-                  u"anklicken (getrennte Reihen in der gewünschten "
+    "pfad_text": (u"Modell- oder Detaillinien durch die Elemente zeichnen "
+                  u"und anklicken (getrennte Reihen in der gewünschten "
                   u"Reihenfolge). Nummeriert wird in Zeichenrichtung.",
-                  u"Draw model or detail lines through the columns and pick "
-                  u"them (separate rows in the desired order). Numbering "
-                  u"follows the drawing direction.",
+                  u"Draw model or detail lines through the elements and "
+                  u"pick them (separate rows in the desired order). "
+                  u"Numbering follows the drawing direction.",
                   u"Dibuje líneas de modelo o de detalle a través de los "
-                  u"pilares y selecciónelas (filas separadas en el orden "
+                  u"elementos y selecciónelas (filas separadas en el orden "
                   u"deseado). Se numera en el sentido del dibujo."),
     "nummer": (u"Nummer", u"Number", u"Número"),
     "erste": (u"Erste Nummer", u"First number", u"Primer número"),
@@ -78,24 +81,23 @@ XAML_TEXTE = {
                u"Se incrementa el último número, se conservan los ceros."),
     "parameter": (u"Schreiben in Parameter", u"Write to parameter",
                   u"Escribir en el parámetro"),
-    "stuetzen": (u"Elemente", u"Elements", u"Elementos"),
-    "tragwerk": (u"Tragwerksstützen", u"Structural columns",
-                 u"Pilares estructurales"),
-    "architektur": (u"Architektonische Stützen", u"Architectural columns",
-                    u"Pilares arquitectónicos"),
-    "wand": (u"Wände", u"Walls", u"Muros"),
-    "stapel": (u"Gleiche Nummer für Stützen darüber und darunter "
-               u"(gleiche Lage auf anderen Ebenen; Wände bekommen immer "
-               u"eine eigene Nummer)",
-               u"Same number for columns above and below "
-               u"(same position on other levels; walls always get their "
-               u"own number)",
-               u"Mismo número para los pilares de encima y debajo "
-               u"(misma posición en otros niveles; los muros siempre "
-               u"reciben su propio número)"),
-    "abstand": (u"Pfad: max. Abstand Stütze - Linie (m)",
-                u"Path: max. distance column - line (m)",
-                u"Recorrido: distancia máx. pilar - línea (m)"),
+    "stuetzen": (u"Kategorien", u"Categories", u"Categorías"),
+    "suche": (u"Suchen:", u"Search:", u"Buscar:"),
+    "kat_text": (u"Nur Kategorien mit Elementen im Projekt.",
+                 u"Only categories with elements in the project.",
+                 u"Solo categorías con elementos en el proyecto."),
+    "stapel": (u"Gleiche Nummer für Elemente derselben Kategorie darüber "
+               u"und darunter (gleiche Lage auf anderen Ebenen; Wände, "
+               u"Träger u. ä. bekommen immer eine eigene Nummer)",
+               u"Same number for elements of the same category above and "
+               u"below (same position on other levels; walls, beams etc. "
+               u"always get their own number)",
+               u"Mismo número para los elementos de la misma categoría "
+               u"encima y debajo (misma posición en otros niveles; muros, "
+               u"vigas, etc. siempre reciben su propio número)"),
+    "abstand": (u"Pfad: max. Abstand Element - Linie (m)",
+                u"Path: max. distance element - line (m)",
+                u"Recorrido: distancia máx. elemento - línea (m)"),
     "starten": (u"Starten", u"Start", u"Iniciar"),
     "abbrechen": (u"Abbrechen", u"Cancel", u"Cancelar"),
 }
@@ -149,19 +151,30 @@ XAML = u"""
       </StackPanel>
     </GroupBox>
 
-    <GroupBox Header="{{parameter}}">
-      <ComboBox x:Name="parameter"/>
-    </GroupBox>
-
     <GroupBox Header="{{stuetzen}}">
       <StackPanel>
-        <CheckBox x:Name="kat_tragwerk" Content="{{tragwerk}}"/>
-        <CheckBox x:Name="kat_architektur" Content="{{architektur}}"/>
-        <CheckBox x:Name="kat_wand" Content="{{wand}}"/>
+        <Grid Margin="0,0,0,4">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <TextBlock Text="{{suche}}" VerticalAlignment="Center"
+                     Margin="0,0,8,0"/>
+          <TextBox x:Name="suche" Grid.Column="1" Padding="3"/>
+        </Grid>
+        <ScrollViewer Height="170" VerticalScrollBarVisibility="Auto"
+                      BorderBrush="#ccc" BorderThickness="1">
+          <StackPanel x:Name="kategorien" Margin="4,2"/>
+        </ScrollViewer>
+        <TextBlock Text="{{kat_text}}" Foreground="#555" TextWrapping="Wrap"/>
         <CheckBox x:Name="stapeln" Margin="0,6,0,2">
           <TextBlock Text="{{stapel}}" TextWrapping="Wrap"/>
         </CheckBox>
       </StackPanel>
+    </GroupBox>
+
+    <GroupBox Header="{{parameter}}">
+      <ComboBox x:Name="parameter"/>
     </GroupBox>
 
     <Grid Margin="0,0,0,10">
@@ -205,6 +218,18 @@ def merke_naechste(nummer):
     speichere_einstellungen(werte)
 
 
+def _gemerkte_kategorien(einst):
+    """Id-Werte der zuletzt gewählten Kategorien. Ältere Einstellungen
+    kannten nur die Haken Tragwerk / Architektur / Wände."""
+    if "kategorien" in einst:
+        return [int(k) for k in einst["kategorien"]]
+    alt = [(u"tragwerk", rv.TRAGWERK, True),
+           (u"architektur", rv.ARCHITEKTUR, True),
+           (u"wand", rv.WAND, False)]
+    return [wert_ for name, wert_, standard in alt
+            if einst.get(name, standard)]
+
+
 class Einstellungen(object):
     def __init__(self, modus, start, schritt, schluessel, kategorien,
                  stapeln, abstand_m):
@@ -228,8 +253,8 @@ class Fenster(object):
         except Exception:
             pass
         for name in ("modus_klick", "modus_pfad", "start", "schritt",
-                     "vorschau", "parameter", "kat_tragwerk",
-                     "kat_architektur", "kat_wand", "stapeln", "abstand"):
+                     "vorschau", "parameter", "suche", "kategorien",
+                     "stapeln", "abstand"):
             setattr(self, name, f.FindName(name))
 
         einst = lade_einstellungen()
@@ -238,25 +263,27 @@ class Fenster(object):
         self.modus_klick.IsChecked = not pfad
         self.start.Text = einst.get("start", u"S-01")
         self.schritt.Text = u"%s" % einst.get("schritt", 1)
-        self.kat_tragwerk.IsChecked = einst.get("tragwerk", True)
-        self.kat_architektur.IsChecked = einst.get("architektur", True)
-        self.kat_wand.IsChecked = einst.get("wand", False)
         self.stapeln.IsChecked = einst.get("stapeln", True)
         self.abstand.Text = einst.get("abstand", u"0,30")
-
-        self.optionen = (rv.parameter_optionen(
-            doc, [rv.TRAGWERK, rv.ARCHITEKTUR, rv.WAND])
-            or rv.standard_optionen())
-        for _, name in self.optionen:
-            self.parameter.Items.Add(name)
-        schluessel = [s for s, _ in self.optionen]
-        gemerkt = einst.get("parameter")
-        self.parameter.SelectedIndex = (schluessel.index(gemerkt)
-                                        if gemerkt in schluessel else 0)
 
         def s(funktion):
             return dlg.sicher(lambda: f, funktion)
 
+        gewaehlt = set(_gemerkte_kategorien(einst))
+        self.haken = []            # [(Id-Wert, CheckBox)]
+        for wert_, name in rv.kategorie_optionen(doc):
+            haken = CheckBox()
+            haken.Content = name
+            haken.IsChecked = wert_ in gewaehlt
+            haken.Checked += s(lambda _s, _a: self._kategorien_geaendert())
+            haken.Unchecked += s(lambda _s, _a: self._kategorien_geaendert())
+            self.kategorien.Children.Add(haken)
+            self.haken.append((wert_, haken))
+
+        self.optionen = []
+        self._parameter_fuellen(einst.get("parameter"))
+
+        self.suche.TextChanged += s(lambda _s, _a: self._filtern())
         self.start.TextChanged += s(lambda _s, _a: self.pruefe())
         self.schritt.TextChanged += s(lambda _s, _a: self.pruefe())
         self.modus_klick.Checked += s(lambda _s, _a: self._modus_geaendert())
@@ -264,6 +291,35 @@ class Fenster(object):
         f.FindName("starten").Click += s(lambda _s, _a: self.starte())
         self._modus_geaendert()
         self.pruefe()
+
+    def gewaehlte_kategorien(self):
+        return [wert_ for wert_, haken in self.haken if haken.IsChecked]
+
+    def _filtern(self):
+        suche = (self.suche.Text or u"").strip().lower()
+        for _, haken in self.haken:
+            sichtbar = (not suche or suche in (u"%s" % haken.Content).lower()
+                        or haken.IsChecked)
+            haken.Visibility = (Visibility.Visible if sichtbar
+                                else Visibility.Collapsed)
+
+    def _kategorien_geaendert(self):
+        alt = (self.optionen[self.parameter.SelectedIndex][0]
+               if 0 <= self.parameter.SelectedIndex < len(self.optionen)
+               else None)
+        self._parameter_fuellen(alt)
+
+    def _parameter_fuellen(self, gemerkt):
+        """Parameterliste passend zu den gewählten Kategorien."""
+        self.optionen = (rv.parameter_optionen(
+            self.doc, self.gewaehlte_kategorien())
+            or rv.standard_optionen())
+        self.parameter.Items.Clear()
+        for _, name in self.optionen:
+            self.parameter.Items.Add(name)
+        schluessel = [s for s, _ in self.optionen]
+        self.parameter.SelectedIndex = (schluessel.index(gemerkt)
+                                        if gemerkt in schluessel else 0)
 
     def _modus_geaendert(self):
         self.abstand.IsEnabled = bool(self.modus_pfad.IsChecked)
@@ -301,13 +357,7 @@ class Fenster(object):
         if geprueft is None:
             return
         start, schritt = geprueft
-        kategorien = []
-        if self.kat_tragwerk.IsChecked:
-            kategorien.append(rv.TRAGWERK)
-        if self.kat_architektur.IsChecked:
-            kategorien.append(rv.ARCHITEKTUR)
-        if self.kat_wand.IsChecked:
-            kategorien.append(rv.WAND)
+        kategorien = self.gewaehlte_kategorien()
         if not kategorien:
             dlg.meldung(self.fenster, t(
                 u"Bitte mindestens eine Kategorie wählen.",
@@ -337,9 +387,7 @@ class Fenster(object):
         speichere_einstellungen({
             "modus": modus, "start": start, "schritt": schritt,
             "parameter": schluessel,
-            "tragwerk": rv.TRAGWERK in kategorien,
-            "architektur": rv.ARCHITEKTUR in kategorien,
-            "wand": rv.WAND in kategorien,
+            "kategorien": kategorien,
             "stapeln": bool(self.stapeln.IsChecked),
             "abstand": self.abstand.Text,
         })
