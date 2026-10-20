@@ -1,0 +1,30 @@
+title:
+  de_de: "Flächen-\ntabelle"
+  en_us: "Area\nTable"
+  es_es: "Tabla de\nsuperficies"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Zeichnet auf jeden gewählten Plan (oder den aktiven Plan, sonst auf Wunsch alle) eine Flächentabelle nach WoFlV: jeder Raum mit seiner angerechneten Fläche (Balkon 25 % von …, Dachschräge), darunter Wohnfläche und Zimmerzahl.
+
+    Gezählt werden die Räume, die in den Grundrissen auf dem Plan sichtbar sind (ausgeblendete Räume und Filter zählen nicht), mit dem Raumpunkt im Zuschnitt. Die Belegung der Räume ist die Wohnungsnummer: Es zählen nur Räume mit Belegung, bei mehreren Wohnungen die mit der grössten Fläche, und sie steht als Überschrift in der Tabelle. Hat kein Raum eine Belegung, gilt ersatzweise die Abteilung (Überschrift sonst der Planname). Die Raumart erkennt das Werkzeug am Raumnamen: Balkon/Loggia/Terrasse 25 %, Keller/Treppe 0 %, Treppenhaus/Aufzug/Garage/Fahrrad-/Müllraum gehören nicht zur Wohnung und fehlen in der Tabelle, Wohn-/Schlaf-/Kinder-/Arbeitszimmer zählen als Zimmer. Der Raumparameter "Faktor Anrechenbarkeit" (0..1 oder %) bestimmt die Anrechnung der Innenräume; Balkone/Terrassen zählen immer zu 25 %. Dachschrägen (unter 2 m zur Hälfte, unter 1 m gar nicht) werden aus der Raumgeometrie gemessen, wenn "Volumen berechnen" an ist.
+
+    Die Tabelle sitzt auf jedem Plan gleich rechts oben im Plankopf, der Titel der Wohnung gross (7 mm) links oben. Büros/Praxen erkennt das Werkzeug an den Raumnamen (Büro, Archiv, EDV ...) oder der Belegung und schreibt Gewerbefläche ohne Zimmerzahl. Erneut klicken aktualisiert alles; ein von Hand geänderter Titel und der Mietblock (Miete kalt, NK, Miete warm) bleiben erhalten. Schrift: Texttyp "pyMLG Flächentabelle" (beim ersten Mal 3,5 mm, die Grösse ist im Typ änderbar). Eine Raumliste mit allen Faktoren liegt unter %LOCALAPPDATA%\pyMLG\Wohnflaeche_Bericht.txt.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Draws an area table according to the German WoFlV on each selected sheet (or the active sheet, otherwise all sheets on request): every room with its credited area (balcony 25 % of …, sloped ceiling), below it the living area and number of rooms.
+
+    The rooms visible in the floor plans on the sheet are counted (hidden rooms and filters do not count), with the room point inside the crop region. The rooms' occupancy is the apartment number: only rooms with an occupancy count, with several apartments the one with the largest area, and it is used as the heading. If no room has an occupancy, the department is used instead (heading otherwise the sheet name). The room type is taken from the room name: balcony/loggia/terrace 25 %, basement/stairs 0 %, stairwell/elevator/garage/bike/refuse rooms are not part of the apartment and are left out, living/bed/children's/study rooms count as rooms. The room parameter "Faktor Anrechenbarkeit" (0..1 or %) sets the factor of indoor rooms; balconies/terraces always count at 25 %. Sloped ceilings (under 2 m half, under 1 m not at all) are measured from the room geometry when "Compute volumes" is on.
+
+    The table sits in the same place on every sheet, top right in the title block, the apartment title large (7 mm) top left. Offices/practices are recognised by room names (office, archive, IT ...) or the occupancy and get a commercial area without room count. Clicking again updates everything; a title changed by hand and the rent block (Miete kalt, NK, Miete warm) are kept. Font: text type "pyMLG Flächentabelle" (3.5 mm at first, the size can be changed in the type). A room list with all factors is written to %LOCALAPPDATA%\pyMLG\Wohnflaeche_Bericht.txt.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Dibuja en cada plano seleccionado (o en el plano activo, si no, en todos si se desea) una tabla de superficies según la WoFlV alemana: cada habitación con su superficie computada (balcón 25 % de …, techo inclinado), debajo la superficie útil y el número de habitaciones.
+
+    Se cuentan las habitaciones visibles en las plantas del plano (las ocultas y filtradas no cuentan), con el punto de habitación dentro del recorte. La ocupación de las habitaciones es el número de vivienda: solo cuentan las habitaciones con ocupación; con varias viviendas, la de mayor superficie, que figura como título. Si ninguna tiene ocupación, se usa el departamento (título, si no, el nombre del plano). El tipo se reconoce por el nombre: balcón/logia/terraza 25 %, sótano/escalera 0 %, caja de escalera/ascensor/garaje/bicicletas/basura no forman parte de la vivienda y se omiten, salón/dormitorio/despacho cuentan como habitaciones. El parámetro de habitación "Faktor Anrechenbarkeit" (0..1 o %) fija el factor de los espacios interiores; balcones/terrazas cuentan siempre al 25 %. Los techos inclinados (menos de 2 m a la mitad, menos de 1 m nada) se miden de la geometría si "Calcular volúmenes" está activado.
+
+    La tabla se coloca igual en todos los planos, arriba a la derecha del cajetín, y el título de la vivienda grande (7 mm) arriba a la izquierda. Oficinas/consultas se reconocen por los nombres (oficina, archivo ...) o la ocupación y reciben superficie comercial sin número de habitaciones. Volver a pulsar actualiza todo; el título modificado a mano y el bloque de alquiler se conservan. Texto: tipo "pyMLG Flächentabelle" (3,5 mm al principio, el tamaño se cambia en el tipo). La lista de habitaciones con todos los factores está en %LOCALAPPDATA%\pyMLG\Wohnflaeche_Bericht.txt.
+
+    Requiere el motor CPython3.
