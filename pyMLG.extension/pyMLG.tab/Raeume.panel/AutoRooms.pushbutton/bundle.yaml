@@ -1,0 +1,30 @@
+title:
+  de_de: "Räume\nautomatisch"
+  en_us: "Auto\nRooms"
+  es_es: "Habitaciones\nautomáticas"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Legt im Geschoss des aktiven Grundrisses Räume an - aber nur in freien geschlossenen Bereichen, in denen eine Regel greift. Alle anderen Bereiche bleiben leer.
+
+    Regeln: Küche mit Sofa oder Bett (auch Einraumwohnung) = WOHNKÜCHE (1_W_WOHNEN). Sanitärobjekt mit Dusche oder Wanne = BAD, ohne = WC (2_W_SANITÄR). Bett = ZIMMER (1_W_WOHNEN): das Zimmer mit Doppelbett ist ZIMMER 1, die übrigen werden je Wohnung weiter nummeriert. Schrank/Garderobe, mehr als 2 Türen und weder Küche, Sofa, Bett noch Sanitärobjekt = VR - ohne Schrank kein VR (2_W_VERKEHRSFLÄCHE). Nur Schrank und höchstens 2 Türen = AR (2_W_NEBENRAUM).
+
+    Gefüllt werden Name, Name ER (= Name), Raumkategorie (Schlüssel) und Fußboden (BAD/WC Fliesen, sonst Parkett). Die Einrichtung wird am Familien- und Typnamen erkannt (Bett, Doppelbett oder ab 1,35 m Breite, Küche/Herd/Spüle, Sofa/Couch, Schrank/Garderobe, Dusche/Wanne), Sanitärobjekte auch an der Kategorie. Nur das aktive Modell, keine Verknüpfungen. Am Ende behalten oder alles verwerfen - ein Rückgängig-Schritt.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Creates rooms on the level of the active floor plan - but only in free enclosed areas where a rule matches. All other areas stay empty.
+
+    Rules: kitchen with sofa or bed (also studio apartments) = WOHNKÜCHE (1_W_WOHNEN). Plumbing fixture with shower or tub = BAD, without = WC (2_W_SANITÄR). Bed = ZIMMER (1_W_WOHNEN): the room with the double bed is ZIMMER 1, the others are numbered on per apartment. Wardrobe/cupboard, more than 2 doors and no kitchen, sofa, bed or plumbing fixture = VR - no wardrobe, no corridor (2_W_VERKEHRSFLÄCHE). Only a wardrobe and at most 2 doors = AR (2_W_NEBENRAUM).
+
+    Fills Name, Name ER (= Name), Raumkategorie (key) and Fußboden (BAD/WC Fliesen, otherwise Parkett). Furnishings are recognised by family and type name (bed, double bed or 1.35 m wide and more, kitchen/stove/sink, sofa/couch, wardrobe/cupboard, shower/tub), plumbing fixtures also by category. Active model only, no links. At the end keep or discard everything - one undo step.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Crea habitaciones en el nivel de la planta activa, pero solo en zonas cerradas libres donde se aplica una regla. Las demás zonas quedan vacías.
+
+    Reglas: cocina con sofá o cama (también estudios) = WOHNKÜCHE (1_W_WOHNEN). Aparato sanitario con ducha o bañera = BAD, sin ella = WC (2_W_SANITÄR). Cama = ZIMMER (1_W_WOHNEN): la habitación con cama doble es ZIMMER 1, las demás se numeran por vivienda. Armario, más de 2 puertas y ni cocina, sofá, cama ni sanitario = VR; sin armario no hay pasillo (2_W_VERKEHRSFLÄCHE). Solo armario y como máximo 2 puertas = AR (2_W_NEBENRAUM).
+
+    Rellena Name, Name ER (= Name), Raumkategorie (clave) y Fußboden (BAD/WC Fliesen, si no Parkett). El mobiliario se reconoce por el nombre de familia y tipo (cama, cama doble o desde 1,35 m de ancho, cocina/fogón/fregadero, sofá, armario, ducha/bañera), los sanitarios también por categoría. Solo el modelo activo, sin vínculos. Al final se conserva o se descarta todo: un paso de deshacer.
+
+    Requiere el motor CPython3.

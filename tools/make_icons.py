@@ -648,6 +648,17 @@ def column_numbering(b):
             rect(b, x - 4, y - 4, x + 4, y + 4, WEISS if j == 0 else LINIE)
 
 
+def auto_rooms(b):
+    """Grundriss mit zwei Räumen: Bett links, Zauberstab-Stern rechts."""
+    rahmen(b, 6, 14, 90, 82, 5, DUNKEL)
+    rect(b, 46, 14, 51, 82, DUNKEL)               # Trennwand
+    rect(b, 46, 40, 51, 56, WEISS)                # Türöffnung
+    rect(b, 16, 26, 38, 66, LINIE)                # Bett
+    rect(b, 16, 26, 38, 34, DUNKEL)               # Kopfteil
+    polygon(b, [(70, 30), (74, 42), (86, 42), (76, 50), (80, 62),
+                (70, 54), (60, 62), (64, 50), (54, 42), (66, 42)], GRUEN)
+
+
 def stack_values(b):
     """Schnitt durch drei Geschosse, je eine Stuetze und ein Unterzug an
     derselben Stelle: unten die Quelle (orange), darueber uebernommen
@@ -688,6 +699,7 @@ SYMBOLE = {
     "Raeume.panel/Beschriftung.stack/TagDistance.pushbutton": tag_distance,
     "Raeume.panel/ColumnNumbering.pushbutton": column_numbering,
     "Raeume.panel/StackValues.pushbutton": stack_values,
+    "Raeume.panel/AutoRooms.pushbutton": auto_rooms,
     "Ansichten.panel/Hilfen.stack/ViewIdVisible.pushbutton": view_id_visible,
     "Ansichten.panel/Hilfen.stack/WallLegend.pushbutton": wall_legend,
     "Phasen.panel/Phasen.stack/CopyWithPhases.pushbutton": copy_with_phases,
@@ -743,11 +755,26 @@ def component_legend(b):
         rect(b, 44, y, 84, y + 4, DUNKEL)
 
 
+def area_table(b):
+    """Plan mit Flächentabelle: Kopfzeile, Werte rechtsbündig, Summe grün."""
+    blattform(b, 4, 6, 92, 90, BLAU, 12)
+    rahmen(b, 14, 24, 82, 80, 3, DUNKEL)          # Tabellenrahmen
+    rect(b, 20, 31, 60, 36, DUNKEL)               # Überschrift
+    rect(b, 20, 41, 76, 43, LINIE)                # Trennlinie
+    rect(b, 20, 48, 46, 52, DUNKEL)               # Wohnfläche
+    rect(b, 58, 47, 76, 53, GRUEN)
+    for y in (58, 65):                            # Balkon, davon
+        rect(b, 20, y, 42, y + 3, LINIE)
+        rect(b, 64, y, 76, y + 3, DUNKEL)
+    rect(b, 20, 71, 76, 73, LINIE)
+
+
 PLAENE = {
     "Erstellen.panel/ViewToSheet.pushbutton": view_to_sheet,
     "Erstellen.panel/DuplicateSheet.pushbutton": duplicate_sheet,
     "Erstellen.panel/DxfLegend.pushbutton": dxf_legend,
     "Erstellen.panel/ComponentLegend.pushbutton": component_legend,
+    "Erstellen.panel/AreaTable.pushbutton": area_table,
     "Anordnen.panel/ArrangeSheet.pushbutton": arrange_sheet,
     "Anordnen.panel/AlignViewports.pushbutton": align_viewports,
     "Anordnen.panel/MoveViewport.pushbutton": move_viewport,
