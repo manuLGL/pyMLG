@@ -317,6 +317,16 @@ def gewaehlte_linien(doc, auswahl):
     return [e for e in linien if _ist_linie(e)]
 
 
+def waehle_linie(uidoc, hinweis):
+    """Eine Linie anklicken - None bei ESC."""
+    try:
+        referenz = uidoc.Selection.PickObject(
+            ObjectType.Element, _filter("linie", _ist_linie), hinweis)
+    except OperationCanceledException:
+        return None
+    return uidoc.Document.GetElement(referenz.ElementId)
+
+
 def waehle_linien(uidoc):
     """Linien nacheinander anklicken (ESC beendet). Die gewählten bleiben
     markiert, damit man sieht, was schon dabei ist."""

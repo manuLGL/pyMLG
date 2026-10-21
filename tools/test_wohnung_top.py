@@ -89,6 +89,18 @@ def test_reihenfolge_ueber_geschosse():
                                        (u"OG1", u"04", u"06")]
 
 
+def test_verbunden():
+    # Zug aus drei Stücken, dazu eine fremde Linie und eine auf anderer Höhe
+    enden = [((0.0, 0.0, 0.0), (10.0, 0.0, 0.0)),
+             ((10.0, 5.0, 0.0), (10.0, 0.0, 0.0)),      # verkehrt gezeichnet
+             ((10.0, 5.0, 0.0), (0.0, 5.0, 0.0)),
+             ((50.0, 50.0, 0.0), (60.0, 50.0, 0.0)),
+             ((0.0, 0.0, 10.0), (5.0, 0.0, 10.0))]
+    assert lg.verbunden(enden, [2], 0.01) == [0, 1, 2]
+    assert lg.verbunden(enden, [3], 0.01) == [3]
+    assert lg.verbunden(enden, [0, 3], 0.01) == [0, 1, 2, 3]
+
+
 if __name__ == "__main__":
     for name, funktion in sorted(globals().items()):
         if name.startswith("test_") and callable(funktion):

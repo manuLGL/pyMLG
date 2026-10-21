@@ -147,6 +147,27 @@ def eintritt_mehrere(segmente_liste, flaechen):
     return min(stationen) if stationen else None
 
 
+def verbunden(enden, start, toleranz):
+    """Indizes aller Linien, die über gemeinsame Endpunkte mit den
+    Startlinien zusammenhängen - so genügt ein Klick auf ein Stück einer
+    in einem Zug gezeichneten Linie. enden: [(Anfang, Ende)] als
+    (x, y, z); start: Indizes der angeklickten Linien."""
+    def nah(p, q):
+        return math.sqrt(sum((a - b) ** 2 for a, b in zip(p, q))) <= toleranz
+
+    gefunden = list(dict.fromkeys(start))
+    offen = list(gefunden)
+    while offen:
+        i = offen.pop()
+        for j, (a, b) in enumerate(enden):
+            if j in gefunden:
+                continue
+            if any(nah(p, q) for p in enden[i] for q in (a, b)):
+                gefunden.append(j)
+                offen.append(j)
+    return sorted(gefunden)
+
+
 # ---------------------------------------------------------------- Reihenfolge
 
 def reihenfolge(treffer):

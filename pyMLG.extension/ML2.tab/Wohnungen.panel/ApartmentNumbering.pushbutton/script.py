@@ -47,15 +47,22 @@ def _warnung(hauptzeile, text):
 
 
 def _linien(uidoc):
-    """Vorausgewählte Linien, wenn sie einen zusammenhängenden Pfad bilden,
-    sonst anklicken lassen (wie ColumnNumbering)."""
+    """Vorausgewählte Linien oder ein Klick auf ein Stück der Linie - die
+    damit verbundenen Stücke kommen von selbst dazu."""
     from stuetzen_nummer import revit as sn
+    from wohnung_top import revit as rv
 
     doc = uidoc.Document
     linien = sn.gewaehlte_linien(doc, uidoc.Selection.GetElementIds())
-    if linien and len(sn.pfad(linien)) == 1:
-        return linien
-    return sn.waehle_linien(uidoc)
+    if not linien:
+        linie = sn.waehle_linie(uidoc, t(
+            u"Linie durch die Wohnungen anklicken",
+            u"Pick the line through the apartments",
+            u"Seleccione la línea a través de las viviendas"))
+        if linie is None:
+            return None
+        linien = [linie]
+    return rv.linienzug(doc, linien)
 
 
 class Plan(object):
@@ -67,6 +74,7 @@ class Plan(object):
         self.falscher_name = []    # [Wohnung]
         self.ohne_raeume = []      # [Wohnung]
         self.daneben = 0           # Wohnungen der Geschosse ohne Linie
+        self.fehlend = []          # Parameter, die es an Räumen nicht gibt
 
 
 def _plane(wohnungen, einst, segmente):
@@ -110,21 +118,19 @@ def _parameter_bereit(lauf, plan):
     namen = [n for n in lg.ALLE
              if any(n in werte for _, werte in plan.auftraege)]
     fehlend, fest = rv.pruefe_parameter(raeume, namen)
-    if fehlend:
+    # Parameter, die es an den Räumen nicht gibt, werden nicht gefüllt
+    plan.fehlend = fehlend
+    for _, werte in plan.auftraege:
+        for name in fehlend:
+            werte.pop(name, None)
+    if len(fehlend) == len(namen):
         _warnung(t(u"Parameter fehlen", u"Parameters missing",
                    u"Faltan parámetros"),
-                 t(u"Diese Parameter gibt es an den Räumen nicht:",
-                   u"The rooms do not have these parameters:",
-                   u"Las habitaciones no tienen estos parámetros:")
-                 + u"\n" + _liste(fehlend) + u"\n\n"
-                 + t(u"Bitte als Projektparameter (Exemplar) für Räume "
-                     u"anlegen und mit 'Werte je nach Gruppeninstanz "
-                     u"unterschiedlich'.",
-                     u"Please add them as project parameters (instance) for "
-                     u"rooms with 'Values can vary by group instance'.",
-                     u"Créelos como parámetros de proyecto (ejemplar) para "
-                     u"habitaciones con 'Los valores pueden variar por "
-                     u"instancia de grupo'."))
+                 t(u"Keinen der Parameter gibt es an den Räumen:",
+                   u"The rooms have none of the parameters:",
+                   u"Las habitaciones no tienen ninguno de los "
+                   u"parámetros:")
+                 + u"\n" + _liste(fehlend))
         return False
     if not fest:
         return True
@@ -166,21 +172,23 @@ def _abschluss(lauf, plan, einst):
     for geschoss, erste, letzte in lg.bereiche(plan.nummeriert):
         zeilen.append(u"   %s:  TOP %s" % (geschoss, erste) if erste == letzte
                       else u"   %s:  TOP %s … %s" % (geschoss, erste, letzte))
-    fest = [u"%s = %s" % (n, v) for n, v in
-            ((lg.BAUTEIL, einst.bauteil), (lg.STIEGE, einst.stiege)) if v]
-    zeilen += [u"", t(u"Dazu je Wohnung GRUPPE_TYP, TOP_ID_Typname, "
-                      u"TOP_ID_Kategorie, TOP_ID_Geschoss",
-                      u"Plus per apartment GRUPPE_TYP, TOP_ID_Typname, "
-                      u"TOP_ID_Kategorie, TOP_ID_Geschoss",
-                      u"Además por vivienda GRUPPE_TYP, TOP_ID_Typname, "
-                      u"TOP_ID_Kategorie, TOP_ID_Geschoss")
-               + (u", " + u", ".join(fest) if fest else u"") + u"."]
-    beispiel = plan.auftraege[0][1]
+    geschrieben = plan.auftraege[0][1]
+    namen = [u"%s = %s" % (n, geschrieben[n])
+             if n in (lg.BAUTEIL, lg.STIEGE) else n
+             for n in lg.ALLE if n in geschrieben]
+    zeilen += [u"", t(u"Geschrieben: ", u"Written: ", u"Escritos: ")
+               + u", ".join(namen)]
+    beispiel = lg.werte(plan.auftraege[0][0].name)
     zeilen.append(t(u"Beispiel: %s -> %s, %s, %s",
                     u"Example: %s -> %s, %s, %s",
                     u"Ejemplo: %s -> %s, %s, %s")
                   % (beispiel[lg.GRUPPE_TYP], beispiel[lg.TYPNAME],
                      beispiel[lg.KATEGORIE], beispiel[lg.GESCHOSS]))
+    if plan.fehlend:
+        zeilen.append(t(u"Nicht vorhanden, daher nicht gefüllt: ",
+                        u"Not present, so not filled: ",
+                        u"No existen, por eso no se rellenan: ")
+                      + u", ".join(plan.fehlend))
     warnung = False
     if plan.falscher_name:
         warnung = True

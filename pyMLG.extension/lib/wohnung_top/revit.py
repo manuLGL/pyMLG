@@ -26,6 +26,7 @@ import uuid
 
 from Autodesk.Revit.DB import (  # noqa: E402
     BuiltInCategory,
+    CurveElement,
     ElementId,
     ElementTypeGroup,
     FailureProcessingResult,
@@ -176,6 +177,35 @@ def ebenen(doc, liste):
                 for e in FilteredElementCollector(doc).OfClass(Level)
                 if id_wert(e.Id) in anzahl]
     return sorted(ergebnis, key=lambda e: -e.hoehe)
+
+
+# ---------------------------------------------------------------- Linie
+
+# Linienenden höchstens so weit auseinander gelten als verbunden (Fuss) -
+# wie stuetzen_nummer.logik.VERBINDUNG
+VERBINDUNG = 0.01
+
+
+def linienzug(doc, linien):
+    """Die angeklickten Linien samt allen, die über ihre Endpunkte daran
+    hängen (gleiche Ansicht bei Detaillinien). Revit legt eine in einem Zug
+    gezeichnete Linie als einzelne Stücke an."""
+    eigner = set(id_wert(e.OwnerViewId) for e in linien)
+    kandidaten = [e for e in FilteredElementCollector(doc)
+                  .OfCategory(BuiltInCategory.OST_Lines)
+                  .WhereElementIsNotElementType()
+                  if isinstance(e, CurveElement)
+                  and e.GeometryCurve is not None
+                  and id_wert(e.OwnerViewId) in eigner]
+    gewaehlt = set(id_wert(e.Id) for e in linien)
+    enden = []
+    for e in kandidaten:
+        kurve = e.GeometryCurve
+        enden.append(tuple((p.X, p.Y, p.Z) for p in
+                           (kurve.GetEndPoint(0), kurve.GetEndPoint(1))))
+    start = [i for i, e in enumerate(kandidaten)
+             if id_wert(e.Id) in gewaehlt]
+    return [kandidaten[i] for i in lg.verbunden(enden, start, VERBINDUNG)]
 
 
 # ---------------------------------------------------------------- Parameter
@@ -329,9 +359,9 @@ class Lauf(object):
                         if name not in werte:
                             continue
                         p = parameter(raum, name)
-                        grund = (t(u"Parameter fehlt", u"parameter missing",
-                                   u"falta el parámetro") if p is None
-                                 else _setze(p, werte[name]))
+                        if p is None:
+                            continue    # gibt es nicht -> nicht füllen
+                        grund = _setze(p, werte[name])
                         if grund:
                             self.fehler.append((wohnung, raum, name, grund))
                 if id_wert(wohnung.ebene_id) == vorschau_ebene:
