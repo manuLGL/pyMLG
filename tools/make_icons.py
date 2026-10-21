@@ -659,6 +659,21 @@ def auto_rooms(b):
                 (70, 54), (60, 62), (64, 50), (54, 42), (66, 42)], GRUEN)
 
 
+def apartment_numbering(b):
+    """Schnitt durch drei Geschosse mit je zwei Wohnungen: die Linie geht
+    durch das unterste Geschoss, die Zählung läuft nach oben weiter
+    (unten schon nummeriert = grün)."""
+    rahmen(b, 6, 10, 74, 88, 4, DUNKEL)
+    for y in (35, 61):                            # Decken
+        rect(b, 6, y, 74, y + 4, DUNKEL)
+    rect(b, 38, 10, 42, 88, DUNKEL)               # Wohnungstrennwand
+    for j, y in enumerate((74, 48, 22)):          # unten -> oben
+        for x in (22, 58):
+            rect(b, x - 7, y - 6, x + 7, y + 6, GRUEN if j == 0 else LINIE)
+    pfeil(b, (12, 74), (70, 74), 4, 10, ORANGE)   # Linie im untersten Geschoss
+    pfeil(b, (86, 84), (86, 14), 5, 12, ORANGE)   # weiter nach oben
+
+
 def stack_values(b):
     """Schnitt durch drei Geschosse, je eine Stuetze und ein Unterzug an
     derselben Stelle: unten die Quelle (orange), darueber uebernommen
@@ -699,7 +714,6 @@ SYMBOLE = {
     "Raeume.panel/Beschriftung.stack/TagDistance.pushbutton": tag_distance,
     "Raeume.panel/ColumnNumbering.pushbutton": column_numbering,
     "Raeume.panel/StackValues.pushbutton": stack_values,
-    "Raeume.panel/AutoRooms.pushbutton": auto_rooms,
     "Ansichten.panel/Hilfen.stack/ViewIdVisible.pushbutton": view_id_visible,
     "Ansichten.panel/Hilfen.stack/WallLegend.pushbutton": wall_legend,
     "Phasen.panel/Phasen.stack/CopyWithPhases.pushbutton": copy_with_phases,
@@ -782,9 +796,16 @@ PLAENE = {
     "Verwalten.panel/SheetSize.pushbutton": sheet_size,
 }
 
+# --- Reiter ML2 ------------------------------------------------------------
+
+ML2 = {
+    "Wohnungen.panel/AutoRooms.pushbutton": auto_rooms,
+    "Wohnungen.panel/ApartmentNumbering.pushbutton": apartment_numbering,
+}
+
 # Symbole je Reiter (Ordnername)
 REITER = {"pyMLG.tab": SYMBOLE, "MLGmanager.tab": MANAGER,
-          "MLGplans.tab": PLAENE}
+          "MLGplans.tab": PLAENE, "ML2.tab": ML2}
 
 
 if __name__ == "__main__":

@@ -1,0 +1,7 @@
+title:
+  de_de: "Wohnungen"
+  en_us: "Apartments"
+  es_es: "Viviendas"
+layout:
+  - AutoRooms
+  - ApartmentNumbering
