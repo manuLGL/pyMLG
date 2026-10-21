@@ -136,6 +136,7 @@ def main():
     try:
         transaktion = Transaction(doc, TITEL)
         transaktion.Start()
+        rv.doppelte_nummern_erlauben(transaktion)
         try:
             ergebnis = rv.lege_an(doc, ebene, phase, gegenstaende, tueren,
                                   schluessel_ids)

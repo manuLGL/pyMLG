@@ -8,17 +8,24 @@ Ablauf (in einer offenen Transaktion):
        des Geschosses) und Türen werden per GetRoomAtPoint den Räumen
        zugeordnet. Türen: je ein Punkt vor und hinter der Wand.
     3. Räume ohne Regel werden wieder gelöscht, die übrigen bekommen Name,
-       Name ER und Raumkategorie (Schlüssel) und lückenlose Nummern.
+       Name ER und Raumkategorie (Schlüssel) und ihre feste Nummer je
+       Wohnung (lib/raum_nummern.py). Gleiche Nummern in mehreren Wohnungen
+       sind gewollt - die Revit-Warnung dazu wird still bestätigt.
 
 Nur das aktive Modell - Einrichtung aus Verknüpfungen zählt nicht.
 """
 
+import uuid
+
 from Autodesk.Revit.DB import (  # noqa: E402
     BuiltInCategory,
+    BuiltInFailures,
     BuiltInParameter,
     ElementId,
+    FailureProcessingResult,
     FamilyInstance,
     FilteredElementCollector,
+    IFailuresPreprocessor,
     StorageType,
     ViewPlan,
     ViewSchedule,
@@ -59,6 +66,33 @@ def _text(funktion):
         return funktion() or u""
     except Exception:
         return u""
+
+
+_klassen = {}
+
+
+def doppelte_nummern_erlauben(transaktion):
+    """Die Warnung "Elemente haben doppelte Werte" (gleiche Raumnummer in
+    mehreren Wohnungen) beim Abschliessen still bestätigen."""
+    if "doppelt" not in _klassen:
+        namensraum = "pyMLG.RaumAutomatik_%s" % uuid.uuid4().hex
+        # als Text vergleichen - == auf .NET-Objekten ist unter CPython
+        # nicht verlässlich
+        doppelt = str(BuiltInFailures.GeneralFailures.DuplicateValue.Guid)
+
+        class Vorverarbeiter(IFailuresPreprocessor):
+            __namespace__ = namensraum
+
+            def PreprocessFailures(self, accessor):
+                for meldung in list(accessor.GetFailureMessages()):
+                    if str(meldung.GetFailureDefinitionId().Guid) == doppelt:
+                        accessor.DeleteWarning(meldung)
+                return FailureProcessingResult.Continue
+
+        _klassen["doppelt"] = Vorverarbeiter
+    optionen = transaktion.GetFailureHandlingOptions()
+    optionen.SetFailuresPreprocessor(_klassen["doppelt"]())
+    transaktion.SetFailureHandlingOptions(optionen)
 
 
 def ebene_und_phase(doc, ansicht):
@@ -330,14 +364,12 @@ def lege_an(doc, ebene, phase, gegenstaende, tueren, schluessel_ids):
     alle = list(bereiche.values())
     lg.bewerte(alle)
     lg.nummeriere(alle, verbindungen)
+    lg.raumnummern(alle, verbindungen)
 
-    nummern = []
     behalten = []
     weg = List[ElementId]()
     for i in neue_ids:
         raum = neu[id_wert(i)]
-        p = raum.get_Parameter(BuiltInParameter.ROOM_NUMBER)
-        nummern.append(_text(lambda: p.AsString()))
         bereich = bereiche[id_wert(i)]
         if bereich.art is None:
             weg.Add(i)
@@ -347,14 +379,6 @@ def lege_an(doc, ebene, phase, gegenstaende, tueren, schluessel_ids):
 
     if weg.Count:
         doc.Delete(weg)
-
-    # Revit zählt die gelöschten Räume mit - Nummern lückenlos nachziehen
-    if nummern and all(n.isdigit() for n in nummern):
-        frei = sorted(nummern, key=int)
-        for (raum, _), nummer in zip(behalten, frei):
-            p = raum.get_Parameter(BuiltInParameter.ROOM_NUMBER)
-            if p is not None and not p.IsReadOnly:
-                p.Set(nummer)
 
     ergebnis.bereiche = [bereiche[id_wert(i)] for i in neue_ids]
     for raum, bereich in behalten:
@@ -369,6 +393,10 @@ def lege_an(doc, ebene, phase, gegenstaende, tueren, schluessel_ids):
 def _fuelle(raum, bereich, schluessel_ids, ergebnis):
     name = bereich.raumname()
     raum.get_Parameter(BuiltInParameter.ROOM_NAME).Set(name)
+    # Räume ausserhalb der Nummerntabelle behalten Revits Nummer
+    if bereich.raumnummer:
+        raum.get_Parameter(BuiltInParameter.ROOM_NUMBER).Set(
+            bereich.raumnummer)
 
     p = raum.LookupParameter(NAME_ER_PARAMETER)
     if p is None or p.IsReadOnly:

@@ -184,6 +184,17 @@ def _abschluss(lauf, plan, einst):
                     u"Ejemplo: %s -> %s, %s, %s")
                   % (beispiel[lg.GRUPPE_TYP], beispiel[lg.TYPNAME],
                      beispiel[lg.KATEGORIE], beispiel[lg.GESCHOSS]))
+    zeilen.append(t(u"Raumnummer nach Tabelle (Vorraum 001, Bad 003 ...): "
+                    u"%d Räume", u"Room number from the table (Vorraum 001, "
+                    u"Bad 003 ...): %d rooms", u"Número de habitación según "
+                    u"la tabla (Vorraum 001, Bad 003 ...): %d habitaciones")
+                  % lauf.nummern)
+    if lauf.ohne_nummer:
+        zeilen.append(t(u"Ohne Nummer (nicht in der Tabelle): ",
+                        u"Without number (not in the table): ",
+                        u"Sin número (no están en la tabla): ")
+                      + u", ".join(u"%s (%d)" % e for e in
+                                   sorted(lauf.ohne_nummer.items())))
     if plan.fehlend:
         zeilen.append(t(u"Nicht vorhanden, daher nicht gefüllt: ",
                         u"Not present, so not filled: ",

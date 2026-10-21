@@ -106,6 +106,13 @@ def test_beispielwohnung():
         u"AR", u"2_W_NEBENRAUM", u"Parkett")
     # zweite Wohnung: ZIMMER 1 gibt es schon, grösseres Zimmer zuerst
     assert (za.nummer, zb.nummer) == (2, 3)
+    # feste Raumnummern je Wohnung (VR = Vorraum)
+    lg.raumnummern(alle, verbindungen)
+    assert [b.raumnummer for b in (wk, bad, wc, gang, z1, z2)] == [
+        u"005", u"003", u"005", u"001", u"006", u"007"]
+    assert ar.raumnummer is None and th.raumnummer is None
+    assert (gang_b.raumnummer, za.raumnummer, zb.raumnummer) == (
+        u"001", u"007", u"008")
 
 
 def test_ohne_doppelbett_und_mehrere():

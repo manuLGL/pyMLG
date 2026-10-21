@@ -3,7 +3,8 @@
 
 Eine Wohnung ist eine Modellgruppe, deren Typname mit WHG_TYP beginnt
 (nur oberste Gruppen - verschachtelte gehören zur äusseren). Ihre Räume
-(auch in verschachtelten Gruppen) bekommen die Werte.
+(auch in verschachtelten Gruppen) bekommen die Werte und ihre feste
+Raumnummer nach lib/raum_nummern.py (Vorraum 001, Bad 003 ...).
 
 Räume in Gruppen dürfen nur dann je Instanz verschiedene Werte haben, wenn
 der Parameter "Werte je nach Gruppeninstanz unterschiedlich" erlaubt
@@ -26,6 +27,7 @@ import uuid
 
 from Autodesk.Revit.DB import (  # noqa: E402
     BuiltInCategory,
+    BuiltInParameter,
     CurveElement,
     ElementId,
     ElementTypeGroup,
@@ -45,6 +47,7 @@ from Autodesk.Revit.DB import (  # noqa: E402
 )
 from Autodesk.Revit.DB.Architecture import Room  # noqa: E402
 
+import raum_nummern  # noqa: E402
 from mlg_sprache import t  # noqa: E402
 from wohnung_top import logik as lg  # noqa: E402
 
@@ -117,6 +120,11 @@ class Wohnung(object):
             self._flaechen = flaechen
         return self._flaechen
 
+    def raumnummern(self):
+        """{Id-Wert des Raums: Nummer} nach raum_nummern."""
+        return raum_nummern.nummern(
+            [(id_wert(r.Id), raumname(r), r.Area) for r in self.raeume])
+
     def mitte(self, hoehe):
         """Punkt für die Vorschau-Notiz: Mitte des Umgrenzungsrahmens."""
         rahmen = self.gruppe.get_BoundingBox(None)
@@ -124,6 +132,11 @@ class Wohnung(object):
             return None
         return XYZ((rahmen.Min.X + rahmen.Max.X) / 2.0,
                    (rahmen.Min.Y + rahmen.Max.Y) / 2.0, hoehe)
+
+
+def raumname(raum):
+    p = raum.get_Parameter(BuiltInParameter.ROOM_NAME)
+    return (p.AsString() or u"") if p is not None else u""
 
 
 def _raeume(doc, gruppe):
@@ -266,6 +279,9 @@ def _setze(p, wert):
 
 # ---------------------------------------------------------------- Lauf
 
+# Name der Raumnummer in Meldungen
+NUMMER = t(u"Nummer", u"Number", u"Número")
+
 class GruppenFehler(Exception):
     """Revit hat das Schreiben abgelehnt (z.B. Gruppe ausserhalb des
     Bearbeitungsmodus geändert) - alles wurde zurückgerollt."""
@@ -310,6 +326,8 @@ class Lauf(object):
         self.doc = uidoc.Document
         self.ansicht = self.doc.ActiveView
         self.raeume = 0
+        self.nummern = 0           # Räume mit fester Raumnummer
+        self.ohne_nummer = {}      # {Raumname: Anzahl} ausserhalb der Tabelle
         self.fehler = []           # [(Wohnung, Raum, Parameter, Grund)]
         self._notizen = []
         self._notiztyp = self.doc.GetDefaultElementTypeId(
@@ -353,7 +371,9 @@ class Lauf(object):
         Textnotiz in die aktive Ansicht."""
         def arbeit():
             for wohnung, werte in auftraege:
+                nummern = wohnung.raumnummern()
                 for raum in wohnung.raeume:
+                    self._nummer(wohnung, raum, nummern.get(id_wert(raum.Id)))
                     self.raeume += 1
                     for name in lg.ALLE:
                         if name not in werte:
@@ -372,6 +392,19 @@ class Lauf(object):
             self.uidoc.RefreshActiveView()
         except Exception:
             pass
+
+    def _nummer(self, wohnung, raum, nummer):
+        if not nummer:
+            name = raumname(raum).strip() or u"-"
+            self.ohne_nummer[name] = self.ohne_nummer.get(name, 0) + 1
+            return
+        p = raum.get_Parameter(BuiltInParameter.ROOM_NUMBER)
+        grund = _setze(p, nummer) if p is not None else t(
+            u"fehlt", u"missing", u"no existe")
+        if grund:
+            self.fehler.append((wohnung, raum, NUMMER, grund))
+        else:
+            self.nummern += 1
 
     # --- Vorschau ---------------------------------------------------------
     def _vorschau(self, wohnung, nummer):

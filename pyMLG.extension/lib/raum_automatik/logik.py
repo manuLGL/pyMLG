@@ -20,12 +20,17 @@ dann die übrigen nach Fläche. Eine Wohnung sind die über Türen verbundenen
 Räume; eine Tür zwischen zwei Verkehrsflächen (Wohnungsgang - Treppenhaus)
 trennt Wohnungen. Nummern vorhandener Räume "ZIMMER n" bleiben belegt.
 
+Raumnummern (Parameter Nummer) je Wohnung fest nach der Tabelle in
+lib/raum_nummern.py (Vorraum 001, Bad 003 ...).
+
 Die Einrichtung wird am Familien- und Typnamen erkannt (Deutsch, Englisch,
 Spanisch), Sanitärobjekte zusätzlich an der Kategorie.
 """
 
 import re
 import unicodedata
+
+import raum_nummern
 
 WOHNKUECHE = u"wohnkueche"
 BAD = u"bad"
@@ -195,6 +200,7 @@ class Bereich(object):
         self.tueren = 0
         self.art = None
         self.nummer = None
+        self.raumnummer = None
 
     def verkehr(self):
         """Trennt Wohnungen - auch ein Flur ohne Schrank (kein Raum,
@@ -261,6 +267,18 @@ def nummeriere(bereiche, verbindungen):
                 nummer += 1
             b.nummer = nummer
             belegt.add(nummer)
+
+
+def raumnummern(bereiche, verbindungen):
+    """Raumnummer je neuem Bereich mit Regel nach raum_nummern - je
+    Wohnung, vorhandene Räume zählen mit (z. B. ein Vorraum)."""
+    for gruppe in wohnungen(bereiche, verbindungen):
+        raeume = [(b.kennung, b.raumname() if b.neu else b.name, b.flaeche)
+                  for b in gruppe if not b.neu or b.art is not None]
+        nummern = raum_nummern.nummern(raeume)
+        for b in gruppe:
+            if b.neu and b.art is not None:
+                b.raumnummer = nummern.get(b.kennung)
 
 
 def schluessel_name(text):
