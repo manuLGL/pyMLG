@@ -36,7 +36,7 @@ def test_tabelle():
               ("z3", u"ZI 3", 10.0), ("ar", u"AR", 2.0),
               ("sr", u"SR", 3.0), ("th", u"Treppenhaus", 20.0)]
     assert rn.nummern(raeume) == {
-        "v": u"001", "g": u"002", "b": u"003", "wk": u"005", "wc": u"005",
+        "v": u"001", "g": u"002", "b": u"003", "wk": u"005", "wc": u"011",
         "z1": u"006", "z2": u"007", "z3": u"008", "ar": u"009",
         "sr": u"010"}
 

@@ -9,7 +9,7 @@ tooltip:
 
     Regeln: Küche mit Sofa oder Bett (auch Einraumwohnung) = WOHNKÜCHE (1_W_WOHNEN). Sanitärobjekt mit Dusche oder Wanne = BAD, ohne = WC (2_W_SANITÄR). Bett = ZIMMER (1_W_WOHNEN): das Zimmer mit Doppelbett ist ZIMMER 1, die übrigen werden je Wohnung weiter nummeriert. Schrank/Garderobe, mehr als 2 Türen und weder Küche, Sofa, Bett noch Sanitärobjekt = VR - ohne Schrank kein VR (2_W_VERKEHRSFLÄCHE). Nur Schrank und höchstens 2 Türen = AR (2_W_NEBENRAUM).
 
-    Gefüllt werden Name, Name ER (= Name), Raumkategorie (Schlüssel), Fußboden (BAD/WC Fliesen, sonst Parkett) und die Nummer - fest je Wohnung: VR 001 (Gang 002, ohne Vorraum 001), BAD 003, zweites Bad 004, WOHNKÜCHE 005, WC 005, ZIMMER 1-3 006-008, AR 009, Schrankraum 010. Die Einrichtung wird am Familien- und Typnamen erkannt (Bett, Doppelbett oder ab 1,35 m Breite, Küche/Herd/Spüle, Sofa/Couch, Schrank/Garderobe, Dusche/Wanne), Sanitärobjekte auch an der Kategorie. Nur das aktive Modell, keine Verknüpfungen. Am Ende behalten oder alles verwerfen - ein Rückgängig-Schritt.
+    Gefüllt werden Name, Name ER (= Name), Raumkategorie (Schlüssel), Fußboden (BAD/WC Fliesen, sonst Parkett) und die Nummer - fest je Wohnung: VR 001 (Gang 002, ohne Vorraum 001), BAD 003, zweites Bad 004, WOHNKÜCHE 005, ZIMMER 1-3 006-008, AR 009, Schrankraum 010, WC 011. Die Einrichtung wird am Familien- und Typnamen erkannt (Bett, Doppelbett oder ab 1,35 m Breite, Küche/Herd/Spüle, Sofa/Couch, Schrank/Garderobe, Dusche/Wanne), Sanitärobjekte auch an der Kategorie. Nur das aktive Modell, keine Verknüpfungen. Am Ende behalten oder alles verwerfen - ein Rückgängig-Schritt.
 
     Benötigt die CPython3-Engine.
   en_us: >-
@@ -17,7 +17,7 @@ tooltip:
 
     Rules: kitchen with sofa or bed (also studio apartments) = WOHNKÜCHE (1_W_WOHNEN). Plumbing fixture with shower or tub = BAD, without = WC (2_W_SANITÄR). Bed = ZIMMER (1_W_WOHNEN): the room with the double bed is ZIMMER 1, the others are numbered on per apartment. Wardrobe/cupboard, more than 2 doors and no kitchen, sofa, bed or plumbing fixture = VR - no wardrobe, no corridor (2_W_VERKEHRSFLÄCHE). Only a wardrobe and at most 2 doors = AR (2_W_NEBENRAUM).
 
-    Fills Name, Name ER (= Name), Raumkategorie (key), Fußboden (BAD/WC Fliesen, otherwise Parkett) and the Number - fixed per apartment: VR 001 (Gang 002, without Vorraum 001), BAD 003, second bath 004, WOHNKÜCHE 005, WC 005, ZIMMER 1-3 006-008, AR 009, Schrankraum 010. Furnishings are recognised by family and type name (bed, double bed or 1.35 m wide and more, kitchen/stove/sink, sofa/couch, wardrobe/cupboard, shower/tub), plumbing fixtures also by category. Active model only, no links. At the end keep or discard everything - one undo step.
+    Fills Name, Name ER (= Name), Raumkategorie (key), Fußboden (BAD/WC Fliesen, otherwise Parkett) and the Number - fixed per apartment: VR 001 (Gang 002, without Vorraum 001), BAD 003, second bath 004, WOHNKÜCHE 005, ZIMMER 1-3 006-008, AR 009, Schrankraum 010, WC 011. Furnishings are recognised by family and type name (bed, double bed or 1.35 m wide and more, kitchen/stove/sink, sofa/couch, wardrobe/cupboard, shower/tub), plumbing fixtures also by category. Active model only, no links. At the end keep or discard everything - one undo step.
 
     Requires the CPython3 engine.
   es_es: >-
@@ -25,6 +25,6 @@ tooltip:
 
     Reglas: cocina con sofá o cama (también estudios) = WOHNKÜCHE (1_W_WOHNEN). Aparato sanitario con ducha o bañera = BAD, sin ella = WC (2_W_SANITÄR). Cama = ZIMMER (1_W_WOHNEN): la habitación con cama doble es ZIMMER 1, las demás se numeran por vivienda. Armario, más de 2 puertas y ni cocina, sofá, cama ni sanitario = VR; sin armario no hay pasillo (2_W_VERKEHRSFLÄCHE). Solo armario y como máximo 2 puertas = AR (2_W_NEBENRAUM).
 
-    Rellena Name, Name ER (= Name), Raumkategorie (clave), Fußboden (BAD/WC Fliesen, si no Parkett) y el Número, fijo por vivienda: VR 001 (Gang 002, sin Vorraum 001), BAD 003, segundo baño 004, WOHNKÜCHE 005, WC 005, ZIMMER 1-3 006-008, AR 009, Schrankraum 010. El mobiliario se reconoce por el nombre de familia y tipo (cama, cama doble o desde 1,35 m de ancho, cocina/fogón/fregadero, sofá, armario, ducha/bañera), los sanitarios también por categoría. Solo el modelo activo, sin vínculos. Al final se conserva o se descarta todo: un paso de deshacer.
+    Rellena Name, Name ER (= Name), Raumkategorie (clave), Fußboden (BAD/WC Fliesen, si no Parkett) y el Número, fijo por vivienda: VR 001 (Gang 002, sin Vorraum 001), BAD 003, segundo baño 004, WOHNKÜCHE 005, ZIMMER 1-3 006-008, AR 009, Schrankraum 010, WC 011. El mobiliario se reconoce por el nombre de familia y tipo (cama, cama doble o desde 1,35 m de ancho, cocina/fogón/fregadero, sofá, armario, ducha/bañera), los sanitarios también por categoría. Solo el modelo activo, sin vínculos. Al final se conserva o se descarta todo: un paso de deshacer.
 
     Requiere el motor CPython3.

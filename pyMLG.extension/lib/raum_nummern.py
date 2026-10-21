@@ -8,12 +8,12 @@ Gilt für AutoRooms und ApartmentNumbering (Reiter ML2):
     B    Bad / Bad 1        003
     B    Bad 2              004
     WKÜ  Wohnküche          005
-    WC   WC                 005
     ZI 1 Zimmer 1           006
     ZI 2 Zimmer 2           007
     ZI 3 Zimmer 3           008
     AR   Abstellraum        009
     SR   Schrankraum        010
+    WC   WC                 011
 
 Erkannt wird der Raumname, kurz oder lang, gross oder klein ("ZI 1",
 "ZIMMER 1", "Zimmer1"; "VR" ist der Vorraum von AutoRooms). Bad und Zimmer
@@ -39,9 +39,9 @@ NUMMERN = {
     VORRAUM: u"001",
     GANG: u"002",
     WOHNKUECHE: u"005",
-    WC: u"005",
     AR: u"009",
     SR: u"010",
+    WC: u"011",
 }
 # Gang in einer Wohnung ohne Vorraum
 GANG_OHNE_VORRAUM = u"001"
