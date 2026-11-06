@@ -32,6 +32,14 @@ ALLE = (BAUTEIL, STIEGE, TOP, GRUPPE_TYP, KATEGORIE, TYPNAME, GESCHOSS)
 
 PREFIX = u"WHG_TYP"
 
+# Familie des Eingangspfeils (allgemeines Modell, Typ "Eingangspfeil TOP")
+# in der Wohnungsgruppe - bekommt dieselben Werte wie die Räume
+MARKER_FAMILIE = u"TOP - Eingangspfeil 3D Gruppenmarker"
+
+
+def ist_marker(familienname):
+    return (familienname or u"").strip().lower() == MARKER_FAMILIE.lower()
+
 _NAME = re.compile(r"^WHG_TYP\s+(\S+)\s+-\s+([^_\s]+)_(\S+)\s*$")
 
 

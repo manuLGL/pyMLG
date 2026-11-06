@@ -4,7 +4,9 @@
 Eine Wohnung ist eine Modellgruppe, deren Typname mit WHG_TYP beginnt
 (nur oberste Gruppen - verschachtelte gehören zur äusseren). Ihre Räume
 (auch in verschachtelten Gruppen) bekommen die Werte und ihre feste
-Raumnummer nach lib/raum_nummern.py (Vorraum 001, Bad 003 ...).
+Raumnummer nach lib/raum_nummern.py (Vorraum 001, Bad 003 ...). Dieselben
+Werte bekommen die Gruppe selbst und der Eingangspfeil
+(lg.MARKER_FAMILIE, allgemeines Modell) in der Gruppe.
 
 Räume in Gruppen dürfen nur dann je Instanz verschiedene Werte haben, wenn
 der Parameter "Werte je nach Gruppeninstanz unterschiedlich" erlaubt
@@ -31,6 +33,7 @@ from Autodesk.Revit.DB import (  # noqa: E402
     CurveElement,
     ElementId,
     ElementTypeGroup,
+    FamilyInstance,
     FailureProcessingResult,
     FailureSeverity,
     FilteredElementCollector,
@@ -73,10 +76,11 @@ def _xy(p):
 class Wohnung(object):
     """Eine Wohnungsgruppe mit ihren Räumen."""
 
-    def __init__(self, gruppe, name, raeume, ebene_id):
+    def __init__(self, gruppe, name, raeume, ebene_id, marker=None):
         self.gruppe = gruppe
         self.name = name
         self.raeume = raeume
+        self.marker = marker or []     # Eingangspfeile in der Gruppe
         self.ebene_id = ebene_id
         self._flaechen = None
 
@@ -139,16 +143,25 @@ def raumname(raum):
     return (p.AsString() or u"") if p is not None else u""
 
 
-def _raeume(doc, gruppe):
-    """Räume der Gruppe, auch aus verschachtelten Gruppen."""
-    ergebnis = []
+def familienname(element):
+    try:
+        return element.Symbol.Family.Name
+    except Exception:
+        return u""
+
+
+def _mitglieder(doc, gruppe, raeume, marker):
+    """Räume und Eingangspfeile der Gruppe, auch aus verschachtelten
+    Gruppen."""
     for i in gruppe.GetMemberIds():
         element = doc.GetElement(i)
         if isinstance(element, Room):
-            ergebnis.append(element)
+            raeume.append(element)
+        elif isinstance(element, FamilyInstance):
+            if lg.ist_marker(familienname(element)):
+                marker.append(element)
         elif isinstance(element, Group):
-            ergebnis.extend(_raeume(doc, element))
-    return ergebnis
+            _mitglieder(doc, element, raeume, marker)
 
 
 def wohnungen(doc):
@@ -163,9 +176,10 @@ def wohnungen(doc):
         name = typ.Name if typ is not None else u""
         if not lg.ist_wohnung(name):
             continue
-        raeume = _raeume(doc, gruppe)
+        raeume, marker = [], []
+        _mitglieder(doc, gruppe, raeume, marker)
         ebene_id = raeume[0].LevelId if raeume else gruppe.LevelId
-        ergebnis.append(Wohnung(gruppe, name, raeume, ebene_id))
+        ergebnis.append(Wohnung(gruppe, name, raeume, ebene_id, marker))
     return ergebnis
 
 
@@ -326,9 +340,12 @@ class Lauf(object):
         self.doc = uidoc.Document
         self.ansicht = self.doc.ActiveView
         self.raeume = 0
+        self.gruppen = 0           # Gruppen, die Werte bekommen haben
+        self.marker = 0            # Eingangspfeile, die Werte bekommen haben
+        self.ohne_marker = []      # [Wohnung] ohne Eingangspfeil
         self.nummern = 0           # Räume mit fester Raumnummer
         self.ohne_nummer = {}      # {Raumname: Anzahl} ausserhalb der Tabelle
-        self.fehler = []           # [(Wohnung, Raum, Parameter, Grund)]
+        self.fehler = []           # [(Wohnung, Element, Parameter, Grund)]
         self._notizen = []
         self._notiztyp = self.doc.GetDefaultElementTypeId(
             ElementTypeGroup.TextNoteType)
@@ -375,15 +392,14 @@ class Lauf(object):
                 for raum in wohnung.raeume:
                     self._nummer(wohnung, raum, nummern.get(id_wert(raum.Id)))
                     self.raeume += 1
-                    for name in lg.ALLE:
-                        if name not in werte:
-                            continue
-                        p = parameter(raum, name)
-                        if p is None:
-                            continue    # gibt es nicht -> nicht füllen
-                        grund = _setze(p, werte[name])
-                        if grund:
-                            self.fehler.append((wohnung, raum, name, grund))
+                    self._werte(wohnung, raum, werte)
+                if self._werte(wohnung, wohnung.gruppe, werte):
+                    self.gruppen += 1
+                if not wohnung.marker:
+                    self.ohne_marker.append(wohnung)
+                for marker in wohnung.marker:
+                    if self._werte(wohnung, marker, werte):
+                        self.marker += 1
                 if id_wert(wohnung.ebene_id) == vorschau_ebene:
                     self._vorschau(wohnung, werte.get(lg.TOP, u""))
         self._transaktion(t(u"Wohnungen nummerieren", u"Number apartments",
@@ -392,6 +408,23 @@ class Lauf(object):
             self.uidoc.RefreshActiveView()
         except Exception:
             pass
+
+    def _werte(self, wohnung, element, werte):
+        """Werte in die vorhandenen Parameter des Elements schreiben.
+        True, wenn mindestens einer geschrieben wurde."""
+        geschrieben = False
+        for name in lg.ALLE:
+            if name not in werte:
+                continue
+            p = parameter(element, name)
+            if p is None:
+                continue    # gibt es nicht -> nicht füllen
+            grund = _setze(p, werte[name])
+            if grund:
+                self.fehler.append((wohnung, element, name, grund))
+            else:
+                geschrieben = True
+        return geschrieben
 
     def _nummer(self, wohnung, raum, nummer):
         if not nummer:

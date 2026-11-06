@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """ApartmentNumbering: Wohnungsgruppen (WHG_TYP ...) entlang einer Linie
 über mehrere Geschosse nummerieren (TOP) und die Wohnungsparameter ihrer
-Räume aus dem Gruppentypnamen füllen.
+Räume, der Gruppe selbst und ihres Eingangspfeils aus dem Gruppentypnamen
+füllen.
 
 Die Logik liegt in lib/wohnung_top (Fenster: fenster.py, Revit: revit.py,
 Namen und Geometrie: logik.py). Linie und Pfad kommen von ColumnNumbering
@@ -74,7 +75,7 @@ class Plan(object):
         self.falscher_name = []    # [Wohnung]
         self.ohne_raeume = []      # [Wohnung]
         self.daneben = 0           # Wohnungen der Geschosse ohne Linie
-        self.fehlend = []          # Parameter, die es an Räumen nicht gibt
+        self.fehlend = []          # Parameter, die es nirgends gibt
 
 
 def _plane(wohnungen, einst, segmente):
@@ -114,11 +115,16 @@ def _parameter_bereit(lauf, plan):
     from wohnung_top import logik as lg
     from wohnung_top import revit as rv
 
-    raeume = [r for w, _ in plan.auftraege for r in w.raeume]
+    # Räume und Eingangspfeile liegen in der Gruppe (Varianz nötig), die
+    # Gruppe selbst nicht
+    in_gruppe = [e for w, _ in plan.auftraege for e in w.raeume + w.marker]
+    gruppen = [w.gruppe for w, _ in plan.auftraege]
     namen = [n for n in lg.ALLE
              if any(n in werte for _, werte in plan.auftraege)]
-    fehlend, fest = rv.pruefe_parameter(raeume, namen)
-    # Parameter, die es an den Räumen nicht gibt, werden nicht gefüllt
+    fehlend, fest = rv.pruefe_parameter(in_gruppe, namen)
+    fehlend, _ = rv.pruefe_parameter(gruppen, fehlend)
+    # Parameter, die es weder an Räumen, Pfeilen noch Gruppen gibt, werden
+    # nicht gefüllt
     plan.fehlend = fehlend
     for _, werte in plan.auftraege:
         for name in fehlend:
@@ -126,10 +132,12 @@ def _parameter_bereit(lauf, plan):
     if len(fehlend) == len(namen):
         _warnung(t(u"Parameter fehlen", u"Parameters missing",
                    u"Faltan parámetros"),
-                 t(u"Keinen der Parameter gibt es an den Räumen:",
-                   u"The rooms have none of the parameters:",
-                   u"Las habitaciones no tienen ninguno de los "
-                   u"parámetros:")
+                 t(u"Keinen der Parameter gibt es an den Räumen, Gruppen "
+                   u"oder Eingangspfeilen:",
+                   u"The rooms, groups and entrance arrows have none of the "
+                   u"parameters:",
+                   u"Las habitaciones, grupos y flechas de entrada no "
+                   u"tienen ninguno de los parámetros:")
                  + u"\n" + _liste(fehlend))
         return False
     if not fest:
@@ -143,15 +151,17 @@ def _parameter_bereit(lauf, plan):
               u"'Los valores pueden variar por instancia de grupo' está "
               u"desactivado en estos parámetros:")
             + u"\n" + _liste(namen_fest) + u"\n\n"
-            + t(u"Ohne diese Einstellung können Räume in Gruppen nicht je "
-                u"Wohnung verschiedene Werte haben (z. B. TOP). Jetzt "
-                u"einschalten? Nein = abbrechen, nichts wird geändert.",
-                u"Without this setting, rooms in groups cannot hold "
-                u"different values per apartment (e.g. TOP). Turn it on "
-                u"now? No = cancel, nothing is changed.",
-                u"Sin este ajuste, las habitaciones en grupos no pueden "
-                u"tener valores distintos por vivienda (p. ej. TOP). "
-                u"¿Activarlo ahora? No = cancelar, no se cambia nada."),
+            + t(u"Ohne diese Einstellung können Räume und Eingangspfeile "
+                u"in Gruppen nicht je Wohnung verschiedene Werte haben "
+                u"(z. B. TOP). Jetzt einschalten? Nein = abbrechen, nichts "
+                u"wird geändert.",
+                u"Without this setting, rooms and entrance arrows in groups "
+                u"cannot hold different values per apartment (e.g. TOP). "
+                u"Turn it on now? No = cancel, nothing is changed.",
+                u"Sin este ajuste, las habitaciones y flechas de entrada en "
+                u"grupos no pueden tener valores distintos por vivienda "
+                u"(p. ej. TOP). ¿Activarlo ahora? No = cancelar, no se "
+                u"cambia nada."),
             titel=TITEL, standard_ja=True,
             hauptzeile=t(u"Werte je Gruppeninstanz erlauben?",
                          u"Allow values per group instance?",
@@ -184,6 +194,10 @@ def _abschluss(lauf, plan, einst):
                     u"Ejemplo: %s -> %s, %s, %s")
                   % (beispiel[lg.GRUPPE_TYP], beispiel[lg.TYPNAME],
                      beispiel[lg.KATEGORIE], beispiel[lg.GESCHOSS]))
+    zeilen.append(t(u"Ebenso gefüllt: %d Gruppen, %d Eingangspfeile",
+                    u"Also filled: %d groups, %d entrance arrows",
+                    u"También rellenados: %d grupos, %d flechas de entrada")
+                  % (lauf.gruppen, lauf.marker))
     zeilen.append(t(u"Raumnummer nach Tabelle (Vorraum 001, Bad 003 ...): "
                     u"%d Räume", u"Room number from the table (Vorraum 001, "
                     u"Bad 003 ...): %d rooms", u"Número de habitación según "
@@ -201,6 +215,11 @@ def _abschluss(lauf, plan, einst):
                         u"No existen, por eso no se rellenan: ")
                       + u", ".join(plan.fehlend))
     warnung = False
+    if lauf.ohne_marker:
+        zeilen += [u"", t(u"Ohne Eingangspfeil '%s':",
+                          u"Without entrance arrow '%s':",
+                          u"Sin flecha de entrada '%s':") % lg.MARKER_FAMILIE,
+                   _liste([w.beschreibung() for w in lauf.ohne_marker])]
     if plan.falscher_name:
         warnung = True
         zeilen += [u"", t(u"Übersprungen - Name passt nicht zu "
@@ -230,8 +249,9 @@ def _abschluss(lauf, plan, einst):
             anzahl[(name, grund)] = anzahl.get((name, grund), 0) + 1
         zeilen += [u"", t(u"Nicht geschrieben:", u"Not written:",
                           u"No escritos:"),
-                   _liste([t(u"%s: %s (%d Räume)", u"%s: %s (%d rooms)",
-                             u"%s: %s (%d habitaciones)") % (n, g, z)
+                   _liste([t(u"%s: %s (%d Elemente)",
+                             u"%s: %s (%d elements)",
+                             u"%s: %s (%d elementos)") % (n, g, z)
                            for (n, g), z in sorted(anzahl.items())])]
     zeilen += [u"", t(u"Die TOP-Nummern des aktiven Grundrisses stehen als "
                       u"Vorschau in der Ansicht. Nein = alles zurücknehmen.",
