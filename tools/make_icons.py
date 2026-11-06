@@ -769,6 +769,19 @@ def component_legend(b):
         rect(b, 44, y, 84, y + 4, DUNKEL)
 
 
+def filter_legend(b):
+    """Legendenblatt: drei Farbfelder (Vollton, Vollton, Schraffur),
+    Namen rechts daneben."""
+    blattform(b, 4, 6, 92, 90, BLAU, 12)
+    rect(b, 12, 26, 34, 38, ORANGE)               # Filter 1
+    rect(b, 12, 46, 34, 58, GRUEN)                # Filter 2
+    rahmen(b, 12, 66, 34, 78, 2, VIOLETT)         # Filter 3: Schraffur
+    for x in (14, 20, 26):
+        linie(b, (x, 76), (x + 6, 68), 2, VIOLETT)
+    for y in (30, 50, 70):                        # Filternamen
+        rect(b, 44, y, 84, y + 4, DUNKEL)
+
+
 def area_table(b):
     """Plan mit Flächentabelle: Kopfzeile, Werte rechtsbündig, Summe grün."""
     blattform(b, 4, 6, 92, 90, BLAU, 12)
@@ -788,6 +801,7 @@ PLAENE = {
     "Erstellen.panel/DuplicateSheet.pushbutton": duplicate_sheet,
     "Erstellen.panel/DxfLegend.pushbutton": dxf_legend,
     "Erstellen.panel/ComponentLegend.pushbutton": component_legend,
+    "Erstellen.panel/FilterLegend.pushbutton": filter_legend,
     "Erstellen.panel/AreaTable.pushbutton": area_table,
     "Anordnen.panel/ArrangeSheet.pushbutton": arrange_sheet,
     "Anordnen.panel/AlignViewports.pushbutton": align_viewports,

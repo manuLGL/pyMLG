@@ -1,0 +1,30 @@
+title:
+  de_de: "Filter-\nlegende"
+  en_us: "Filter\nLegend"
+  es_es: "Leyenda\nde filtros"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Erstellt aus den Ansichtsfiltern eine Legende: je Filter ein Farbfeld mit Muster und Farbe der Überschreibung und daneben der Name. Ansichten oder Ansichtsvorlagen markieren, Filter an-/abhaken, Beschriftung je Filter anpassen (wird gemerkt), Grösse der Farbfelder, Abstand und Spalten einstellen.
+
+    Die Farbe kommt automatisch aus dem Oberflächenmuster, sonst dem Schnittmuster, sonst der Linienfarbe - oder fest aus Oberfläche bzw. Schnitt. Steuert eine Ansichtsvorlage die Filter, gelten deren Einstellungen. Ausgeblendete, deaktivierte und Filter ohne Farbe sind zuerst abgehakt.
+
+    Je Filter entsteht ein Füllbereichstyp "Filterlegende - <Filter>"; mit gleichen Werten wird er wiederverwendet, mit anderen entsteht _2, damit andere Legenden ihre Farben behalten. Gibt es eine Legende im Projekt, wird sie dupliziert, sonst entsteht eine Zeichnungsansicht. Mit "Gleichnamige Legende ersetzen" wird eine vorhandene Legende neu aufgebaut und bleibt auf den Plänen stehen. Ein Rückgängig-Schritt.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Creates a legend from the view filters: one swatch per filter with the pattern and colour of its override, and its name next to it. Check views or view templates, tick filters, adjust the label per filter (remembered), set swatch size, spacing and columns.
+
+    The colour comes automatically from the surface pattern, else the cut pattern, else the line colour - or always from surface or cut. If a view template controls the filters, its settings apply. Hidden, disabled and filters without colour start unticked.
+
+    One filled region type "Filterlegende - <filter>" is created per filter; with identical values it is reused, otherwise _2 is created so other legends keep their colours. If the project has a legend it is duplicated, otherwise a drafting view is created. "Replace legend with the same name" rebuilds an existing legend, which stays on its sheets. One undo step.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Crea una leyenda a partir de los filtros de vista: una muestra por filtro con el patrón y color de su modificación y al lado su nombre. Marque vistas o plantillas de vista, active filtros, ajuste el texto de cada filtro (se recuerda), el tamaño de las muestras, la separación y las columnas.
+
+    El color se toma automáticamente del patrón de superficie, si no del de corte, si no del color de línea - o siempre de superficie o corte. Si una plantilla de vista controla los filtros, se usan sus ajustes. Los filtros ocultos, desactivados o sin color empiezan sin marcar.
+
+    Por cada filtro se crea un tipo de región rellenada "Filterlegende - <filtro>"; con los mismos valores se reutiliza, si no se crea _2 para que otras leyendas conserven sus colores. Si el proyecto tiene una leyenda se duplica, si no se crea una vista de diseño. "Reemplazar leyenda del mismo nombre" vuelve a crear una leyenda existente, que se queda en sus planos. Un paso de deshacer.
+
+    Requiere el motor CPython3.

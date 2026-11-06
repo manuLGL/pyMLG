@@ -7,4 +7,5 @@ layout:
   - DuplicateSheet
   - DxfLegend
   - ComponentLegend
+  - FilterLegend
   - AreaTable
