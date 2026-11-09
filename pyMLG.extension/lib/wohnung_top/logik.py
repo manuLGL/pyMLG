@@ -60,24 +60,65 @@ def zerlege(name):
     return treffer.groups()
 
 
+# Geschosskürzel: OG09 -> 9.OG, UG01 -> 1.UG, EG -> EG
+_KUERZEL = u"UG|KG|EG|ZG|OG|DG"
+_KUERZEL_NUMMER = re.compile(
+    r"(?<![A-Za-z])(%s)[ _-]?0*(\d+)(?!\d)" % _KUERZEL, re.IGNORECASE)
+_NUMMER_KUERZEL = re.compile(
+    r"(?<!\d)0*(\d+)\s*\.\s*(%s)(?![A-Za-z])" % _KUERZEL, re.IGNORECASE)
+_NUR_KUERZEL = re.compile(r"(?<![A-Za-z])(%s)(?![A-Za-z])" % _KUERZEL,
+                          re.IGNORECASE)
+
+
+def _schreibweise(kuerzel, nummer):
+    kuerzel = kuerzel.upper()
+    nummer = int(nummer)
+    return kuerzel if nummer == 0 else u"%d.%s" % (nummer, kuerzel)
+
+
+def geschoss(text):
+    """Erstes Geschoss im Text in der Schreibweise '9.OG':
+    'OG09' -> '9.OG', 'UG 01' -> '1.UG', '+27.00 OG09' -> '9.OG',
+    'EG' / 'EG00' -> 'EG', '9.OG' bleibt. None, wenn keins drin ist."""
+    text = text or u""
+    treffer = _KUERZEL_NUMMER.search(text)
+    if treffer:
+        return _schreibweise(treffer.group(1), treffer.group(2))
+    treffer = _NUMMER_KUERZEL.search(text)
+    if treffer:
+        return _schreibweise(treffer.group(2), treffer.group(1))
+    treffer = _NUR_KUERZEL.search(text)
+    if treffer:
+        return treffer.group(1).upper()
+    return None
+
+
+def geschosse(text):
+    """Alle Geschosse im Text umschreiben: 'OG07-OG12' -> '7.OG-12.OG'."""
+    return _KUERZEL_NUMMER.sub(
+        lambda m: _schreibweise(m.group(1), m.group(2)), text or u"")
+
+
 def kategorie(typ):
     """'A2a' -> 'A-TYP'."""
     return u"%s-TYP" % typ[0].upper()
 
 
-def werte(name, bauteil=u"", stiege=u""):
+def werte(name, bauteil=u"", stiege=u"", ebene=u""):
     """{Parameter: Wert} aus dem Gruppentypnamen - ohne TOP. Leeres
-    Bauteil oder leere Stiege wird nicht geschrieben. None, wenn der Name
-    nicht zum Schema passt."""
+    Bauteil oder leere Stiege wird nicht geschrieben. Das Geschoss kommt
+    aus dem Ebenennamen ('OG09' -> '9.OG'), sonst aus dem Typnamen
+    ('OG07-OG12' -> '7.OG-12.OG'). None, wenn der Name nicht zum Schema
+    passt."""
     teile = zerlege(name)
     if teile is None:
         return None
-    typ, _, geschoss = teile
+    typ, _, bereich = teile
     ergebnis = {
         GRUPPE_TYP: name.strip(),
         TYPNAME: typ,
         KATEGORIE: kategorie(typ),
-        GESCHOSS: geschoss,
+        GESCHOSS: geschoss(ebene) or geschosse(bereich),
     }
     if (bauteil or u"").strip():
         ergebnis[BAUTEIL] = bauteil.strip()

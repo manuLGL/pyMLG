@@ -30,13 +30,31 @@ def test_werte():
     w = lg.werte(u"WHG_TYP A2a - TU_OG07-OG12", u" TU ", u"LBS 45")
     assert w == {lg.GRUPPE_TYP: u"WHG_TYP A2a - TU_OG07-OG12",
                  lg.TYPNAME: u"A2a", lg.KATEGORIE: u"A-TYP",
-                 lg.GESCHOSS: u"OG07-OG12", lg.BAUTEIL: u"TU",
+                 lg.GESCHOSS: u"7.OG-12.OG", lg.BAUTEIL: u"TU",
                  lg.STIEGE: u"LBS 45"}
     # Leere Eingaben werden nicht geschrieben
     w = lg.werte(u"WHG_TYP b1d - TU_EG", u"", u"  ")
     assert lg.BAUTEIL not in w and lg.STIEGE not in w
     assert w[lg.KATEGORIE] == u"B-TYP"
     assert lg.werte(u"WHG_TYP X") is None
+    # Geschoss aus der Ebene
+    w = lg.werte(u"WHG_TYP A2a - TU_OG07-OG12", ebene=u"OG09")
+    assert w[lg.GESCHOSS] == u"9.OG"
+    assert lg.werte(u"WHG_TYP b1d - TU_EG")[lg.GESCHOSS] == u"EG"
+
+
+def test_geschoss():
+    assert lg.geschoss(u"OG09") == u"9.OG"
+    assert lg.geschoss(u"og 12") == u"12.OG"
+    assert lg.geschoss(u"UG01") == u"1.UG"
+    assert lg.geschoss(u"+27.00 OG09") == u"9.OG"
+    assert lg.geschoss(u"EG") == u"EG"
+    assert lg.geschoss(u"EG00") == u"EG"
+    assert lg.geschoss(u"DG") == u"DG"
+    assert lg.geschoss(u"9.OG") == u"9.OG"
+    assert lg.geschoss(u"Ebene 3") is None
+    assert lg.geschosse(u"OG07-OG12") == u"7.OG-12.OG"
+    assert lg.geschosse(u"EG-OG02") == u"EG-2.OG"
 
 
 QUADRAT = [(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0)]

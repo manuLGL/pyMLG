@@ -101,7 +101,7 @@ def _plane(wohnungen, einst, segmente):
             treffer.append((ebene.hoehe, station, (ebene, w)))
     zaehler = nummern.Zaehler(einst.start, 1)
     for ebene, w in lg.reihenfolge(treffer):
-        werte = lg.werte(w.name, einst.bauteil, einst.stiege)
+        werte = lg.werte(w.name, einst.bauteil, einst.stiege, ebene.name)
         werte[lg.TOP] = zaehler.weiter()
         plan.auftraege.append((w, werte))
         plan.nummeriert.append((ebene.name, werte[lg.TOP]))
@@ -188,7 +188,7 @@ def _abschluss(lauf, plan, einst):
              for n in lg.ALLE if n in geschrieben]
     zeilen += [u"", t(u"Geschrieben: ", u"Written: ", u"Escritos: ")
                + u", ".join(namen)]
-    beispiel = lg.werte(plan.auftraege[0][0].name)
+    beispiel = plan.auftraege[0][1]
     zeilen.append(t(u"Beispiel: %s -> %s, %s, %s",
                     u"Example: %s -> %s, %s, %s",
                     u"Ejemplo: %s -> %s, %s, %s")
