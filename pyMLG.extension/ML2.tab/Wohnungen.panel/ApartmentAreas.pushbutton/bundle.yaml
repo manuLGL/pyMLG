@@ -1,0 +1,30 @@
+title:
+  de_de: "Wohnungs-\nflächen"
+  en_us: "Apartment\nAreas"
+  es_es: "Superficies\nvivienda"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Schreibt in jeden Eingangspfeil "TOP - Eingangspfeil 3D Gruppenmarker" die Flächen der Räume seiner Gruppe, summiert nach Raumkategorie. Gelesen werden die Räume der obersten Gruppe, zu der der Pfeil gehört (auch aus verschachtelten Gruppen); geschrieben wird nur in den Pfeil.
+
+    TOP_01_WNFL_FLÄ = 1_W_WOHNEN, 2_W_NEBENRAUM, 2_W_SAN_GARDEROBE, 2_W_SAN_WELLNESS, 2_W_SANITÄR, 2_W_VERKEHRSFLÄCHE. TOP_02_TERRASSE_FLÄ = 2_WA3_TERRASSE. TOP_03_LOGGIA_FLÄ = 2_WA1_LOGGIA. TOP_04_BALKON_FLÄ = 2_WA2_BALKON. TOP_07_TERRASSE_EG_FLÄ = 2_WA4_TERRASSE (EG). TOP_08_TERRASSE_DT_FLÄ = 2_WA5.1_TERRASSE (DACH). TOP_GW_01_NFL_FLÄ = alle 3_GW_... Andere Kategorien zählen nicht; Parameter ohne passende Räume bekommen 0.
+
+    Vorher gewählte Pfeile oder Gruppen: nur diese, sonst alle im Projekt. Ist bei einem Parameter "Werte je nach Gruppeninstanz unterschiedlich" aus, fragt das Werkzeug, ob es die Einstellung einschalten soll - Gruppen werden nie aufgelöst. Am Ende behalten oder alles verwerfen - ein Rückgängig-Schritt.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Writes the areas of the rooms of its group into every entrance arrow "TOP - Eingangspfeil 3D Gruppenmarker", summed by room category. The rooms of the outermost group the arrow belongs to are read (nested groups included); only the arrow is written.
+
+    TOP_01_WNFL_FLÄ = 1_W_WOHNEN, 2_W_NEBENRAUM, 2_W_SAN_GARDEROBE, 2_W_SAN_WELLNESS, 2_W_SANITÄR, 2_W_VERKEHRSFLÄCHE. TOP_02_TERRASSE_FLÄ = 2_WA3_TERRASSE. TOP_03_LOGGIA_FLÄ = 2_WA1_LOGGIA. TOP_04_BALKON_FLÄ = 2_WA2_BALKON. TOP_07_TERRASSE_EG_FLÄ = 2_WA4_TERRASSE (EG). TOP_08_TERRASSE_DT_FLÄ = 2_WA5.1_TERRASSE (DACH). TOP_GW_01_NFL_FLÄ = all 3_GW_... Other categories are not counted; parameters without matching rooms get 0.
+
+    Arrows or groups selected beforehand: only those, otherwise all in the project. If "Values can vary by group instance" is off for a parameter, the tool asks whether to turn it on - groups are never ungrouped. At the end keep or discard everything - one undo step.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Escribe en cada flecha de entrada "TOP - Eingangspfeil 3D Gruppenmarker" las superficies de las habitaciones de su grupo, sumadas por categoría. Se leen las habitaciones del grupo superior al que pertenece la flecha (incluidos grupos anidados); solo se escribe en la flecha.
+
+    TOP_01_WNFL_FLÄ = 1_W_WOHNEN, 2_W_NEBENRAUM, 2_W_SAN_GARDEROBE, 2_W_SAN_WELLNESS, 2_W_SANITÄR, 2_W_VERKEHRSFLÄCHE. TOP_02_TERRASSE_FLÄ = 2_WA3_TERRASSE. TOP_03_LOGGIA_FLÄ = 2_WA1_LOGGIA. TOP_04_BALKON_FLÄ = 2_WA2_BALKON. TOP_07_TERRASSE_EG_FLÄ = 2_WA4_TERRASSE (EG). TOP_08_TERRASSE_DT_FLÄ = 2_WA5.1_TERRASSE (DACH). TOP_GW_01_NFL_FLÄ = todas las 3_GW_... Las demás categorías no cuentan; los parámetros sin habitaciones correspondientes reciben 0.
+
+    Flechas o grupos seleccionados antes: solo esos, si no todas las del proyecto. Si "Los valores pueden variar por instancia de grupo" está desactivado en un parámetro, la herramienta pregunta si debe activarlo; los grupos nunca se desagrupan. Al final se conserva o se descarta todo: un paso de deshacer.
+
+    Requiere el motor CPython3.

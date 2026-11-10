@@ -674,6 +674,18 @@ def apartment_numbering(b):
     pfeil(b, (86, 84), (86, 14), 5, 12, ORANGE)   # weiter nach oben
 
 
+def apartment_areas(b):
+    """Wohnungsgrundriss mit zwei farbigen Raumflaechen (WNFL blau,
+    Balkon gruen), Pfeil sammelt sie in den Eingangspfeil (orange)."""
+    rahmen(b, 6, 8, 70, 62, 4, DUNKEL)
+    rect(b, 38, 8, 42, 62, DUNKEL)                # Trennwand
+    rect(b, 10, 12, 38, 58, BLAU)                 # WNFL
+    rect(b, 42, 12, 66, 58, LINIE)
+    rect(b, 6, 66, 70, 76, GRUEN)                 # Balkon
+    pfeil(b, (78, 30), (78, 70), 5, 11, DUNKEL)   # Summe
+    polygon(b, [(60, 80), (92, 80), (76, 94)], ORANGE)   # Eingangspfeil
+
+
 def stack_values(b):
     """Schnitt durch drei Geschosse, je eine Stuetze und ein Unterzug an
     derselben Stelle: unten die Quelle (orange), darueber uebernommen
@@ -815,6 +827,7 @@ PLAENE = {
 ML2 = {
     "Wohnungen.panel/AutoRooms.pushbutton": auto_rooms,
     "Wohnungen.panel/ApartmentNumbering.pushbutton": apartment_numbering,
+    "Wohnungen.panel/ApartmentAreas.pushbutton": apartment_areas,
 }
 
 # Symbole je Reiter (Ordnername)
