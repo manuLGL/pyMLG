@@ -446,6 +446,22 @@ def linked_ids(b):
     rect(b, 66, 76, 78, 82, GRUEN)
 
 
+def empty_tags(b):
+    """Drei Beschriftungen, zwei zeigen ein rotes Fragezeichen und sind gewaehlt."""
+    for y, frage in ((6, True), (36, False), (66, True)):
+        if frage:
+            rahmen(b, 4, y - 2, 92, y + 26, 3, BLAU)       # gewaehlt
+        blattform(b, 10, y + 2, 86, y + 22, GELB, 5)
+        if frage:
+            linie(b, (40, y + 11), (46, y + 8), 4, ROT)    # Fragezeichen
+            linie(b, (46, y + 8), (54, y + 9), 4, ROT)
+            linie(b, (54, y + 9), (50, y + 15), 4, ROT)
+            linie(b, (50, y + 15), (48, y + 16), 4, ROT)
+            kreis(b, 48, y + 19, 2, ROT)
+        else:
+            rect(b, 22, y + 12, 74, y + 16, LINIE)
+
+
 def _schnittkasten(b, akzent):
     """Wuerfel in Isometrie - die Schnittbox."""
     polygon(b, [(28, 28), (52, 44), (28, 60), (4, 44)], WEISS)   # Deckel
@@ -737,6 +753,7 @@ SYMBOLE = {
     "Auswahl.panel/FilterMore.pushbutton": filter_more,
     "Auswahl.panel/Elements2D.pushbutton": elements_2d,
     "Auswahl.panel/LinkedIds.pushbutton": linked_ids,
+    "Auswahl.panel/EmptyTags.pushbutton": empty_tags,
     "Geometrie.panel/LevelAutoSet.pushbutton": level_auto_set,
     "Geometrie.panel/LinkToGenericModel.pushbutton": link_to_generic_model,
     "Geometrie.panel/WallProfileCopy.pushbutton": wall_profile_copy,
@@ -744,6 +761,44 @@ SYMBOLE = {
     "Ansichten.panel/SectionBox.stack/SectionBoxPaste.pushbutton": section_box_paste,
     "Ansichten.panel/SectionBox.stack/SectionBoxSelection.pushbutton": section_box_selection,
 }
+
+
+def group_export(b):
+    """Gestrichelter Gruppenrahmen mit Wand und Raum, Pfeil auf eine
+    eigene Datei (.rvt) mit Kopfleiste."""
+    for x in range(6, 50, 8):                    # Gruppenrahmen gestrichelt
+        rect(b, x, 8, x + 5, 11, DUNKEL)
+        rect(b, x, 49, x + 5, 52, DUNKEL)
+    for y in range(8, 50, 8):
+        rect(b, 6, y, 9, y + 5, DUNKEL)
+        rect(b, 47, y, 50, y + 5, DUNKEL)
+    rect(b, 14, 16, 42, 21, ORANGE)              # Wand
+    rect(b, 14, 21, 19, 44, ORANGE)
+    rect(b, 26, 30, 40, 42, BLAU)                # Raum
+    pfeil(b, (32, 58), (32, 84), 5, 12, GRUEN)
+    blattform(b, 48, 40, 90, 92, BLAU, 10)       # exportiertes Modell
+    rect(b, 56, 62, 82, 66, LINIE)
+    rect(b, 56, 72, 76, 76, LINIE)
+
+
+def group_to_link(b):
+    """Links gestrichelte Gruppe, rechts verknuepfte Datei mit Kettenglied,
+    Pfeil dazwischen: Gruppe wird Verknuepfung."""
+    for x in range(4, 40, 8):                    # Gruppenrahmen gestrichelt
+        rect(b, x, 28, x + 5, 31, DUNKEL)
+        rect(b, x, 65, x + 5, 68, DUNKEL)
+    for y in range(28, 66, 8):
+        rect(b, 4, y, 7, y + 5, DUNKEL)
+        rect(b, 37, y, 40, y + 5, DUNKEL)
+    rect(b, 12, 36, 32, 41, ORANGE)              # Wand
+    rect(b, 12, 41, 17, 60, ORANGE)
+    rect(b, 22, 48, 32, 60, BLAU)                # Raum
+    pfeil(b, (42, 48), (58, 48), 5, 11, GRUEN)
+    blattform(b, 60, 14, 92, 82, BLAU, 8)        # verknuepftes Modell
+    for cx in (70, 82):                          # Kettenglied
+        kreis(b, cx, 56, 9, DUNKEL)
+        kreis(b, cx, 56, 5, WEISS)
+
 
 MANAGER = {
     "Ansichten.panel/ViewTemplateManager.pushbutton": view_template_manager,
@@ -828,6 +883,8 @@ ML2 = {
     "Wohnungen.panel/AutoRooms.pushbutton": auto_rooms,
     "Wohnungen.panel/ApartmentNumbering.pushbutton": apartment_numbering,
     "Wohnungen.panel/ApartmentAreas.pushbutton": apartment_areas,
+    "Gruppen.panel/GroupExport.pushbutton": group_export,
+    "Gruppen.panel/GroupToLink.pushbutton": group_to_link,
 }
 
 # Symbole je Reiter (Ordnername)

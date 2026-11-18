@@ -1,0 +1,30 @@
+title:
+  de_de: "Gruppen durch\nLinks ersetzen"
+  en_us: "Replace Groups\nwith Links"
+  es_es: "Grupos por\nvínculos"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Ersetzt alle Instanzen von Modellgruppen durch Revit-Verknüpfungen der gleichnamigen .rvt-Dateien aus einem Ordner.
+
+    Gruppen vorher markieren (dann werden alle Instanzen ihrer Typen ersetzt) oder nach dem Klick aus der Liste wählen - die Liste zeigt nur Gruppen, zu denen es im Ordner eine Datei gibt. Gruppenname = Dateiname, Gross-/Kleinschreibung egal; Sicherungskopien (Name.0001.rvt) zählen nicht. Ist die Datei schon verknüpft, wird diese Verknüpfung verwendet.
+
+    Jede Verknüpfung wird Ursprung auf Ursprung eingefügt und dann gedreht und verschoben wie die Gruppe; sie kommt auf den Bearbeitungsbereich der Gruppe. Das passt, wenn die Datei die Gruppe in Grundstellung enthält (Ursprung auf 0/0/0, ohne Drehung) - so speichert sie "Gruppen exportieren". Gespiegelte Gruppen lassen sich nicht als Verknüpfung nachbilden. Verschachtelte Gruppen (in einer anderen Gruppe) werden nicht ersetzt. Die Gruppeninstanzen werden gelöscht, die Gruppentypen bleiben. Ein Rückgängig-Schritt.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Replaces all instances of model groups with Revit links of the .rvt files of the same name from a folder.
+
+    Select the groups beforehand (then all instances of their types are replaced) or pick them from the list after clicking - the list only shows groups with a file in the folder. Group name = file name, case does not matter; backups (Name.0001.rvt) do not count. If the file is already linked, that link is used.
+
+    Each link is placed origin to origin and then rotated and moved like the group; it goes on the group's workset. This fits when the file holds the group in its base position (origin at 0/0/0, no rotation) - that is how "Export Groups" saves it. Mirrored groups cannot be reproduced as a link. Nested groups (inside another group) are not replaced. The group instances are deleted, the group types stay. One undo step.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Reemplaza todas las instancias de grupos de modelo por vínculos de Revit de los archivos .rvt del mismo nombre de una carpeta.
+
+    Seleccione los grupos antes (se reemplazan todas las instancias de sus tipos) o elíjalos de la lista después del clic; la lista solo muestra grupos con un archivo en la carpeta. Nombre del grupo = nombre del archivo, sin distinguir mayúsculas; las copias de seguridad (Nombre.0001.rvt) no cuentan. Si el archivo ya está vinculado, se usa ese vínculo.
+
+    Cada vínculo se coloca origen a origen y luego se gira y se mueve como el grupo; va al subproyecto del grupo. Esto encaja si el archivo contiene el grupo en su posición base (origen en 0/0/0, sin rotación), que es como lo guarda "Exportar grupos". Los grupos en simetría no se pueden reproducir como vínculo. Los grupos anidados (dentro de otro grupo) no se reemplazan. Las instancias de grupo se eliminan, los tipos de grupo se conservan. Un paso de deshacer.
+
+    Requiere el motor CPython3.

@@ -1,0 +1,24 @@
+title:
+  de_de: "Gruppen\nexportieren"
+  en_us: "Export\nGroups"
+  es_es: "Exportar\ngrupos"
+author: pyMLG
+tooltip:
+  de_de: >-
+    Speichert Modellgruppen als eigene Revit-Modelle (.rvt) in einen Ordner - Dateiname = Gruppenname.
+
+    Gruppen vorher markieren oder nach dem Klick aus der Liste wählen, dann den Ordner wählen. Je Gruppentyp eine Datei, auch wenn mehrere Instanzen gewählt sind. Wie "Gruppe speichern" in Revit: neues leeres Projekt, Gruppe in Grundstellung (Ursprung auf 0/0/0, ohne Drehung), Gruppe aufgelöst (verschachtelte Gruppen bleiben). Gibt es eine Datei schon, wird vorher gefragt. Die Dateien passen so direkt zu "Gruppen durch Links ersetzen". Das aktive Projekt wird nicht verändert.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Saves model groups as separate Revit models (.rvt) in a folder - file name = group name.
+
+    Select the groups beforehand or pick them from the list after clicking, then choose the folder. One file per group type, even if several instances are selected. Like "Save Group" in Revit: new empty project, group in its base position (origin at 0/0/0, no rotation), group ungrouped (nested groups stay). If a file already exists, you are asked first. The files then fit "Replace Groups with Links" directly. The active project is not changed.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Guarda grupos de modelo como modelos de Revit propios (.rvt) en una carpeta; nombre de archivo = nombre del grupo.
+
+    Seleccione los grupos antes o elíjalos de la lista después del clic, luego elija la carpeta. Un archivo por tipo de grupo, aunque haya varias instancias seleccionadas. Como "Guardar grupo" en Revit: proyecto nuevo vacío, grupo en su posición base (origen en 0/0/0, sin rotación), grupo desagrupado (los grupos anidados se mantienen). Si un archivo ya existe, se pregunta antes. Así los archivos sirven directamente para "Reemplazar grupos por vínculos". El proyecto activo no se modifica.
+
+    Requiere el motor CPython3.

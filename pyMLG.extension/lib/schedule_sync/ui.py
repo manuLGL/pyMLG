@@ -353,6 +353,28 @@ def datei_oeffnen(startordner=u"", titel=t(u"Excel-Datei auswählen", u"Select E
     return _dateidialog(False, u"", startordner, titel)
 
 
+def ordner_waehlen(startordner=u"", titel=t(u"Ordner auswählen", u"Select folder", u"Seleccionar carpeta")):
+    """Ordner-Dialog (WinForms). Rückgabe: Pfad oder None."""
+    module = _lade_winforms()
+    if module is None:
+        raise RuntimeError(
+            t(u"Der Ordnerdialog konnte nicht geöffnet werden: "
+              u"System.Windows.Forms ist in dieser Umgebung nicht verfügbar.", u"The folder dialog could not be opened: System.Windows.Forms is not available in this environment.", u"No se pudo abrir el diálogo de carpeta: System.Windows.Forms no está disponible en este entorno."))
+    Forms, _Drawing = module
+
+    dialog = Forms.FolderBrowserDialog()
+    dialog.Description = titel
+    dialog.ShowNewFolderButton = True
+    if startordner:
+        dialog.SelectedPath = startordner
+    try:
+        if dialog.ShowDialog() != Forms.DialogResult.OK:
+            return None
+        return dialog.SelectedPath or None
+    finally:
+        dialog.Dispose()
+
+
 # ---------------------------------------------------------------------------
 # Fortschritt
 # ---------------------------------------------------------------------------
