@@ -1,0 +1,37 @@
+title:
+  de_de: "Beschriftung\n?"
+  en_us: "Tags\n?"
+  es_es: "Etiquetas\n?"
+author: pyMLG
+context: doc-project
+tooltip:
+  de_de: >-
+    Alle Beschriftungen mit "?" eines Typs in der aktiven Ansicht auswählen.
+
+    Eine Beschriftung mit "?" auswählen (oder mehrere, auch verschiedener
+    Typen) und das Werkzeug starten; ohne Auswahl fragt es nach dem Muster.
+    Gewählt werden alle Beschriftungen desselben Typs in der aktiven
+    Ansicht, die genau denselben Text zeigen. Mit Shift-Klick wird in der
+    ganzen Beschriftungsfamilie gesucht statt nur im Typ.
+
+    Benötigt die CPython3-Engine.
+  en_us: >-
+    Select every tag of a type showing "?" in the active view.
+
+    Select a tag showing "?" (or several, also of different types) and start
+    the tool; without a selection it asks for the sample. It selects all
+    tags of the same type in the active view that show exactly the same
+    text. Shift-click searches the whole tag family instead of the type.
+
+    Requires the CPython3 engine.
+  es_es: >-
+    Selecciona todas las etiquetas de un tipo que muestran "?" en la vista
+    activa.
+
+    Seleccione una etiqueta con "?" (o varias, también de tipos distintos)
+    e inicie la herramienta; sin selección le pide la muestra. Se
+    seleccionan todas las etiquetas del mismo tipo en la vista activa que
+    muestran exactamente el mismo texto. Con Mayús+clic busca en toda la
+    familia de etiquetas en lugar del tipo.
+
+    Requiere el motor CPython3.
