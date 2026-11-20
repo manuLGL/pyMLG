@@ -618,6 +618,57 @@ def test_speicher_behaelt_fremde_aenderungen():
         assert sorted(stand) == [u"a", u"b", u"c"]
 
 
+# --- XML-Export -------------------------------------------------------------
+
+def test_xml_export_rundreise():
+    with Ordner() as ordner:
+        quelle = schreibe(ordner, "b.xml", XML)
+        ziel = os.path.join(ordner, "b_bewertet.xml")
+        eintraege = {
+            u"aaa-111": {u"status": br.GEPRUEFT, u"klasse": u"CLR",
+                         u"kommentar": u"passt so", u"von": u"manuel",
+                         u"zeit": u"2026-11-20 09:30"},
+            u"ccc-333": {u"status": br.AKTIV},
+        }
+        assert br.schreibe_xml(quelle, ziel, eintraege,
+                               {br.GEPRUEFT: u"Geprüft"}) == 2
+
+        eins, zwei, drei = br.lies(ziel).clashes
+        assert eins.status_navis == br.GEPRUEFT
+        assert eins.kommentare_navis == [
+            u"Ana: Bitte prüfen",
+            u"manuel: [pyMLG] Klasse: CLR | passt so"]
+        assert zwei.status_navis == br.GEPRUEFT     # unverändert
+        assert drei.status_navis == br.AKTIV
+        assert drei.kommentare_navis == []          # ohne Klasse/Kommentar
+        # Schlüssel und Messwerte bleiben
+        assert [c.schluessel for c in (eins, zwei, drei)] == [
+            u"aaa-111", u"bbb-222", u"ccc-333"]
+        assert abs(eins.abstand - (-0.052)) < 1e-9
+        assert (eins.objekte[0].element_id, eins.objekte[1].element_id) == (
+            398254, 12034)
+        with io.open(ziel, encoding="utf-8") as datei:
+            text = datei.read()
+        assert u"<resultstatus>Geprüft</resultstatus>" in text
+        assert u'year="2026"' in text
+
+        # erneuter Export aus dem Export: Kommentar ersetzt, nicht doppelt
+        eintraege[u"aaa-111"][u"kommentar"] = u"neu"
+        noch_mal = os.path.join(ordner, "b2.xml")
+        br.schreibe_xml(ziel, noch_mal, eintraege)
+        eins = br.lies(noch_mal).clashes[0]
+        assert eins.kommentare_navis == [
+            u"Ana: Bitte prüfen", u"manuel: [pyMLG] Klasse: CLR | neu"]
+
+
+def test_speicher_uebertragen():
+    with Ordner() as ordner:
+        pfad = os.path.join(ordner, "neu.xml" + sp.ENDUNG)
+        sp.uebertrage(pfad, {u"a": {u"klasse": u"CLR"}})
+        sp.uebertrage(pfad, {u"b": {u"klasse": u"TGA"}})
+        assert sorted(sp.Speicher(pfad).eintraege) == [u"a", u"b"]
+
+
 if __name__ == "__main__":
     tests = [(n, f) for n, f in sorted(globals().items())
              if n.startswith("test_") and callable(f)]

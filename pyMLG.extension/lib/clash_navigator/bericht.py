@@ -399,33 +399,7 @@ def lies_xml(pfad):
                        u"The XML file cannot be read:\n%s",
                        u"No se puede leer el archivo XML:\n%s") % fehler)
 
-    faktor = einheit_faktor(wurzel.get(u"units"))
-    clashes = []
     tests = [k for k in wurzel.iter() if _lokal(k.tag) == u"clashtest"]
-    for test in tests:
-        testname = test.get(u"name") or u""
-        stapel = _kind(test, u"clashresults")
-        if stapel is None:
-            continue
-        testfaktor = einheit_faktor(test.get(u"units"), faktor)
-        gefunden = []
-        for eintrag in list(stapel):
-            art = _lokal(eintrag.tag)
-            if art == u"clashresult":
-                gefunden.append(_clash_aus_xml(eintrag, testname, u""))
-            elif art == u"clashgroup":
-                gruppe = _clash_aus_xml(eintrag, testname, u"")
-                innen = _kind(eintrag, u"clashresults")
-                for kind in (_kinder(innen, u"clashresult")
-                             if innen is not None else []):
-                    clash = _clash_aus_xml(kind, testname, gruppe.name)
-                    if clash.punkt is None:
-                        clash.punkt = gruppe.punkt
-                    gefunden.append(clash)
-        for clash in gefunden:
-            _skaliere(clash, testfaktor)
-        clashes.extend(gefunden)
-
     if not tests:
         raise Fehler(t(u"Die XML-Datei enthält keine Kollisionstests.\n"
                        u"Erwartet wird ein Bericht aus dem Clash Detective "
@@ -436,7 +410,154 @@ def lies_xml(pfad):
                        u"El archivo XML no contiene pruebas de conflictos.\n"
                        u"Se espera un informe de Clash Detective en formato "
                        u"\"XML\"."))
+    clashes = [clash for _knoten, clash in _xml_ergebnisse(wurzel)]
     return Bericht(pfad, _eindeutig(clashes), u"XML")
+
+
+def _xml_ergebnisse(wurzel):
+    """[(clashresult-Knoten, Clash)] in Berichtsreihenfolge - dieselbe
+    Reihenfolge beim Lesen und beim Export, damit die Schlüssel passen."""
+    faktor = einheit_faktor(wurzel.get(u"units"))
+    paare = []
+    for test in [k for k in wurzel.iter() if _lokal(k.tag) == u"clashtest"]:
+        testname = test.get(u"name") or u""
+        stapel = _kind(test, u"clashresults")
+        if stapel is None:
+            continue
+        testfaktor = einheit_faktor(test.get(u"units"), faktor)
+        gefunden = []
+        for eintrag in list(stapel):
+            art = _lokal(eintrag.tag)
+            if art == u"clashresult":
+                gefunden.append(
+                    (eintrag, _clash_aus_xml(eintrag, testname, u"")))
+            elif art == u"clashgroup":
+                gruppe = _clash_aus_xml(eintrag, testname, u"")
+                innen = _kind(eintrag, u"clashresults")
+                for kind in (_kinder(innen, u"clashresult")
+                             if innen is not None else []):
+                    clash = _clash_aus_xml(kind, testname, gruppe.name)
+                    if clash.punkt is None:
+                        clash.punkt = gruppe.punkt
+                    gefunden.append((kind, clash))
+        for _knoten, clash in gefunden:
+            _skaliere(clash, testfaktor)
+        paare.extend(gefunden)
+    return paare
+
+
+# ---------------------------------------------------------------------------
+# XML-Export: Bewertungen in eine Kopie des Berichts schreiben
+# ---------------------------------------------------------------------------
+
+# Status dieses Werkzeugs -> Attribut "status" in Navisworks
+NAVIS_STATUS = {
+    NEU: u"new",
+    AKTIV: u"active",
+    GEPRUEFT: u"reviewed",
+    GENEHMIGT: u"approved",
+    BEHOBEN: u"resolved",
+}
+
+# Kennung der Kommentare, die der Export schreibt - beim erneuten Export
+# einer exportierten Datei werden sie ersetzt statt verdoppelt
+KOMMENTAR_MARKE = u"[pyMLG]"
+
+
+def kommentar_text(eintrag):
+    """Inhalt des Export-Kommentars: Klasse und Kommentar der Bewertung."""
+    teile = []
+    if eintrag.get(u"klasse"):
+        teile.append(t(u"Klasse: %s", u"Class: %s", u"Clase: %s")
+                     % eintrag[u"klasse"])
+    if eintrag.get(u"kommentar"):
+        teile.append(eintrag[u"kommentar"])
+    if not teile:
+        return u""
+    return u"%s %s" % (KOMMENTAR_MARKE, u" | ".join(teile))
+
+
+def _datum_knoten(eltern, zeit):
+    """<createddate><date year=".." .../></createddate> aus
+    'JJJJ-MM-TT HH:MM'."""
+    treffer = re.match(r"(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?",
+                       zeit or u"")
+    if not treffer:
+        return
+    werte = [int(teil or 0) for teil in treffer.groups()] + [0]
+    datum = ET.SubElement(ET.SubElement(eltern, u"createddate"), u"date")
+    for name, wert in zip((u"year", u"month", u"day", u"hour", u"minute",
+                           u"second"), werte):
+        datum.set(name, u"%d" % wert)
+
+
+def _bewerte_knoten(knoten, eintrag, status_texte):
+    status = eintrag.get(u"status")
+    if status in NAVIS_STATUS:
+        knoten.set(u"status", NAVIS_STATUS[status])
+        anzeige = _kind(knoten, u"resultstatus")
+        if anzeige is not None:
+            anzeige.text = status_texte.get(status, NAVIS_STATUS[status])
+
+    kommentare = _kind(knoten, u"comments")
+    if kommentare is not None:
+        for alt in _kinder(kommentare, u"comment"):
+            if _text(alt, u"body").startswith(KOMMENTAR_MARKE):
+                kommentare.remove(alt)
+    text = kommentar_text(eintrag)
+    if not text:
+        return
+    if kommentare is None:
+        kommentare = ET.Element(u"comments")
+        kinder = list(knoten)
+        stelle = len(kinder)
+        for index, kind in enumerate(kinder):
+            if _lokal(kind.tag) == u"clashobjects":
+                stelle = index
+                break
+        knoten.insert(stelle, kommentare)
+    nummern = [ganzzahl(k.get(u"id")) or 0
+               for k in _kinder(kommentare, u"comment")]
+    neu = ET.SubElement(kommentare, u"comment")
+    neu.set(u"id", u"%d" % (max(nummern + [0]) + 1))
+    neu.set(u"status", knoten.get(u"status") or u"new")
+    ET.SubElement(neu, u"user").text = eintrag.get(u"von") or u"pyMLG"
+    ET.SubElement(neu, u"body").text = text
+    _datum_knoten(neu, eintrag.get(u"zeit"))
+
+
+def schreibe_xml(quelle, ziel, eintraege, status_texte=None):
+    """Den XML-Bericht 'quelle' mit den Bewertungen nach 'ziel' schreiben.
+
+    Je bewerteter Kollision: Attribut status (new/active/reviewed/approved/
+    resolved), <resultstatus> als Anzeigetext und ein Kommentar mit Klasse
+    und Kommentar. Alles andere bleibt wie im Original - die Datei lässt
+    sich wieder laden oder weitergeben.
+
+    eintraege     {schluessel: eintrag} aus speicher.py
+    status_texte  {status: Anzeigetext} für <resultstatus>
+    Rückgabe: Zahl der Kollisionen mit Bewertung.
+    """
+    try:
+        baum = ET.parse(quelle)
+    except Exception as fehler:
+        raise Fehler(t(u"Die XML-Datei lässt sich nicht lesen:\n%s",
+                       u"The XML file cannot be read:\n%s",
+                       u"No se puede leer el archivo XML:\n%s") % fehler)
+    paare = _xml_ergebnisse(baum.getroot())
+    _eindeutig([clash for _knoten, clash in paare])
+    anzahl = 0
+    for knoten, clash in paare:
+        eintrag = eintraege.get(clash.schluessel)
+        if eintrag:
+            _bewerte_knoten(knoten, eintrag, status_texte or {})
+            anzahl += 1
+    zwischen = ziel + u".tmp"
+    baum.write(zwischen, encoding="utf-8", xml_declaration=True)
+    if os.path.exists(ziel):
+        os.remove(ziel)
+    os.rename(zwischen, ziel)
+    return anzahl
 
 
 # ---------------------------------------------------------------------------

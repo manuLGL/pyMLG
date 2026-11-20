@@ -97,6 +97,18 @@ def speicherpfad(berichtpfad):
         os.path.basename(berichtpfad), kennung, ENDUNG))
 
 
+def uebertrage(pfad, eintraege):
+    """Bewertungen in eine (andere) Speicherdatei übernehmen - für den
+    exportierten Bericht. Vorhandene Einträge dort bleiben, gleiche
+    Schlüssel werden überschrieben."""
+    daten = _lies_json(pfad) or {}
+    vorhanden = dict(daten.get(u"clashes") or {})
+    vorhanden.update(copy.deepcopy(eintraege))
+    daten[u"version"] = VERSION
+    daten[u"clashes"] = vorhanden
+    _schreibe_json(pfad, daten)
+
+
 class Speicher(object):
     """Bewertungen eines Berichts mit Rückgängig-Stapel.
 

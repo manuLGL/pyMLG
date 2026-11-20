@@ -51,7 +51,7 @@ from System.Windows.Markup import XamlReader  # noqa: E402
 from System.Windows.Media import (Color, DoubleCollection,  # noqa: E402
                                   PointCollection, SolidColorBrush)
 from System.Windows.Shapes import Ellipse, Polyline, Rectangle  # noqa: E402
-from Microsoft.Win32 import OpenFileDialog  # noqa: E402
+from Microsoft.Win32 import OpenFileDialog, SaveFileDialog  # noqa: E402
 
 from Autodesk.Revit.UI import ExternalEvent, IExternalEventHandler  # noqa: E402,E501
 from pyrevit import forms  # noqa: E402
@@ -185,6 +185,17 @@ XAML_TEXTE = {
                   u"Clash report from Navisworks: XML (recommended) or CSV.",
                   u"Informe de conflictos de Navisworks: XML (recomendado) "
                   u"o CSV."),
+    "exportieren": (u"XML speichern...", u"Save XML...",
+                    u"Guardar XML..."),
+    "exportieren_tip": (u"Den Bericht mit allen Bewertungen als XML "
+                        u"speichern: Status als Navisworks-Status, Klasse "
+                        u"und Kommentar als Kommentar der Kollision.",
+                        u"Save the report with all reviews as XML: status "
+                        u"as Navisworks status, class and comment as a "
+                        u"clash comment.",
+                        u"Guardar el informe con todas las revisiones como "
+                        u"XML: estado como estado de Navisworks, clase y "
+                        u"comentario como comentario del conflicto."),
     "neu_laden": (u"Neu laden", u"Reload", u"Recargar"),
     "neu_laden_tip": (u"Bericht und Bewertungen neu einlesen - z.B. nach "
                       u"einem neuen Export aus Navisworks oder um den Stand "
@@ -522,6 +533,8 @@ XAML = u"""<Grid %s Background="#F3F3F3" TextElement.FontFamily="Segoe UI"
                       Style="{StaticResource primaer}"/>
               <Button x:Name="neu_laden" Content="{{neu_laden}}"
                       ToolTip="{{neu_laden_tip}}"/>
+              <Button x:Name="exportieren" Content="{{exportieren}}"
+                      ToolTip="{{exportieren_tip}}"/>
             </WrapPanel>
             <TextBlock x:Name="datei_info" Style="{StaticResource klein}"/>
           </StackPanel>
@@ -879,6 +892,7 @@ class ClashPanel(forms.WPFPanel):
         f = self.inhalt.FindName
         f("laden").Click += s(lambda _s, _a: self.laden_dialog())
         self._neu_laden.Click += s(lambda _s, _a: self.neu_laden())
+        f("exportieren").Click += s(lambda _s, _a: self.exportieren())
         self._anwenden.Click += s(lambda _s, _a: self.anwenden())
         self._wie_vorher.Click += s(lambda _s, _a: self.wie_vorher())
         self._rueckgaengig.Click += s(lambda _s, _a: self.rueckgaengig())
@@ -977,6 +991,64 @@ class ClashPanel(forms.WPFPanel):
             self.laden_dialog()
             return
         self.lade(self.bericht.pfad)
+
+    def exportieren(self):
+        """Bericht mit den Bewertungen als XML speichern."""
+        if self.bericht is None or self.speicher is None:
+            meldung(t(u"Zuerst einen Bericht laden.", u"Load a report first.",
+                      u"Primero cargue un informe."))
+            return
+        if self.bericht.format != u"XML":
+            meldung(t(u"Der Export braucht einen XML-Bericht als Vorlage - "
+                      u"geladen ist ein %s-Bericht.\n\nIn Navisworks: Clash "
+                      u"Detective > Berichte > Format \"XML\".",
+                      u"The export needs an XML report as its template - a "
+                      u"%s report is loaded.\n\nIn Navisworks: Clash "
+                      u"Detective > Report > format \"XML\".",
+                      u"La exportación necesita un informe XML como base; "
+                      u"está cargado un informe %s.\n\nEn Navisworks: Clash "
+                      u"Detective > Informe > formato \"XML\".")
+                    % self.bericht.format, warnung=True)
+            return
+        quelle = self.bericht.pfad
+        dialog = SaveFileDialog()
+        dialog.Title = t(u"Bewerteten Bericht speichern",
+                         u"Save reviewed report",
+                         u"Guardar informe revisado")
+        dialog.Filter = u"XML (*.xml)|*.xml"
+        dialog.DefaultExt = u".xml"
+        dialog.InitialDirectory = os.path.dirname(quelle)
+        dialog.FileName = u"%s_%s.xml" % (
+            os.path.splitext(os.path.basename(quelle))[0],
+            t(u"bewertet", u"reviewed", u"revisado"))
+        if not dialog.ShowDialog():
+            return
+        ziel = dialog.FileName
+
+        # Stand der Kollegen mitnehmen
+        self.speicher.neu_laden()
+        eintraege = dict(self.speicher.eintraege)
+        texte = dict((status, lg.status_text(status)) for status in br.STATUS)
+        try:
+            anzahl = br.schreibe_xml(quelle, ziel, eintraege, texte)
+            # Bewertungen mitgeben - lädt man die neue Datei, stehen die
+            # Klassen wieder im Baum
+            if os.path.normcase(os.path.abspath(ziel)) != \
+                    os.path.normcase(os.path.abspath(quelle)):
+                sp.uebertrage(sp.speicherpfad(ziel), eintraege)
+        except (br.Fehler, IOError, OSError) as fehler:
+            meldung(t(u"Der Export ist fehlgeschlagen:\n%s",
+                      u"The export failed:\n%s",
+                      u"La exportación ha fallado:\n%s") % fehler,
+                    warnung=True)
+            return
+        text = t(u"Gespeichert: %s (%d von %d Kollisionen bewertet)",
+                 u"Saved: %s (%d of %d clashes reviewed)",
+                 u"Guardado: %s (%d de %d conflictos revisados)") % (
+                     os.path.basename(ziel), anzahl,
+                     len(self.bericht.clashes))
+        self.log(text)
+        meldung(text)
 
     def lade(self, pfad, still=False):
         try:
