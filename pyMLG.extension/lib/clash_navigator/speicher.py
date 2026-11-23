@@ -141,6 +141,35 @@ class Speicher(object):
         # Stand der Kollegen übernehmen
         self.eintraege = auf_platte
 
+    def uebernimm_aus_xml(self, clashes):
+        """Klasse und Kommentar aus einem exportierten XML-Bericht
+        übernehmen - einmalig je Speicherdatei und nur für Kollisionen ohne
+        eigene Bewertung. So sieht ein Kollege, der nur die XML bekommt,
+        die Klassifizierung; was danach geändert oder gelöscht wird, kommt
+        beim nächsten Laden nicht zurück.
+
+        Rückgabe: Zahl der übernommenen Kollisionen.
+        """
+        daten = _lies_json(self.pfad) or {}
+        if daten.get(u"xml_uebernommen"):
+            return 0
+        neu = {}
+        for clash in clashes:
+            bewertung = getattr(clash, "bewertung_xml", None)
+            if bewertung and clash.schluessel not in self.eintraege:
+                neu[clash.schluessel] = dict(bewertung)
+        if not neu:
+            return 0
+        auf_platte = dict(daten.get(u"clashes") or {})
+        for schluessel, eintrag in neu.items():
+            auf_platte.setdefault(schluessel, eintrag)
+        daten[u"version"] = VERSION
+        daten[u"clashes"] = auf_platte
+        daten[u"xml_uebernommen"] = True
+        _schreibe_json(self.pfad, daten)
+        self.eintraege = auf_platte
+        return len(neu)
+
     def anwenden(self, schluessel_liste, aenderung, beschreibung):
         """aenderung: Felder, die gesetzt werden, z.B. {"status": "geprueft",
         "klasse": "CLR"}. Leere Texte löschen das Feld.

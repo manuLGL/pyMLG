@@ -108,6 +108,8 @@ class Clash(object):
         self.datum = u""
         self.zugewiesen = u""
         self.kommentare_navis = []
+        # Klasse/Kommentar aus einem früheren XML-Export dieses Werkzeugs
+        self.bewertung_xml = {}
         self.objekte = []
 
     @property
@@ -370,8 +372,18 @@ def _clash_aus_xml(knoten, test, gruppe):
     if kommentare is not None:
         for kommentar in _kinder(kommentare, u"comment"):
             text = _text(kommentar, u"body")
+            benutzer = _text(kommentar, u"user")
+            if text.startswith(KOMMENTAR_MARKE):
+                # vom Export dieses Werkzeugs geschrieben
+                clash.bewertung_xml = bewertung_aus_kommentar(text)
+                if clash.bewertung_xml:
+                    if benutzer:
+                        clash.bewertung_xml[u"von"] = benutzer
+                    zeit = _datum(_kind(kommentar, u"createddate"))
+                    if zeit:
+                        clash.bewertung_xml[u"zeit"] = zeit
+                continue
             if text:
-                benutzer = _text(kommentar, u"user")
                 clash.kommentare_navis.append(
                     u"%s: %s" % (benutzer, text) if benutzer else text)
 
@@ -475,6 +487,25 @@ def kommentar_text(eintrag):
     if not teile:
         return u""
     return u"%s %s" % (KOMMENTAR_MARKE, u" | ".join(teile))
+
+
+_KLASSE_PRAEFIXE = (u"Klasse:", u"Class:", u"Clase:")
+
+
+def bewertung_aus_kommentar(text):
+    """Umkehrung von kommentar_text: '[pyMLG] Klasse: CLR | passt' ->
+    {"klasse": "CLR", "kommentar": "passt"}."""
+    rest = (text or u"")[len(KOMMENTAR_MARKE):].strip()
+    bewertung = {}
+    for praefix in _KLASSE_PRAEFIXE:
+        if rest.startswith(praefix):
+            klasse, _trenner, rest = rest[len(praefix):].partition(u" | ")
+            if klasse.strip():
+                bewertung[u"klasse"] = klasse.strip()
+            break
+    if rest.strip():
+        bewertung[u"kommentar"] = rest.strip()
+    return bewertung
 
 
 def _datum_knoten(eltern, zeit):

@@ -46,7 +46,7 @@ from System.Windows.Controls import (Border, Canvas, ComboBoxItem,  # noqa: E402
                                      Orientation, StackPanel, TextBlock,
                                      TreeViewItem)
 from System.Windows.Documents import Run  # noqa: E402
-from System.Windows.Input import Cursors  # noqa: E402
+from System.Windows.Input import Cursors, Key  # noqa: E402
 from System.Windows.Markup import XamlReader  # noqa: E402
 from System.Windows.Media import (Color, DoubleCollection,  # noqa: E402
                                   PointCollection, SolidColorBrush)
@@ -920,11 +920,33 @@ class ClashPanel(forms.WPFPanel):
             box = getattr(self, "_" + name)
             box.Checked += s(option_geaendert)
             box.Unchecked += s(option_geaendert)
-        for name in ("schnitt", "auswaehlen", "aktive_ansicht", "weiter"):
+        def kasten_geaendert(_s, _a):
+            """Rand/Schnittbox geändert: die gewählte Kollision gleich
+            neu zeigen - nicht erst eine andere anklicken."""
+            vorher = (self.einstellungen.get(u"rand_cm"),
+                      self.einstellungen.get(u"schnitt"),
+                      self.einstellungen.get(u"koordinaten"))
+            self._speichere_einstellungen()
+            nachher = (self.einstellungen.get(u"rand_cm"),
+                       self.einstellungen.get(u"schnitt"),
+                       self.einstellungen.get(u"koordinaten"))
+            clash = self._clash(self.aktuell)
+            if nachher != vorher and clash is not None:
+                self.springe(clash)
+
+        def rand_taste(_s, args):
+            if args.Key in (Key.Enter, Key.Return):
+                args.Handled = True
+                kasten_geaendert(_s, args)
+
+        for name in ("auswaehlen", "aktive_ansicht", "weiter"):
             box = getattr(self, "_" + name)
             box.Checked += s(nur_speichern)
             box.Unchecked += s(nur_speichern)
-        self._rand.LostFocus += s(nur_speichern)
+        self._schnitt.Checked += s(kasten_geaendert)
+        self._schnitt.Unchecked += s(kasten_geaendert)
+        self._rand.LostFocus += s(kasten_geaendert)
+        self._rand.KeyDown += s(rand_taste)
         self._abstand.LostFocus += s(nur_speichern)
         for name in ("winkel45", "winkel90"):
             box = getattr(self, "_" + name)
@@ -938,7 +960,7 @@ class ClashPanel(forms.WPFPanel):
             lambda _s, _a: self.vorrang_standard())
         self._uebernehmen.Click += s(lambda _s, _a: self.uebernehme())
         self._vorschau_weg.Click += s(lambda _s, _a: self.entferne_vorschau())
-        self._koordinaten.SelectionChanged += s(nur_speichern)
+        self._koordinaten.SelectionChanged += s(kasten_geaendert)
         self._ebene1.SelectionChanged += s(option_geaendert)
         self._ebene2.SelectionChanged += s(option_geaendert)
 
@@ -1059,6 +1081,18 @@ class ClashPanel(forms.WPFPanel):
                 meldung(u"%s" % fehler, warnung=True)
             return
         speicher = sp.Speicher(sp.speicherpfad(pfad))
+        try:
+            uebernommen = speicher.uebernimm_aus_xml(bericht.clashes)
+        except (IOError, OSError) as fehler:
+            uebernommen = 0
+            self.log(t(u"Bewertungen aus der XML nicht gespeichert: %s",
+                       u"Reviews from the XML not saved: %s",
+                       u"Revisiones del XML no guardadas: %s") % fehler)
+        if uebernommen:
+            self.log(t(u"%d Bewertung(en) aus dem XML-Export übernommen.",
+                       u"%d review(s) taken from the XML export.",
+                       u"%d revisión(es) tomadas de la exportación XML.")
+                     % uebernommen)
         # Rückgängig bleibt beim Neuladen desselben Berichts erhalten
         if self.speicher is not None and self.speicher.pfad == speicher.pfad:
             speicher.stapel = self.speicher.stapel

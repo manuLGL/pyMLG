@@ -635,9 +635,10 @@ def test_xml_export_rundreise():
 
         eins, zwei, drei = br.lies(ziel).clashes
         assert eins.status_navis == br.GEPRUEFT
-        assert eins.kommentare_navis == [
-            u"Ana: Bitte prüfen",
-            u"manuel: [pyMLG] Klasse: CLR | passt so"]
+        assert eins.kommentare_navis == [u"Ana: Bitte prüfen"]
+        assert eins.bewertung_xml == {
+            u"klasse": u"CLR", u"kommentar": u"passt so",
+            u"von": u"manuel", u"zeit": u"2026-11-20 09:30"}
         assert zwei.status_navis == br.GEPRUEFT     # unverändert
         assert drei.status_navis == br.AKTIV
         assert drei.kommentare_navis == []          # ohne Klasse/Kommentar
@@ -657,8 +658,44 @@ def test_xml_export_rundreise():
         noch_mal = os.path.join(ordner, "b2.xml")
         br.schreibe_xml(ziel, noch_mal, eintraege)
         eins = br.lies(noch_mal).clashes[0]
-        assert eins.kommentare_navis == [
-            u"Ana: Bitte prüfen", u"manuel: [pyMLG] Klasse: CLR | neu"]
+        assert eins.kommentare_navis == [u"Ana: Bitte prüfen"]
+        assert eins.bewertung_xml[u"kommentar"] == u"neu"
+        with io.open(noch_mal, encoding="utf-8") as datei:
+            assert datei.read().count(br.KOMMENTAR_MARKE) == 1
+
+
+def test_bewertung_aus_kommentar():
+    f = br.bewertung_aus_kommentar
+    assert f(u"[pyMLG] Klasse: CLR | a | b") == {u"klasse": u"CLR",
+                                                 u"kommentar": u"a | b"}
+    assert f(u"[pyMLG] Class: TGA") == {u"klasse": u"TGA"}
+    assert f(u"[pyMLG] nur Text") == {u"kommentar": u"nur Text"}
+
+
+def test_kollege_bekommt_nur_die_xml():
+    """Export ohne .pymlg.json weitergegeben: Klassen kommen aus der XML,
+    einmalig - spätere Änderungen gelten."""
+    with Ordner() as ordner:
+        quelle = schreibe(ordner, "b.xml", XML)
+        ziel = os.path.join(ordner, "export.xml")
+        br.schreibe_xml(quelle, ziel, {
+            u"aaa-111": {u"status": br.GEPRUEFT, u"klasse": u"TWP",
+                         u"kommentar": u"Tragwerk"}})
+        bericht = br.lies(ziel)
+        speicher = sp.Speicher(sp.speicherpfad(ziel))
+        assert speicher.uebernimm_aus_xml(bericht.clashes) == 1
+        eintraege = speicher.eintraege
+        assert lg.klasse(eintraege[u"aaa-111"]) == u"TWP"
+        zweige = [w for w, _ in lg.baum(bericht.clashes, eintraege,
+                                         u"klasse")]
+        assert u"TWP" in zweige
+
+        # Klasse gelöscht -> kommt beim erneuten Laden nicht zurück
+        speicher.anwenden([u"aaa-111"], {u"klasse": u"", u"kommentar": u""},
+                          u"leeren")
+        neu = sp.Speicher(sp.speicherpfad(ziel))
+        assert neu.uebernimm_aus_xml(br.lies(ziel).clashes) == 0
+        assert u"aaa-111" not in neu.eintraege
 
 
 def test_speicher_uebertragen():
